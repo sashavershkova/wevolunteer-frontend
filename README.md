@@ -1,75 +1,151 @@
-# React + TypeScript + Vite
+# WeVolunteer Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript frontend for the WeVolunteer capstone project.
 
-Currently, two official plugins are available:
+The frontend provides the user interface for volunteers and organizations to browse volunteer opportunities, manage registrations, and administer volunteer events. It communicates with the Spring Boot backend through a REST API and uses Amazon Cognito for authentication.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## Current Status
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The frontend has been initialized with:
 
-## Expanding the ESLint configuration
+- React
+- TypeScript
+- Vite
+- ESLint
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Authentication and application features are currently under development.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- React
+- TypeScript
+- Vite
+- Amazon Cognito
+- Spring Boot REST API
+- AWS
 
+---
+
+## Prerequisites
+
+Before running the application, install:
+
+- Node.js (v22 or newer LTS recommended)
+- npm
+- Git
+- Visual Studio Code (recommended)
+
+---
+
+## Clone the repository
+
+```bash
+git clone https://github.com/sashavershkova/wevolunteer-frontend.git
+cd wevolunteer-frontend
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Install dependencies
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
 ```
+
+---
+
+## Running the application
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The application will be available at:
+
+```text
+http://localhost:5173
+```
+
+---
+
+## Backend
+
+The frontend communicates with the WeVolunteer Spring Boot backend.
+
+Before testing the frontend, make sure the backend is running locally.
+
+Default backend URL:
+
+```text
+http://localhost:8080
+```
+
+---
+
+## Authentication
+
+Authentication is provided by Amazon Cognito.
+
+Supported user roles:
+
+- Volunteer
+- Organization
+
+Cognito integration is currently in progress.
+
+---
+
+## Available Scripts
+
+Start development server:
+
+```bash
+npm run dev
+```
+
+Build production bundle:
+
+```bash
+npm run build
+```
+
+Run ESLint:
+
+```bash
+npm run lint
+```
+
+Preview production build locally:
+
+```bash
+npm run preview
+```
+
+---
+
+## Roadmap
+
+Planned MVP features include:
+
+- User authentication with Amazon Cognito
+- Volunteer registration and login
+- Organization registration and login
+- Browse volunteer opportunities
+- Opportunity filtering
+- Opportunity details
+- Volunteer registrations
+- Organization dashboard
+- Opportunity management
+- Responsive design
+
+---
+
+## Team
+
+WeVolunteer is the Cloud Capstone project for Ada Developers Academy C25.
