@@ -8,14 +8,15 @@ The frontend provides the user interface for volunteers and organizations to bro
 
 ## Current Status
 
-The frontend has been initialized with:
+The frontend currently includes:
 
-- React
-- TypeScript
-- Vite
-- ESLint
+- React + TypeScript + Vite
+- Amazon Cognito authentication
+- Protected routes
+- React Router
+- Environment-based configuration
 
-Authentication and application features are currently under development.
+Application features are currently under development.
 
 ---
 
@@ -41,32 +42,34 @@ Before running the application, install:
 
 ---
 
-## Clone the repository
+## Quick Start
+
+1. Clone the repository
 
 ```bash
 git clone https://github.com/sashavershkova/wevolunteer-frontend.git
 cd wevolunteer-frontend
 ```
 
----
-
-## Install dependencies
+2. Install dependencies
 
 ```bash
 npm install
 ```
 
----
+3. Create your local environment file
 
-## Running the application
+```bash
+cp .env.example .env.local
+```
 
-Start the development server:
+4. Start the development server
 
 ```bash
 npm run dev
 ```
 
-The application will be available at:
+5. Open the application
 
 ```text
 http://localhost:5173
@@ -80,7 +83,7 @@ The frontend communicates with the WeVolunteer Spring Boot backend.
 
 Before testing the frontend, make sure the backend is running locally.
 
-Default backend URL:
+The default backend URL is configured through the environment variables:
 
 ```text
 http://localhost:8080
@@ -88,18 +91,51 @@ http://localhost:8080
 
 ---
 
-## Authentication
 
-Authentication is provided by Amazon Cognito.
+## Environment Variables
 
-Supported user roles:
+Create a local environment file before running the application:
 
-- Volunteer
-- Organization
+```bash
+cp .env.example .env.local
+```
 
-Cognito integration is currently in progress.
+The default values in `.env.example` are configured for local development and the shared capstone AWS resources.
 
 ---
+
+## Authentication
+
+Authentication is implemented using Amazon Cognito.
+
+Current functionality:
+
+- Hosted UI sign in
+- Hosted UI sign out
+- Protected routes
+- React authentication context
+
+The authenticated user's Cognito identity is available throughout the application via the shared Auth Context.
+
+---
+
+## Project Structure
+
+```text
+src/
+├── assets/          # Images and static assets
+├── components/      # Reusable UI components
+├── config/          # Environment configuration
+├── contexts/        # React Context providers
+├── hooks/           # Custom React hooks
+├── layouts/         # Shared page layouts
+├── pages/           # Application pages
+├── routes/          # Routing and protected routes
+├── services/        # API and authentication services
+├── styles/          # Global styles
+├── types/           # Shared TypeScript types
+└── utils/           # Helper functions
+```
 
 ## Available Scripts
 
@@ -133,9 +169,7 @@ npm run preview
 
 Planned MVP features include:
 
-- User authentication with Amazon Cognito
-- Volunteer registration and login
-- Organization registration and login
+- User profile creation after Cognito authentication
 - Browse volunteer opportunities
 - Opportunity filtering
 - Opportunity details

@@ -1,8 +1,5 @@
 import type { User } from 'oidc-client-ts'
-
-const clientId = '4sebse901tqd7tj4l8jnchpafg'
-const logoutUri = 'http://localhost:5173'
-const cognitoDomain = 'https://us-east-1dt3p8sftj.auth.us-east-1.amazoncognito.com'
+import { env } from '../../config/env'
 
 export function getUserEmail(user: User | null | undefined): string {
   return user?.profile.email ?? ''
@@ -17,6 +14,6 @@ export function getAccessToken(user: User | null | undefined): string {
 }
 
 export function signOutFromCognito(): void {
-  const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`
+  const logoutUrl = `${env.cognitoDomain}/logout?client_id=${env.cognitoClientId}&logout_uri=${encodeURIComponent(env.cognitoLogoutUri)}`
   window.location.assign(logoutUrl)
 }
