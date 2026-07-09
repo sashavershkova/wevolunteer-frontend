@@ -1,4 +1,9 @@
 import { useAuth } from 'react-oidc-context'
+import {
+  getUserEmail,
+  getUserId,
+  signOutFromCognito,
+} from './services/auth/authService'
 import './App.css'
 
 function App() {
@@ -25,10 +30,17 @@ function App() {
   return (
     <main>
       <h1>Welcome to WeVolunteer</h1>
-      <p><strong>Email:</strong> {auth.user?.profile.email}</p>
-      <p><strong>User ID:</strong> {auth.user?.profile.sub}</p>
+      <p><strong>Email:</strong> {getUserEmail(auth.user)}</p>
+      <p><strong>User ID:</strong> {getUserId(auth.user)}</p>
 
-      <button onClick={() => auth.removeUser()}>Sign out</button>
+      <button
+        onClick={async () => {
+          await auth.removeUser()
+          signOutFromCognito()
+        }}
+      >
+        Sign out
+      </button>
     </main>
   )
 }
