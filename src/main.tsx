@@ -5,13 +5,16 @@ import './index.css'
 import App from './App.tsx'
 import { cognitoAuthConfig } from './services/auth/cognitoConfig.ts'
 import { AuthProvider } from './contexts/AuthContext.tsx'
+import { BrowserRouter } from 'react-router-dom'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <OidcAuthProvider {...cognitoAuthConfig}>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </OidcAuthProvider>
+    <BrowserRouter>
+      <OidcAuthProvider {...cognitoAuthConfig}>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </OidcAuthProvider>
+    </BrowserRouter>
   </StrictMode>,
 )
