@@ -20,7 +20,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-export function AppAuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth()
 
   const signIn = () => {
@@ -50,7 +50,7 @@ export function useAppAuth() {
   const context = useContext(AuthContext)
 
   if (!context) {
-    throw new Error('useAppAuth must be used inside AppAuthProvider')
+    throw new Error('useAppAuth must be used inside AuthProvider')
   }
 
   return context
