@@ -1,0 +1,23 @@
+.onboarding-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.onboarding-card {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.onboarding-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.onboarding-card fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
