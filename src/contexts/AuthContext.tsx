@@ -4,6 +4,7 @@ import {
   getUserEmail,
   getUserId,
   getAccessToken,
+  signUpWithCognito,
   signOutFromCognito,
 } from '../services/auth/authService'
 
@@ -16,6 +17,7 @@ type AuthContextValue = {
   accessToken: string
   signIn: () => void
   signOut: () => Promise<void>
+  signUp: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -32,6 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOutFromCognito()
   }
 
+  const signUp = () => {
+    signUpWithCognito()
+  }
+
   const value: AuthContextValue = {
     isLoading: auth.isLoading,
     isAuthenticated: auth.isAuthenticated,
@@ -40,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     userId: getUserId(auth.user),
     accessToken: getAccessToken(auth.user),
     signIn,
+    signUp,
     signOut,
   }
 

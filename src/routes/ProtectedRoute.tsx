@@ -26,7 +26,17 @@ function ProtectedRoute() {
       <main>
         <h1>WeVolunteer</h1>
         <p>Please sign in to continue.</p>
-        <button onClick={auth.signIn}>Sign in</button>
+
+        <button type="button" onClick={auth.signIn}>
+          Sign in
+        </button>
+
+        <p>
+          Don&apos;t have an account?{' '}
+          <button type="button" onClick={auth.signUp}>
+            Sign up
+          </button>
+        </p>
       </main>
     )
   }
