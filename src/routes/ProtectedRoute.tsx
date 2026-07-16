@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { useAppAuth } from '../contexts/AuthContext'
+import LoginPage from '../pages/Login/LoginPage'
 
 function ProtectedRoute() {
   const auth = useAppAuth()
@@ -22,23 +23,7 @@ function ProtectedRoute() {
   }
 
   if (!auth.isAuthenticated) {
-    return (
-      <main>
-        <h1>WeVolunteer</h1>
-        <p>Please sign in to continue.</p>
-
-        <button type="button" onClick={auth.signIn}>
-          Sign in
-        </button>
-
-        <p>
-          Don&apos;t have an account?{' '}
-          <button type="button" onClick={auth.signUp}>
-            Sign up
-          </button>
-        </p>
-      </main>
-    )
+    return <LoginPage />
   }
 
   return <Outlet />
