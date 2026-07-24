@@ -1,20 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { useAppAuth } from '../../contexts/AuthContext'
-import {
-  createCurrentUser,
-  type UserProfile,
-} from '../../services/api/userService'
+import { createCurrentUser } from '../../services/api/userService'
 import './OnboardingPage.css'
 
 type UserRole = 'VOLUNTEER' | 'ORGANIZATION'
 
-type OnboardingPageProps = {
-  onProfileCreated: (profile: UserProfile) => void
-}
-
-function OnboardingPage({
-  onProfileCreated,
-}: OnboardingPageProps) {
+function OnboardingPage() {
   const auth = useAppAuth()
 
   const [name, setName] = useState('')
@@ -40,7 +31,7 @@ function OnboardingPage({
         role,
       })
 
-      onProfileCreated(profile)
+      auth.updateUserProfile(profile)
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -53,63 +44,61 @@ function OnboardingPage({
   }
 
   return (
-    <main className="onboarding-page">
-      <section className="onboarding-card">
-        <h1>Complete your profile</h1>
+    <main>
+      <h1>Complete your profile</h1>
 
-        <p>
-          Your account is ready. Please give us a little more information so
-          we can set up your WeVolunteer profile.
-        </p>
+      <p>
+        Your account is ready. Please give us a little more information so we
+        can set up your WeVolunteer profile.
+      </p>
 
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="name">Name</label>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Name
           <input
-            id="name"
-            name="name"
             type="text"
             value={name}
             onChange={(event) => setName(event.target.value)}
             required
           />
+        </label>
 
-          <fieldset>
-            <legend>Account type</legend>
+        <fieldset>
+          <legend>Account type</legend>
 
-            <label>
-              <input
-                type="radio"
-                name="role"
-                value="VOLUNTEER"
-                checked={role === 'VOLUNTEER'}
-                onChange={() => setRole('VOLUNTEER')}
-              />
-              Volunteer
-            </label>
+          <label>
+            <input
+              type="radio"
+              name="role"
+              value="VOLUNTEER"
+              checked={role === 'VOLUNTEER'}
+              onChange={() => setRole('VOLUNTEER')}
+            />
+            Volunteer
+          </label>
 
-            <label>
-              <input
-                type="radio"
-                name="role"
-                value="ORGANIZATION"
-                checked={role === 'ORGANIZATION'}
-                onChange={() => setRole('ORGANIZATION')}
-              />
-              Organization
-            </label>
-          </fieldset>
+          <label>
+            <input
+              type="radio"
+              name="role"
+              value="ORGANIZATION"
+              checked={role === 'ORGANIZATION'}
+              onChange={() => setRole('ORGANIZATION')}
+            />
+            Organization
+          </label>
+        </fieldset>
 
-          {errorMessage && <p role="alert">{errorMessage}</p>}
+        {errorMessage && <p>{errorMessage}</p>}
 
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating profile...' : 'Create profile'}
-          </button>
-        </form>
-
-        <button type="button" onClick={auth.signOut}>
-          Sign out
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Creating profile...' : 'Create profile'}
         </button>
-      </section>
+      </form>
+
+      <button type="button" onClick={auth.signOut}>
+        Sign out
+      </button>
     </main>
   )
 }

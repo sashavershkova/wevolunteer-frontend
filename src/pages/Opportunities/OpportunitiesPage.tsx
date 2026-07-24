@@ -1,32 +1,10 @@
-import { useEffect, useState } from 'react'
 import { useAppAuth } from '../../contexts/AuthContext'
-import {
-  getCurrentUser,
-  type UserProfile,
-} from '../../services/api/userService'
 import OnboardingPage from '../Onboarding/OnboardingPage'
 
 function OpportunitiesPage() {
   const auth = useAppAuth()
 
-  const [profile, setProfile] = useState<
-    UserProfile | null | undefined
-  >(undefined)
-
-  useEffect(() => {
-    async function loadProfile() {
-      if (!auth.accessToken) {
-        return
-      }
-
-      const user = await getCurrentUser(auth.accessToken)
-      setProfile(user)
-    }
-
-    void loadProfile()
-  }, [auth.accessToken])
-
-  if (profile === undefined) {
+  if (auth.isProfileLoading) {
     return (
       <main>
         <h1>Loading your profile...</h1>
@@ -34,16 +12,29 @@ function OpportunitiesPage() {
     )
   }
 
-  if (profile === null) {
-    return <OnboardingPage onProfileCreated={setProfile} />
+  if (auth.profileErrorMessage) {
+    return (
+      <main>
+        <h1>Unable to load your profile</h1>
+        <p>{auth.profileErrorMessage}</p>
+
+        <button type="button" onClick={auth.signOut}>
+          Sign out
+        </button>
+      </main>
+    )
+  }
+
+  if (auth.userProfile === null) {
+    return <OnboardingPage />
   }
 
   return (
     <main>
       <h1>Opportunities</h1>
 
-      <p>Welcome, {profile.name}!</p>
-      <p>Role: {profile.role}</p>
+      <p>Welcome, {auth.userProfile.name}!</p>
+      <p>Role: {auth.userProfile.role}</p>
 
       <button type="button" onClick={auth.signOut}>
         Sign out
