@@ -1,3 +1,4 @@
+import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import OnboardingPage from '../Onboarding/OnboardingPage'
 
@@ -23,6 +24,10 @@ function OpportunitiesPage() {
         </button>
       </main>
     )
+  }
+
+  if (auth.organizationProfile !== null) {
+    return <Navigate to="/organization" replace />
   }
 
   if (auth.userProfile === null) {

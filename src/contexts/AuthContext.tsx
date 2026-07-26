@@ -11,6 +11,10 @@ import {
   getCurrentUser,
   type UserProfile,
 } from '../services/api/userService'
+import {
+  getCurrentOrganization,
+  type OrganizationProfile,
+} from '../services/api/organizationService'
 
 type AuthContextValue = {
   isLoading: boolean
@@ -20,9 +24,13 @@ type AuthContextValue = {
   userId: string
   accessToken: string
   userProfile: UserProfile | null
+  organizationProfile: OrganizationProfile | null
   isProfileLoading: boolean
   profileErrorMessage: string | null
   updateUserProfile: (profile: UserProfile | null) => void
+  updateOrganizationProfile: (
+    profile: OrganizationProfile | null,
+  ) => void
   signIn: () => void
   signOut: () => Promise<void>
   signUp: () => void
@@ -35,6 +43,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const accessToken = getAccessToken(auth.user)
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [organizationProfile, setOrganizationProfile] =
+    useState<OrganizationProfile | null>(null)
   const [isProfileLoading, setIsProfileLoading] = useState(false)
   const [profileErrorMessage, setProfileErrorMessage] = useState<string | null>(
     null,
@@ -45,20 +55,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (!auth.isAuthenticated || !accessToken) {
       setUserProfile(null)
+      setOrganizationProfile(null)
       setIsProfileLoading(false)
       setProfileErrorMessage(null)
       return
     }
 
-    const loadUserProfile = async () => {
+    const loadProfile = async () => {
       setIsProfileLoading(true)
       setProfileErrorMessage(null)
 
       try {
-        const profile = await getCurrentUser(accessToken)
+        const currentUser = await getCurrentUser(accessToken)
+
+        if (ignore) {
+          return
+        }
+
+        if (currentUser) {
+          setUserProfile(currentUser)
+          setOrganizationProfile(null)
+          return
+        }
+
+        const currentOrganization =
+          await getCurrentOrganization(accessToken)
 
         if (!ignore) {
-          setUserProfile(profile)
+          setUserProfile(null)
+          setOrganizationProfile(currentOrganization)
         }
       } catch (error) {
         if (ignore) {
@@ -66,11 +91,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setUserProfile(null)
+        setOrganizationProfile(null)
 
         if (error instanceof Error) {
           setProfileErrorMessage(error.message)
         } else {
-          setProfileErrorMessage('Unable to load user profile')
+          setProfileErrorMessage('Unable to load account profile')
         }
       } finally {
         if (!ignore) {
@@ -79,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    void loadUserProfile()
+    void loadProfile()
 
     return () => {
       ignore = true
@@ -88,6 +114,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateUserProfile = (profile: UserProfile | null) => {
     setUserProfile(profile)
+    setOrganizationProfile(null)
+    setProfileErrorMessage(null)
+  }
+
+  const updateOrganizationProfile = (
+    profile: OrganizationProfile | null,
+  ) => {
+    setOrganizationProfile(profile)
+    setUserProfile(null)
     setProfileErrorMessage(null)
   }
 
@@ -112,9 +147,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     userId: getUserId(auth.user),
     accessToken,
     userProfile,
+    organizationProfile,
     isProfileLoading,
     profileErrorMessage,
     updateUserProfile,
+    updateOrganizationProfile,
     signIn,
     signUp,
     signOut,

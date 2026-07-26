@@ -1,15 +1,20 @@
 import { useState, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { createCurrentUser } from '../../services/api/userService'
+import { createOrganization } from '../../services/api/organizationService'
 import './OnboardingPage.css'
 
 type UserRole = 'VOLUNTEER' | 'ORGANIZATION'
 
 function OnboardingPage() {
   const auth = useAppAuth()
+  const navigate = useNavigate()
 
   const [name, setName] = useState('')
   const [role, setRole] = useState<UserRole>('VOLUNTEER')
+  const [organizationDescription, setOrganizationDescription] = useState('')
+  const [organizationWebsite, setOrganizationWebsite] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -25,13 +30,25 @@ function OnboardingPage() {
     setErrorMessage(null)
 
     try {
-      const profile = await createCurrentUser(auth.accessToken, {
-        name,
-        email: auth.email,
-        role,
-      })
+      if (role === 'VOLUNTEER') {
+        const profile = await createCurrentUser(auth.accessToken, {
+          name,
+          email: auth.email,
+          role,
+        })
 
-      auth.updateUserProfile(profile)
+        auth.updateUserProfile(profile)
+      } else {
+        const organization = await createOrganization(auth.accessToken, {
+          name,
+          description: organizationDescription,
+          email: auth.email,
+          website: organizationWebsite,
+        })
+
+        auth.updateOrganizationProfile(organization)
+        navigate('/organization', { replace: true })
+      }
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -41,6 +58,11 @@ function OnboardingPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  function handleRoleChange(newRole: UserRole) {
+    setRole(newRole)
+    setErrorMessage(null)
   }
 
   return (
@@ -53,16 +75,6 @@ function OnboardingPage() {
       </p>
 
       <form onSubmit={handleSubmit}>
-        <label>
-          Name
-          <input
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
-        </label>
-
         <fieldset>
           <legend>Account type</legend>
 
@@ -72,7 +84,7 @@ function OnboardingPage() {
               name="role"
               value="VOLUNTEER"
               checked={role === 'VOLUNTEER'}
-              onChange={() => setRole('VOLUNTEER')}
+              onChange={() => handleRoleChange('VOLUNTEER')}
             />
             Volunteer
           </label>
@@ -83,11 +95,55 @@ function OnboardingPage() {
               name="role"
               value="ORGANIZATION"
               checked={role === 'ORGANIZATION'}
-              onChange={() => setRole('ORGANIZATION')}
+              onChange={() => handleRoleChange('ORGANIZATION')}
             />
             Organization
           </label>
         </fieldset>
+
+        <label>
+          {role === 'ORGANIZATION' ? 'Organization name' : 'Name'}
+          <input
+            type="text"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            required
+          />
+        </label>
+
+        {role === 'ORGANIZATION' && (
+          <fieldset>
+            <legend>Organization details</legend>
+
+            <label>
+              Organization email
+              <input type="email" value={auth.email} readOnly />
+            </label>
+
+            <label>
+              Description
+              <textarea
+                value={organizationDescription}
+                onChange={(event) =>
+                  setOrganizationDescription(event.target.value)
+                }
+                required
+              />
+            </label>
+
+            <label>
+              Website
+              <input
+                type="url"
+                value={organizationWebsite}
+                onChange={(event) =>
+                  setOrganizationWebsite(event.target.value)
+                }
+                placeholder="https://example.org"
+              />
+            </label>
+          </fieldset>
+        )}
 
         {errorMessage && <p>{errorMessage}</p>}
 
