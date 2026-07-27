@@ -4,17 +4,18 @@ import {
   getMyRegistrations,
   type Registration,
 } from '../../services/api/registrationService'
+import RegistrationCard from '../../components/registrations/RegistrationCard'
+import './MyRegistrationsPage.css'
 
 function MyRegistrationsPage() {
   const auth = useAppAuth()
 
   const [registrations, setRegistrations] = useState<Registration[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(Boolean(auth.accessToken))
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (!auth.accessToken) {
-      setIsLoading(false)
       return
     }
 
@@ -54,7 +55,8 @@ function MyRegistrationsPage() {
 
   if (isLoading) {
     return (
-      <main>
+      <main className="my-registrations-page">
+        <h1>My Registrations</h1>
         <p>Loading registrations...</p>
       </main>
     )
@@ -62,7 +64,8 @@ function MyRegistrationsPage() {
 
   if (errorMessage) {
     return (
-      <main>
+      <main className="my-registrations-page">
+        <h1>My Registrations</h1>
         <p>{errorMessage}</p>
       </main>
     )
@@ -70,22 +73,24 @@ function MyRegistrationsPage() {
 
   if (registrations.length === 0) {
     return (
-      <main>
+      <main className="my-registrations-page">
+        <h1>My Registrations</h1>
         <p>You have no registrations yet.</p>
       </main>
     )
   }
 
   return (
-    <main>
-      <ul>
+    <main className="my-registrations-page">
+      <h1>My Registrations</h1>
+      <p className="my-registrations-subtitle">
+        View and manage the volunteer opportunities you have joined.
+      </p>
+
+      <ul className="my-registrations-list">
         {registrations.map((registration) => (
           <li key={registration.opportunityId}>
-            <p>{registration.title}</p>
-            <p>{registration.organizationName}</p>
-            <p>{registration.date}</p>
-            <p>{registration.location}</p>
-            <p>{registration.registrationStatus}</p>
+            <RegistrationCard registration={registration} />
           </li>
         ))}
       </ul>

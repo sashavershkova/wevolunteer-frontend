@@ -1,0 +1,28 @@
+.my-registrations-page {
+  max-width: 48rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.my-registrations-subtitle {
+  margin: 0 0 2rem;
+  color: var(--text);
+}
+
+.my-registrations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .my-registrations-page {
+    padding: 1.5rem 1rem;
+  }
+}

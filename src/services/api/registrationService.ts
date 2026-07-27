@@ -29,3 +29,22 @@ export async function getMyRegistrations(
 
   return response.json() as Promise<Registration[]>
 }
+
+export async function cancelMyRegistration(
+  accessToken: string,
+  opportunityId: string,
+): Promise<void> {
+  const response = await fetch(
+    `${env.apiUrl}/registrations/me/${encodeURIComponent(opportunityId)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error(`Unable to cancel registration: ${response.status}`)
+  }
+}
