@@ -1,0 +1,31 @@
+import { env } from '../../config/env'
+
+export type Registration = {
+  userId: string
+  opportunityId: string
+  title: string
+  date: string
+  location: string
+  organizationId: string
+  organizationName: string
+  registrationStatus: string
+  volunteerName: string | null
+  email: string | null
+  registeredAt: string
+}
+
+export async function getMyRegistrations(
+  accessToken: string,
+): Promise<Registration[]> {
+  const response = await fetch(`${env.apiUrl}/registrations/me`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Unable to load registrations: ${response.status}`)
+  }
+
+  return response.json() as Promise<Registration[]>
+}
