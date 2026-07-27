@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAppAuth } from '../../contexts/AuthContext'
 import {
+  cancelMyRegistration,
   getMyRegistrations,
   type Registration,
 } from '../../services/api/registrationService'
@@ -13,6 +14,10 @@ function MyRegistrationsPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([])
   const [isLoading, setIsLoading] = useState(Boolean(auth.accessToken))
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [cancellingOpportunityId, setCancellingOpportunityId] =
+    useState<string | null>(null)
+  const [cancellationErrorMessage, setCancellationErrorMessage] =
+    useState<string | null>(null)
 
   useEffect(() => {
     if (!auth.accessToken) {
@@ -53,6 +58,41 @@ function MyRegistrationsPage() {
     }
   }, [auth.accessToken])
 
+  const handleCancelRegistration = async (opportunityId: string) => {
+    if (!auth.accessToken) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      'Are you sure you want to cancel this registration?',
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setCancellationErrorMessage(null)
+    setCancellingOpportunityId(opportunityId)
+
+    try {
+      await cancelMyRegistration(auth.accessToken, opportunityId)
+
+      setRegistrations((current) =>
+        current.filter(
+          (registration) => registration.opportunityId !== opportunityId,
+        ),
+      )
+    } catch (error) {
+      setCancellationErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to cancel registration',
+      )
+    } finally {
+      setCancellingOpportunityId(null)
+    }
+  }
+
   if (isLoading) {
     return (
       <main className="my-registrations-page">
@@ -87,10 +127,22 @@ function MyRegistrationsPage() {
         View and manage the volunteer opportunities you have joined.
       </p>
 
+      {cancellationErrorMessage && (
+        <p role="alert" className="my-registrations-error">
+          {cancellationErrorMessage}
+        </p>
+      )}
+
       <ul className="my-registrations-list">
         {registrations.map((registration) => (
           <li key={registration.opportunityId}>
-            <RegistrationCard registration={registration} />
+            <RegistrationCard
+              registration={registration}
+              onCancel={handleCancelRegistration}
+              isCancelling={
+                cancellingOpportunityId === registration.opportunityId
+              }
+            />
           </li>
         ))}
       </ul>

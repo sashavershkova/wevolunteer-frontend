@@ -12,6 +12,17 @@
   color: var(--text);
 }
 
+.my-registrations-error {
+  margin: 0 0 1.5rem;
+  color: #b3261e;
+}
+
+@media (prefers-color-scheme: dark) {
+  .my-registrations-error {
+    color: #ff8a80;
+  }
+}
+
 .my-registrations-list {
   display: flex;
   flex-direction: column;

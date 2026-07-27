@@ -21,9 +21,15 @@ function formatStatus(status: string): string {
 
 type RegistrationCardProps = {
   registration: Registration
+  onCancel: (opportunityId: string) => void
+  isCancelling: boolean
 }
 
-function RegistrationCard({ registration }: RegistrationCardProps) {
+function RegistrationCard({
+  registration,
+  onCancel,
+  isCancelling,
+}: RegistrationCardProps) {
   return (
     <article className="registration-card">
       <div className="registration-card-main">
@@ -48,6 +54,15 @@ function RegistrationCard({ registration }: RegistrationCardProps) {
         <span className="registration-status-badge">
           {formatStatus(registration.registrationStatus)}
         </span>
+
+        <button
+          type="button"
+          className="registration-cancel-button"
+          disabled={isCancelling}
+          onClick={() => onCancel(registration.opportunityId)}
+        >
+          {isCancelling ? 'Cancelling...' : 'Cancel Registration'}
+        </button>
       </div>
     </article>
   )
