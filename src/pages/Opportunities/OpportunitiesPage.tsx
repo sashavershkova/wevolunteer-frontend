@@ -1,6 +1,8 @@
 import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import OnboardingPage from '../Onboarding/OnboardingPage'
+import OpportunitiesListView from '../../components/opportunities/OpportunitiesListView/OpportunitiesListView'
+import { mockOpportunities } from '../../tests/fixtures/opportunities'
 
 function OpportunitiesPage() {
   const auth = useAppAuth()
@@ -39,7 +41,9 @@ function OpportunitiesPage() {
       <h1>Opportunities</h1>
 
       <p>Welcome, {auth.userProfile.name}!</p>
-      <p>Role: {auth.userProfile.role}</p>
+
+      {/* Temporary: using fixture data until opportunityService is wired up tomorrow */}
+      <OpportunitiesListView opportunities={mockOpportunities} />
 
       <button type="button" onClick={auth.signOut}>
         Sign out
