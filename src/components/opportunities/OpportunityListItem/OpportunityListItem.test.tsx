@@ -1,13 +1,17 @@
-import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import OpportunityListItem from './OpportunityListItem'
 import { opp1, opp2, opp7 } from '../../../tests/fixtures/opportunities'
 
-function renderItem(opportunity: typeof opp1) {
+function renderItem(
+  opportunity: typeof opp1,
+  onRegister?: (opportunityId: string) => Promise<void>,
+) {
   return render(
     <MemoryRouter>
-      <OpportunityListItem opportunity={opportunity} />
+      <OpportunityListItem opportunity={opportunity} onRegister={onRegister} />
     </MemoryRouter>,
   )
 }
@@ -57,10 +61,59 @@ describe('OpportunityListItem', () => {
     expect(screen.queryByText(/spots filled/)).not.toBeInTheDocument()
   })
 
-  it('links the whole card to the opportunity detail route', () => {
+  it('links the card to the opportunity detail route via a stretched link', () => {
     renderItem(opp1)
 
-    const link = screen.getByRole('link')
+    const link = screen.getByRole('link', {
+      name: 'View details for Food Bank Volunteer Shift',
+    })
     expect(link).toHaveAttribute('href', '/opportunities/opp1')
+  })
+
+  it('shows a Register button for an open opportunity when onRegister is provided', () => {
+    renderItem(opp1, vi.fn())
+
+    expect(screen.getByRole('button', { name: 'Register' })).toBeInTheDocument()
+  })
+
+  it('does not show a Register button when onRegister is not provided', () => {
+    renderItem(opp1)
+
+    expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
+  })
+
+  it('does not show a Register button for a full opportunity', () => {
+    renderItem(opp2, vi.fn())
+
+    expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
+  })
+
+  it('does not show a Register button for a closed opportunity', () => {
+    renderItem(opp7, vi.fn())
+
+    expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
+  })
+
+  it('calls onRegister with the opportunity id when Register is clicked', async () => {
+    const user = userEvent.setup()
+    const onRegister = vi.fn().mockResolvedValue(undefined)
+    renderItem(opp1, onRegister)
+
+    await user.click(screen.getByRole('button', { name: 'Register' }))
+
+    expect(onRegister).toHaveBeenCalledWith('opp1')
+  })
+
+  it('shows an error message and re-enables the button if registration fails', async () => {
+    const user = userEvent.setup()
+    const onRegister = vi.fn().mockRejectedValue(new Error('Already registered.'))
+    renderItem(opp1, onRegister)
+
+    await user.click(screen.getByRole('button', { name: 'Register' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Already registered.')
+    })
+    expect(screen.getByRole('button', { name: 'Register' })).not.toBeDisabled()
   })
 })

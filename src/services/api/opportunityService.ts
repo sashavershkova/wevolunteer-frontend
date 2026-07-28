@@ -1,6 +1,20 @@
 import { env } from '../../config/env'
 import type { Opportunity } from '../../types/Opportunity'
 
+export async function getOpportunities(accessToken: string): Promise<Opportunity[]> {
+  const response = await fetch(`${env.apiUrl}/opportunities`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Unable to load opportunities: ${response.status}`)
+  }
+
+  return response.json() as Promise<Opportunity[]>
+}
+
 export async function getOpportunity(
   accessToken: string,
   opportunityId: string,

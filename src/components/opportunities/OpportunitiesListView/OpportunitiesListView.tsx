@@ -7,6 +7,7 @@ type OpportunitiesListViewProps = {
   isLoading?: boolean
   error?: string | null
   emptyMessage?: string
+  onRegister?: (opportunityId: string) => Promise<void>
 }
 
 function OpportunitiesListView({
@@ -14,6 +15,7 @@ function OpportunitiesListView({
   isLoading = false,
   error = null,
   emptyMessage = 'No opportunities match your search yet. Try adjusting your filters.',
+  onRegister,
 }: OpportunitiesListViewProps) {
   if (isLoading) {
     return (
@@ -43,7 +45,7 @@ function OpportunitiesListView({
     <ul className="opportunities-list-view">
       {opportunities.map((opportunity) => (
         <li key={opportunity.opportunityId}>
-          <OpportunityListItem opportunity={opportunity} />
+          <OpportunityListItem opportunity={opportunity} onRegister={onRegister} />
         </li>
       ))}
     </ul>
