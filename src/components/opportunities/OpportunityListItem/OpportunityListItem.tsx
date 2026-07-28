@@ -29,35 +29,38 @@ function formatDate(dateString: string): string {
 const PLACEHOLDER_TIME = '9:00 AM - 1:00 PM'
 
 function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemProps) {
-  const [isRegistering, setIsRegistering] = useState(false)
-  const [registerError, setRegisterError] = useState<string | null>(null)
+    const [isRegistering, setIsRegistering] = useState(false)
+    const [registerError, setRegisterError] = useState<string | null>(null)
 
-  const isFull = opportunity.availableSpots <= 0
-  const isClosed = opportunity.status === 'CLOSED'
-  const canRegister = !isClosed && !isFull && Boolean(onRegister)
-  const spotsStatusClass = isFull
+    const isFull = opportunity.availableSpots <= 0
+    const isClosed = opportunity.status === 'CLOSED'
+    const canRegister = !isClosed && !isFull && Boolean(onRegister)
+    // Waitlist is a placeholder for now (not wired to a real backend flow yet) -
+    // shown whenever an opportunity is full, but genuinely non-functional.
+    const isWaitlist = !isClosed && isFull
+    const spotsStatusClass = isFull
     ? 'opportunity-list-item-spots-full'
     : 'opportunity-list-item-spots-open'
 
-  async function handleRegisterClick() {
-    if (!onRegister) {
-      return
-    }
+    async function handleRegisterClick() {
+        if (!onRegister) {
+        return
+        }
 
-    setIsRegistering(true)
-    setRegisterError(null)
+        setIsRegistering(true)
+        setRegisterError(null)
 
-    try {
-      await onRegister(opportunity.opportunityId)
-      // On success the parent removes this opportunity from the list,
-      // so this component will unmount - no further state updates needed.
-    } catch (err) {
-      setRegisterError(
-        err instanceof Error ? err.message : 'Unable to register for this opportunity.',
-      )
-      setIsRegistering(false)
+        try {
+        await onRegister(opportunity.opportunityId)
+        // On success the parent removes this opportunity from the list,
+        // so this component will unmount - no further state updates needed.
+        } catch (err) {
+        setRegisterError(
+            err instanceof Error ? err.message : 'Unable to register for this opportunity.',
+        )
+        setIsRegistering(false)
+        }
     }
-  }
 
   return (
     <article className="opportunity-list-item" data-status={opportunity.status}>
@@ -116,6 +119,17 @@ function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemPro
                   {registerError}
                 </p>
               )}
+            </div>
+          )}
+          {isWaitlist && (
+            <div className="opportunity-list-item-actions">
+                <button
+                type="button"
+                className="opportunity-list-item-waitlist-button"
+                disabled
+                >
+                Waitlist
+                </button>
             </div>
           )}
         </div>

@@ -116,4 +116,22 @@ describe('OpportunityListItem', () => {
     })
     expect(screen.getByRole('button', { name: 'Register' })).not.toBeDisabled()
   })
+
+  it('shows a disabled Waitlist button for a full opportunity', () => {
+  renderItem(opp2, vi.fn())
+
+    expect(screen.getByRole('button', { name: 'Waitlist' })).toBeDisabled()
+  })
+
+  it('does not show a Waitlist button for an open opportunity with room', () => {
+    renderItem(opp1, vi.fn())
+
+    expect(screen.queryByRole('button', { name: 'Waitlist' })).not.toBeInTheDocument()
+  })
+
+  it('does not show a Waitlist button for a closed opportunity', () => {
+    renderItem(opp7, vi.fn())
+
+    expect(screen.queryByRole('button', { name: 'Waitlist' })).not.toBeInTheDocument()
+  })
 })
