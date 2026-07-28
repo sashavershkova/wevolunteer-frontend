@@ -4,13 +4,17 @@ import { MemoryRouter } from 'react-router-dom'
 import OpportunitiesListView from './OpportunitiesListView'
 import { mockOpportunities } from '../../../tests/fixtures/opportunities'
 
+function renderView(props: Parameters<typeof OpportunitiesListView>[0]) {
+  return render(
+    <MemoryRouter>
+      <OpportunitiesListView {...props} />
+    </MemoryRouter>,
+  )
+}
+
 describe('OpportunitiesListView', () => {
   it('renders one card per opportunity', () => {
-    render(
-      <MemoryRouter>
-        <OpportunitiesListView opportunities={mockOpportunities} />
-      </MemoryRouter>,
-    )
+    renderView({ opportunities: mockOpportunities })
 
     expect(screen.getAllByRole('article')).toHaveLength(mockOpportunities.length)
     expect(
@@ -22,11 +26,7 @@ describe('OpportunitiesListView', () => {
   })
 
   it('shows a loading message and no cards while loading', () => {
-    render(
-      <MemoryRouter>
-        <OpportunitiesListView opportunities={[]} isLoading />
-      </MemoryRouter>,
-    )
+    renderView({ opportunities: [], isLoading: true })
 
     expect(screen.getByRole('status')).toHaveTextContent(
       'Loading opportunities...',
@@ -35,14 +35,7 @@ describe('OpportunitiesListView', () => {
   })
 
   it('shows an error message and no cards when an error is present', () => {
-    render(
-      <MemoryRouter>
-        <OpportunitiesListView
-          opportunities={[]}
-          error="Unable to load opportunities."
-        />
-      </MemoryRouter>,
-    )
+    renderView({ opportunities: [], error: 'Unable to load opportunities.' })
 
     expect(screen.getByRole('alert')).toHaveTextContent(
       'Unable to load opportunities.',
@@ -51,16 +44,28 @@ describe('OpportunitiesListView', () => {
   })
 
   it('shows an empty state when there are no opportunities and no error', () => {
-    render(
-      <MemoryRouter>
-        <OpportunitiesListView opportunities={[]} />
-      </MemoryRouter>,
-    )
+    renderView({ opportunities: [] })
 
     expect(
       screen.getByText(
         'No opportunities match your search yet. Try adjusting your filters.',
       ),
     ).toBeInTheDocument()
+  })
+
+  it('shows a custom empty message when emptyMessage is provided', () => {
+    renderView({
+      opportunities: [],
+      emptyMessage: 'You have not created any opportunities yet.',
+    })
+
+    expect(
+      screen.getByText('You have not created any opportunities yet.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText(
+        'No opportunities match your search yet. Try adjusting your filters.',
+      ),
+    ).not.toBeInTheDocument()
   })
 })

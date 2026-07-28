@@ -29,6 +29,12 @@ describe('OpportunityListItem', () => {
     ).toBeInTheDocument()
   })
 
+  it('links to the opportunity details page', () => {
+    renderItem(opp1)
+
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/opportunities/opp1')
+  })
+
   it('formats the ISO date into a readable string', () => {
     renderItem(opp1)
 
@@ -52,12 +58,5 @@ describe('OpportunityListItem', () => {
     renderItem(opp7)
 
     expect(screen.getByText('Closed')).toBeInTheDocument()
-  })
-
-  it('links "View Details" to the opportunity detail route', () => {
-    renderItem(opp1)
-
-    const link = screen.getByRole('link', { name: 'View Details' })
-    expect(link).toHaveAttribute('href', '/opportunities/opp1')
   })
 })

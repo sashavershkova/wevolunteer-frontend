@@ -1,9 +1,58 @@
+import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
+import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
+import OpportunitiesListView from '../../components/opportunities/OpportunitiesListView/OpportunitiesListView'
+import type { Opportunity } from '../../types/Opportunity'
 import './OrganizationDashboardPage.css'
 
 function OrganizationDashboardPage() {
   const auth = useAppAuth()
+  const { accessToken } = auth
+
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([])
+  const [isOpportunitiesLoading, setIsOpportunitiesLoading] = useState(true)
+  const [opportunitiesError, setOpportunitiesError] =
+    useState<string | null>(null)
+
+  useEffect(() => {
+    let ignore = false
+
+    if (!accessToken) {
+      return
+    }
+
+    const loadOpportunities = async () => {
+      setIsOpportunitiesLoading(true)
+      setOpportunitiesError(null)
+
+      try {
+        const result = await getMyOrganizationOpportunities(accessToken)
+
+        if (!ignore) {
+          setOpportunities(result)
+        }
+      } catch (error) {
+        if (!ignore) {
+          setOpportunitiesError(
+            error instanceof Error
+              ? error.message
+              : 'Unable to load your opportunities.',
+          )
+        }
+      } finally {
+        if (!ignore) {
+          setIsOpportunitiesLoading(false)
+        }
+      }
+    }
+
+    void loadOpportunities()
+
+    return () => {
+      ignore = true
+    }
+  }, [accessToken])
 
   if (auth.isProfileLoading) {
     return (
@@ -18,10 +67,6 @@ function OrganizationDashboardPage() {
       <main>
         <h1>Unable to load your profile</h1>
         <p>{auth.profileErrorMessage}</p>
-
-        <button type="button" onClick={auth.signOut}>
-          Sign out
-        </button>
       </main>
     )
   }
@@ -47,18 +92,23 @@ function OrganizationDashboardPage() {
         Create Opportunity
       </button>
 
+      <section className="organization-dashboard-opportunities">
+        <h2>Your Opportunities</h2>
+        <OpportunitiesListView
+          opportunities={opportunities}
+          isLoading={isOpportunitiesLoading}
+          error={opportunitiesError}
+          emptyMessage="You have not created any opportunities yet."
+        />
+      </section>
+
       <section className="organization-dashboard-coming-soon">
         <h2>Coming soon</h2>
         <ul>
-          <li>Open Opportunities</li>
           <li>Volunteer Registrations</li>
           <li>Organization Settings</li>
         </ul>
       </section>
-
-      <button type="button" onClick={auth.signOut}>
-        Sign out
-      </button>
     </main>
   )
 }

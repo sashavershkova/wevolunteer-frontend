@@ -20,10 +20,6 @@ function OpportunitiesPage() {
       <main>
         <h1>Unable to load your profile</h1>
         <p>{auth.profileErrorMessage}</p>
-
-        <button type="button" onClick={auth.signOut}>
-          Sign out
-        </button>
       </main>
     )
   }
@@ -44,10 +40,6 @@ function OpportunitiesPage() {
 
       {/* Temporary: using fixture data until opportunityService is wired up tomorrow */}
       <OpportunitiesListView opportunities={mockOpportunities} />
-
-      <button type="button" onClick={auth.signOut}>
-        Sign out
-      </button>
     </main>
   )
 }

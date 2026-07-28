@@ -6,6 +6,7 @@ import MyRegistrationsPage from '../pages/MyRegistrations/MyRegistrationsPage'
 import OrganizationDashboardPage from '../pages/OrganizationDashboard/OrganizationDashboardPage'
 import ProtectedRoute from './ProtectedRoute'
 import HomeRoute from './HomeRoute'
+import AppLayout from '../layouts/AppLayout'
 
 function AppRoutes() {
   return (
@@ -13,11 +14,13 @@ function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<HomeRoute />} />
-        <Route path="/opportunities" element={<OpportunitiesPage />} />
-        <Route path="/opportunities/:opportunityId" element={<OpportunityDetailsPage />} />
-        <Route path="/my-registrations" element={<MyRegistrationsPage />} />
-        <Route path="/organization" element={<OrganizationDashboardPage />} />
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<HomeRoute />} />
+          <Route path="/opportunities" element={<OpportunitiesPage />} />
+          <Route path="/opportunities/:opportunityId" element={<OpportunityDetailsPage />} />
+          <Route path="/my-registrations" element={<MyRegistrationsPage />} />
+          <Route path="/organization" element={<OrganizationDashboardPage />} />
+        </Route>
       </Route>
     </Routes>
   )

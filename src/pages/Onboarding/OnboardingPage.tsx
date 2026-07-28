@@ -151,10 +151,6 @@ function OnboardingPage() {
           {isSubmitting ? 'Creating profile...' : 'Create profile'}
         </button>
       </form>
-
-      <button type="button" onClick={auth.signOut}>
-        Sign out
-      </button>
     </main>
   )
 }
