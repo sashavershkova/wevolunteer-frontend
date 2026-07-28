@@ -119,6 +119,18 @@
   margin: 0;
 }
 
+.organization-dashboard-close-error {
+  color: #b3261e;
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .organization-dashboard-close-error {
+    color: #ff8a80;
+  }
+}
+
 .organization-dashboard-create-button {
   border: none;
   border-radius: 8px;

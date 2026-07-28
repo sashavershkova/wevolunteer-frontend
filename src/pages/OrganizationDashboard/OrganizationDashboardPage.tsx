@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
+import { closeOpportunity } from '../../services/api/opportunityService'
 import OrganizationOpportunitiesTable from '../../components/organization/OrganizationOpportunitiesTable/OrganizationOpportunitiesTable'
 import type { Opportunity } from '../../types/Opportunity'
 import './OrganizationDashboardPage.css'
@@ -13,6 +14,10 @@ function OrganizationDashboardPage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [isOpportunitiesLoading, setIsOpportunitiesLoading] = useState(true)
   const [opportunitiesError, setOpportunitiesError] =
+    useState<string | null>(null)
+  const [closingOpportunityId, setClosingOpportunityId] =
+    useState<string | null>(null)
+  const [closeErrorMessage, setCloseErrorMessage] =
     useState<string | null>(null)
 
   useEffect(() => {
@@ -53,6 +58,36 @@ function OrganizationDashboardPage() {
       ignore = true
     }
   }, [accessToken])
+
+  async function handleCloseOpportunity(opportunityId: string) {
+    if (!accessToken) {
+      setCloseErrorMessage('Your authentication session is unavailable.')
+      return
+    }
+
+    setCloseErrorMessage(null)
+    setClosingOpportunityId(opportunityId)
+
+    try {
+      const updatedOpportunity = await closeOpportunity(accessToken, opportunityId)
+
+      setOpportunities((current) =>
+        current.map((opportunity) =>
+          opportunity.opportunityId === updatedOpportunity.opportunityId
+            ? updatedOpportunity
+            : opportunity,
+        ),
+      )
+    } catch (error) {
+      setCloseErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to close this opportunity.',
+      )
+    } finally {
+      setClosingOpportunityId(null)
+    }
+  }
 
   if (auth.isProfileLoading) {
     return (
@@ -189,10 +224,18 @@ function OrganizationDashboardPage() {
           </button>
         </div>
 
+        {closeErrorMessage && (
+          <p role="alert" className="organization-dashboard-close-error">
+            {closeErrorMessage}
+          </p>
+        )}
+
         <OrganizationOpportunitiesTable
           opportunities={opportunities}
           isLoading={isOpportunitiesLoading}
           error={opportunitiesError}
+          onCloseOpportunity={handleCloseOpportunity}
+          closingOpportunityId={closingOpportunityId}
         />
       </section>
 

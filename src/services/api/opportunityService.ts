@@ -57,3 +57,24 @@ export async function registerForOpportunity(
     throw new Error(`Unable to register for this opportunity: ${response.status}`)
   }
 }
+
+export async function closeOpportunity(
+  accessToken: string,
+  opportunityId: string,
+): Promise<Opportunity> {
+  const response = await fetch(
+    `${env.apiUrl}/opportunities/${encodeURIComponent(opportunityId)}/close`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error(`Unable to close this opportunity: ${response.status}`)
+  }
+
+  return response.json() as Promise<Opportunity>
+}

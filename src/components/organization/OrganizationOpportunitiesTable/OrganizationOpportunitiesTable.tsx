@@ -5,6 +5,8 @@ type OrganizationOpportunitiesTableProps = {
   opportunities: Opportunity[]
   isLoading?: boolean
   error?: string | null
+  onCloseOpportunity: (opportunityId: string) => void
+  closingOpportunityId?: string | null
 }
 
 function formatEventDate(dateString: string): string {
@@ -25,6 +27,8 @@ function OrganizationOpportunitiesTable({
   opportunities,
   isLoading = false,
   error = null,
+  onCloseOpportunity,
+  closingOpportunityId = null,
 }: OrganizationOpportunitiesTableProps) {
   if (isLoading) {
     return (
@@ -59,29 +63,48 @@ function OrganizationOpportunitiesTable({
             <th scope="col">Date</th>
             <th scope="col">Registrations</th>
             <th scope="col">Status</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {opportunities.map((opportunity) => (
-            <tr key={opportunity.opportunityId}>
-              <td data-label="Opportunity">
-                <span className="organization-opportunities-table-title">
-                  {opportunity.title}
-                </span>
-              </td>
-              <td data-label="Date">{formatEventDate(opportunity.date)}</td>
-              <td data-label="Registrations">
-                {opportunity.registeredCount} / {opportunity.capacity}
-              </td>
-              <td data-label="Status">
-                <span
-                  className={`organization-opportunities-status-badge organization-opportunities-status-badge-${opportunity.status.toLowerCase()}`}
-                >
-                  {opportunity.status === 'OPEN' ? 'Open' : 'Closed'}
-                </span>
-              </td>
-            </tr>
-          ))}
+          {opportunities.map((opportunity) => {
+            const isClosing = closingOpportunityId === opportunity.opportunityId
+
+            return (
+              <tr key={opportunity.opportunityId}>
+                <td data-label="Opportunity">
+                  <span className="organization-opportunities-table-title">
+                    {opportunity.title}
+                  </span>
+                </td>
+                <td data-label="Date">{formatEventDate(opportunity.date)}</td>
+                <td data-label="Registrations">
+                  {opportunity.registeredCount} / {opportunity.capacity}
+                </td>
+                <td data-label="Status">
+                  <span
+                    className={`organization-opportunities-status-badge organization-opportunities-status-badge-${opportunity.status.toLowerCase()}`}
+                  >
+                    {opportunity.status === 'OPEN' ? 'Open' : 'Closed'}
+                  </span>
+                </td>
+                <td data-label="Actions">
+                  {opportunity.status === 'OPEN' ? (
+                    <button
+                      type="button"
+                      className="organization-opportunities-close-button"
+                      disabled={isClosing}
+                      onClick={() => onCloseOpportunity(opportunity.opportunityId)}
+                    >
+                      {isClosing ? 'Closing...' : 'Close'}
+                    </button>
+                  ) : (
+                    <span className="organization-opportunities-no-action">—</span>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
