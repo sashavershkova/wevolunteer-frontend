@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MapPin, Calendar, Clock, User } from 'lucide-react'
+import { LocationIcon, DateIcon, TimeIcon, SpotsIcon } from '../../shared/icons'
 import type { Opportunity } from '../../../types/Opportunity'
 import './OpportunityListItem.css'
 
@@ -53,19 +53,19 @@ function OpportunityListItem({ opportunity }: OpportunityListItemProps) {
 
           <ul className="opportunity-list-item-meta">
             <li>
-              <MapPin className="opportunity-list-item-meta-icon" aria-hidden="true" />
+              <LocationIcon className="opportunity-list-item-meta-icon" aria-hidden="true" />
               {opportunity.location}
             </li>
             <li>
-              <Calendar className="opportunity-list-item-meta-icon" aria-hidden="true" />
+              <DateIcon className="opportunity-list-item-meta-icon" aria-hidden="true" />
               {formatDate(opportunity.date)}
             </li>
             <li>
-              <Clock className="opportunity-list-item-meta-icon" aria-hidden="true" />
+              <TimeIcon className="opportunity-list-item-meta-icon" aria-hidden="true" />
               {PLACEHOLDER_TIME}
             </li>
             <li className={spotsStatusClass}>
-              <User className="opportunity-list-item-meta-icon" aria-hidden="true" />
+              <SpotsIcon className="opportunity-list-item-meta-icon" aria-hidden="true" />
               {isClosed
                 ? 'Closed'
                 : `${opportunity.registeredCount}/${opportunity.capacity} spots filled`}
