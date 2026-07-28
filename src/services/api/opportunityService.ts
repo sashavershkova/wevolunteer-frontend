@@ -1,6 +1,16 @@
 import { env } from '../../config/env'
 import type { Opportunity } from '../../types/Opportunity'
 
+export type CreateOpportunityRequest = {
+  opportunityId: string
+  title: string
+  description: string
+  category: string
+  location: string
+  date: string
+  capacity: number
+}
+
 export async function getOpportunities(accessToken: string): Promise<Opportunity[]> {
   const response = await fetch(`${env.apiUrl}/opportunities`, {
     headers: {
@@ -74,6 +84,26 @@ export async function closeOpportunity(
 
   if (!response.ok) {
     throw new Error(`Unable to close this opportunity: ${response.status}`)
+  }
+
+  return response.json() as Promise<Opportunity>
+}
+
+export async function createOpportunity(
+  accessToken: string,
+  request: CreateOpportunityRequest,
+): Promise<Opportunity> {
+  const response = await fetch(`${env.apiUrl}/organizations/me/opportunities`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Unable to create this opportunity: ${response.status}`)
   }
 
   return response.json() as Promise<Opportunity>
