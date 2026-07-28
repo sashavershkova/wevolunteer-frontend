@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { MapPin, Calendar, Clock, User } from 'lucide-react'
 import type { Opportunity } from '../../../types/Opportunity'
 import './OpportunityListItem.css'
 
@@ -20,9 +21,17 @@ function formatDate(dateString: string): string {
   })
 }
 
+// Placeholder only: the backend's `date` field has no time component yet
+// (see Opportunity type / backend model). Remove this once a real
+// start/end time is available from the API.
+const PLACEHOLDER_TIME = '9:00 AM - 1:00 PM'
+
 function OpportunityListItem({ opportunity }: OpportunityListItemProps) {
   const isFull = opportunity.availableSpots <= 0
   const isClosed = opportunity.status === 'CLOSED'
+  const spotsStatusClass = isFull
+    ? 'opportunity-list-item-spots-full'
+    : 'opportunity-list-item-spots-open'
 
   return (
     <Link
@@ -40,34 +49,28 @@ function OpportunityListItem({ opportunity }: OpportunityListItemProps) {
 
           <p className="opportunity-list-item-org">{opportunity.organizationName}</p>
 
-          <dl className="opportunity-list-item-details">
-            <div>
-              <dt>Date</dt>
-              <dd>{formatDate(opportunity.date)}</dd>
-            </div>
-            <div>
-              <dt>Location</dt>
-              <dd>{opportunity.location}</dd>
-            </div>
-          </dl>
-
           <p className="opportunity-list-item-description">{opportunity.description}</p>
 
-          <div className="opportunity-list-item-footer">
-            {isClosed ? (
-              <span className="opportunity-list-item-status opportunity-list-item-status-closed">
-                Closed
-              </span>
-            ) : isFull ? (
-              <span className="opportunity-list-item-status opportunity-list-item-status-full">
-                Full
-              </span>
-            ) : (
-              <span className="opportunity-list-item-status opportunity-list-item-status-open">
-                {opportunity.availableSpots} of {opportunity.capacity} spots open
-              </span>
-            )}
-          </div>
+          <ul className="opportunity-list-item-meta">
+            <li>
+              <MapPin className="opportunity-list-item-meta-icon" aria-hidden="true" />
+              {opportunity.location}
+            </li>
+            <li>
+              <Calendar className="opportunity-list-item-meta-icon" aria-hidden="true" />
+              {formatDate(opportunity.date)}
+            </li>
+            <li>
+              <Clock className="opportunity-list-item-meta-icon" aria-hidden="true" />
+              {PLACEHOLDER_TIME}
+            </li>
+            <li className={spotsStatusClass}>
+              <User className="opportunity-list-item-meta-icon" aria-hidden="true" />
+              {isClosed
+                ? 'Closed'
+                : `${opportunity.registeredCount}/${opportunity.capacity} spots filled`}
+            </li>
+          </ul>
         </div>
       </article>
     </Link>

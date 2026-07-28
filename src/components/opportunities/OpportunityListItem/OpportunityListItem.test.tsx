@@ -21,7 +21,6 @@ describe('OpportunityListItem', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Seattle Food Bank')).toBeInTheDocument()
     expect(screen.getByText('Food')).toBeInTheDocument()
-    expect(screen.getByText('Seattle, WA')).toBeInTheDocument()
     expect(
       screen.getByText(
         'Help sort and package food donations for local families in need.',
@@ -29,34 +28,39 @@ describe('OpportunityListItem', () => {
     ).toBeInTheDocument()
   })
 
-  it('links to the opportunity details page', () => {
+  it('shows location, formatted date, and placeholder time in the meta row', () => {
     renderItem(opp1)
 
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/opportunities/opp1')
-  })
-
-  it('formats the ISO date into a readable string', () => {
-    renderItem(opp1)
-
+    expect(screen.getByText('Seattle, WA')).toBeInTheDocument()
     expect(screen.getByText('Jul 10, 2026')).toBeInTheDocument()
+    expect(screen.getByText('9:00 AM - 1:00 PM')).toBeInTheDocument()
   })
 
-  it('shows available spots when the opportunity is open with room', () => {
+  it('shows spots filled in green when the opportunity has room', () => {
     renderItem(opp1)
 
-    expect(screen.getByText('9 of 10 spots open')).toBeInTheDocument()
+    const spots = screen.getByText('1/10 spots filled')
+    expect(spots.closest('li')).toHaveClass('opportunity-list-item-spots-open')
   })
 
-  it('shows a "Full" status when availableSpots is zero but still open', () => {
+  it('shows spots filled in orange when the opportunity is full', () => {
     renderItem(opp2)
 
-    expect(screen.getByText('Full')).toBeInTheDocument()
-    expect(screen.queryByText(/spots open/)).not.toBeInTheDocument()
+    const spots = screen.getByText('8/8 spots filled')
+    expect(spots.closest('li')).toHaveClass('opportunity-list-item-spots-full')
   })
 
-  it('shows a "Closed" status for closed opportunities', () => {
+  it('shows "Closed" instead of a spot count for closed opportunities', () => {
     renderItem(opp7)
 
     expect(screen.getByText('Closed')).toBeInTheDocument()
+    expect(screen.queryByText(/spots filled/)).not.toBeInTheDocument()
+  })
+
+  it('links the whole card to the opportunity detail route', () => {
+    renderItem(opp1)
+
+    const link = screen.getByRole('link')
+    expect(link).toHaveAttribute('href', '/opportunities/opp1')
   })
 })

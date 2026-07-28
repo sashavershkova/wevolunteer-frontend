@@ -1,8 +1,8 @@
 .opportunity-list-item-link {
-  display: block;
-  color: inherit;
-  text-decoration: none;
   border-radius: 0.75rem;
+  color: inherit;
+  display: block;
+  text-decoration: none;
 }
 
 .opportunity-list-item-link:hover .opportunity-list-item {
@@ -15,14 +15,13 @@
 }
 
 .opportunity-list-item {
-  align-items: stretch;
+  align-items: flex-start;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   display: flex;
-  gap: 1rem;
-  overflow: hidden;
-  padding: 0;
+  gap: 1.25rem;
+  padding: 1.25rem;
   text-align: left;
 }
 
@@ -32,17 +31,18 @@
 
 .opportunity-list-item-image-placeholder {
   background: var(--border);
+  border-radius: 0.5rem;
   flex-shrink: 0;
-  width: 10rem;
+  height: 9rem;
+  width: 9rem;
 }
 
 .opportunity-list-item-content {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
   min-width: 0;
-  padding: 1.25rem 1.25rem 1.25rem 0;
 }
 
 .opportunity-list-item-header {
@@ -54,7 +54,7 @@
 
 .opportunity-list-item-title {
   color: var(--text-h);
-  font-size: 1.05rem;
+  font-size: 1.3rem;
   margin: 0;
 }
 
@@ -74,50 +74,50 @@
   margin: 0;
 }
 
-.opportunity-list-item-details {
-  display: flex;
-  gap: 1.5rem;
-  margin: 0;
-}
-
-.opportunity-list-item-details div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.opportunity-list-item-details dt {
-  color: var(--text);
-  font-size: 0.75rem;
-}
-
-.opportunity-list-item-details dd {
-  color: var(--text-h);
-  margin: 0;
-}
-
 .opportunity-list-item-description {
   color: var(--text);
   margin: 0;
 }
 
-.opportunity-list-item-footer {
+.opportunity-list-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  list-style: none;
   margin-top: auto;
+  padding: 0;
+  padding-top: 0.5rem;
 }
 
-.opportunity-list-item-status {
+.opportunity-list-item-meta li {
+  align-items: center;
+  color: var(--text);
+  display: flex;
   font-size: 0.85rem;
+  gap: 0.35rem;
+}
+
+.opportunity-list-item-meta-icon {
+  color: var(--text);
+  flex-shrink: 0;
+  height: 1rem;
+  width: 1rem;
+}
+
+.opportunity-list-item-spots-open {
+  color: #2a9d5c;
   font-weight: 600;
 }
 
-.opportunity-list-item-status-open {
+.opportunity-list-item-spots-open .opportunity-list-item-meta-icon {
   color: #2a9d5c;
 }
 
-.opportunity-list-item-status-full {
+.opportunity-list-item-spots-full {
   color: #c76b00;
+  font-weight: 600;
 }
 
-.opportunity-list-item-status-closed {
-  color: var(--text);
+.opportunity-list-item-spots-full .opportunity-list-item-meta-icon {
+  color: #c76b00;
 }
