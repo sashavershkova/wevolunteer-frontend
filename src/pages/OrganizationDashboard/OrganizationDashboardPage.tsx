@@ -67,10 +67,6 @@ function OrganizationDashboardPage() {
       <main>
         <h1>Unable to load your profile</h1>
         <p>{auth.profileErrorMessage}</p>
-
-        <button type="button" onClick={auth.signOut}>
-          Sign out
-        </button>
       </main>
     )
   }
@@ -113,10 +109,6 @@ function OrganizationDashboardPage() {
           <li>Organization Settings</li>
         </ul>
       </section>
-
-      <button type="button" onClick={auth.signOut}>
-        Sign out
-      </button>
     </main>
   )
 }
