@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Opportunity } from '../../../types/Opportunity'
 import './OpportunityListItem.css'
 
@@ -62,6 +63,14 @@ function OpportunityListItem({ opportunity }: OpportunityListItemProps) {
               {opportunity.availableSpots} of {opportunity.capacity} spots open
             </span>
           )}
+
+          {/* Placeholder link: a teammate is building the real OpportunityDetailsPage content */}
+          <Link
+            to={`/opportunities/${opportunity.opportunityId}`}
+            className="opportunity-list-item-details-button"
+          >
+            View Details
+          </Link>
         </div>
       </div>
     </article>

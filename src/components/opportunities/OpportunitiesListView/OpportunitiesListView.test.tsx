@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import OpportunitiesListView from './OpportunitiesListView'
 import { mockOpportunities } from '../../../tests/fixtures/opportunities'
 
 describe('OpportunitiesListView', () => {
   it('renders one card per opportunity', () => {
-    render(<OpportunitiesListView opportunities={mockOpportunities} />)
+    render(
+      <MemoryRouter>
+        <OpportunitiesListView opportunities={mockOpportunities} />
+      </MemoryRouter>,
+    )
 
     expect(screen.getAllByRole('article')).toHaveLength(mockOpportunities.length)
     expect(
@@ -17,7 +22,11 @@ describe('OpportunitiesListView', () => {
   })
 
   it('shows a loading message and no cards while loading', () => {
-    render(<OpportunitiesListView opportunities={[]} isLoading />)
+    render(
+      <MemoryRouter>
+        <OpportunitiesListView opportunities={[]} isLoading />
+      </MemoryRouter>,
+    )
 
     expect(screen.getByRole('status')).toHaveTextContent(
       'Loading opportunities...',
@@ -27,10 +36,12 @@ describe('OpportunitiesListView', () => {
 
   it('shows an error message and no cards when an error is present', () => {
     render(
-      <OpportunitiesListView
-        opportunities={[]}
-        error="Unable to load opportunities."
-      />,
+      <MemoryRouter>
+        <OpportunitiesListView
+          opportunities={[]}
+          error="Unable to load opportunities."
+        />
+      </MemoryRouter>,
     )
 
     expect(screen.getByRole('alert')).toHaveTextContent(
@@ -40,7 +51,11 @@ describe('OpportunitiesListView', () => {
   })
 
   it('shows an empty state when there are no opportunities and no error', () => {
-    render(<OpportunitiesListView opportunities={[]} />)
+    render(
+      <MemoryRouter>
+        <OpportunitiesListView opportunities={[]} />
+      </MemoryRouter>,
+    )
 
     expect(
       screen.getByText(

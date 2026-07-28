@@ -1,11 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import OpportunityListItem from './OpportunityListItem'
 import { opp1, opp2, opp7 } from '../../../tests/fixtures/opportunities'
 
+function renderItem(opportunity: typeof opp1) {
+  return render(
+    <MemoryRouter>
+      <OpportunityListItem opportunity={opportunity} />
+    </MemoryRouter>,
+  )
+}
+
 describe('OpportunityListItem', () => {
   it('renders the core opportunity fields', () => {
-    render(<OpportunityListItem opportunity={opp1} />)
+    renderItem(opp1)
 
     expect(
       screen.getByRole('heading', { name: 'Food Bank Volunteer Shift' }),
@@ -21,27 +30,34 @@ describe('OpportunityListItem', () => {
   })
 
   it('formats the ISO date into a readable string', () => {
-    render(<OpportunityListItem opportunity={opp1} />)
+    renderItem(opp1)
 
     expect(screen.getByText('Jul 10, 2026')).toBeInTheDocument()
   })
 
   it('shows available spots when the opportunity is open with room', () => {
-    render(<OpportunityListItem opportunity={opp1} />)
+    renderItem(opp1)
 
     expect(screen.getByText('9 of 10 spots open')).toBeInTheDocument()
   })
 
   it('shows a "Full" status when availableSpots is zero but still open', () => {
-    render(<OpportunityListItem opportunity={opp2} />)
+    renderItem(opp2)
 
     expect(screen.getByText('Full')).toBeInTheDocument()
     expect(screen.queryByText(/spots open/)).not.toBeInTheDocument()
   })
 
   it('shows a "Closed" status for closed opportunities', () => {
-    render(<OpportunityListItem opportunity={opp7} />)
+    renderItem(opp7)
 
     expect(screen.getByText('Closed')).toBeInTheDocument()
+  })
+
+  it('links "View Details" to the opportunity detail route', () => {
+    renderItem(opp1)
+
+    const link = screen.getByRole('link', { name: 'View Details' })
+    expect(link).toHaveAttribute('href', '/opportunities/opp1')
   })
 })
