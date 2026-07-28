@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
-import OpportunitiesListView from '../../components/opportunities/OpportunitiesListView/OpportunitiesListView'
+import OrganizationOpportunitiesTable from '../../components/organization/OrganizationOpportunitiesTable/OrganizationOpportunitiesTable'
 import type { Opportunity } from '../../types/Opportunity'
 import './OrganizationDashboardPage.css'
 
@@ -189,11 +189,10 @@ function OrganizationDashboardPage() {
           </button>
         </div>
 
-        <OpportunitiesListView
+        <OrganizationOpportunitiesTable
           opportunities={opportunities}
           isLoading={isOpportunitiesLoading}
           error={opportunitiesError}
-          emptyMessage="You have not created any opportunities yet."
         />
       </section>
 

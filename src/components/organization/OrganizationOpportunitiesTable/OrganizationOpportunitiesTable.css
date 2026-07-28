@@ -1,0 +1,111 @@
+.organization-opportunities-table-message {
+  color: var(--text);
+  padding: 1.5rem 0;
+  text-align: left;
+}
+
+.organization-opportunities-table-container {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.organization-opportunities-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.organization-opportunities-table th,
+.organization-opportunities-table td {
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.organization-opportunities-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.organization-opportunities-table thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  background: var(--code-bg);
+  font-weight: 600;
+}
+
+.organization-opportunities-table-title {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.organization-opportunities-status-badge {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.organization-opportunities-status-badge-open {
+  background: rgba(42, 157, 92, 0.12);
+  color: #2a9d5c;
+}
+
+.organization-opportunities-status-badge-closed {
+  background: var(--border);
+  color: var(--text);
+}
+
+@media (prefers-color-scheme: dark) {
+  .organization-opportunities-status-badge-open {
+    background: rgba(34, 197, 94, 0.18);
+    color: #86efac;
+  }
+}
+
+@media (max-width: 640px) {
+  .organization-opportunities-table thead {
+    display: none;
+  }
+
+  .organization-opportunities-table,
+  .organization-opportunities-table tbody,
+  .organization-opportunities-table tr,
+  .organization-opportunities-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .organization-opportunities-table tbody tr {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .organization-opportunities-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .organization-opportunities-table td {
+    border-bottom: none;
+    padding: 0.35rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .organization-opportunities-table td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+}
