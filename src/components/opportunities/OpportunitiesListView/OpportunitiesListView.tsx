@@ -6,12 +6,14 @@ type OpportunitiesListViewProps = {
   opportunities: Opportunity[]
   isLoading?: boolean
   error?: string | null
+  emptyMessage?: string
 }
 
 function OpportunitiesListView({
   opportunities,
   isLoading = false,
   error = null,
+  emptyMessage = 'No opportunities match your search yet. Try adjusting your filters.',
 }: OpportunitiesListViewProps) {
   if (isLoading) {
     return (
@@ -32,7 +34,7 @@ function OpportunitiesListView({
   if (opportunities.length === 0) {
     return (
       <p className="opportunities-list-view-message">
-        No opportunities match your search yet. Try adjusting your filters.
+        {emptyMessage}
       </p>
     )
   }

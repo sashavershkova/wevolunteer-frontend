@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
+import OpportunitiesListView from '../../components/opportunities/OpportunitiesListView/OpportunitiesListView'
 import type { Opportunity } from '../../types/Opportunity'
 import './OrganizationDashboardPage.css'
 
@@ -10,6 +11,9 @@ function OrganizationDashboardPage() {
   const { accessToken } = auth
 
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
+  const [isOpportunitiesLoading, setIsOpportunitiesLoading] = useState(true)
+  const [opportunitiesError, setOpportunitiesError] =
+    useState<string | null>(null)
 
   useEffect(() => {
     let ignore = false
@@ -19,10 +23,27 @@ function OrganizationDashboardPage() {
     }
 
     const loadOpportunities = async () => {
-      const result = await getMyOrganizationOpportunities(accessToken)
+      setIsOpportunitiesLoading(true)
+      setOpportunitiesError(null)
 
-      if (!ignore) {
-        setOpportunities(result)
+      try {
+        const result = await getMyOrganizationOpportunities(accessToken)
+
+        if (!ignore) {
+          setOpportunities(result)
+        }
+      } catch (error) {
+        if (!ignore) {
+          setOpportunitiesError(
+            error instanceof Error
+              ? error.message
+              : 'Unable to load your opportunities.',
+          )
+        }
+      } finally {
+        if (!ignore) {
+          setIsOpportunitiesLoading(false)
+        }
       }
     }
 
@@ -77,15 +98,12 @@ function OrganizationDashboardPage() {
 
       <section className="organization-dashboard-opportunities">
         <h2>Your Opportunities</h2>
-        {opportunities.length === 0 ? (
-          <p>You have not created any opportunities yet.</p>
-        ) : (
-          <ul>
-            {opportunities.map((opportunity) => (
-              <li key={opportunity.opportunityId}>{opportunity.title}</li>
-            ))}
-          </ul>
-        )}
+        <OpportunitiesListView
+          opportunities={opportunities}
+          isLoading={isOpportunitiesLoading}
+          error={opportunitiesError}
+          emptyMessage="You have not created any opportunities yet."
+        />
       </section>
 
       <section className="organization-dashboard-coming-soon">

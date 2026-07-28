@@ -48,4 +48,22 @@ describe('OpportunitiesListView', () => {
       ),
     ).toBeInTheDocument()
   })
+
+  it('shows a custom empty message when emptyMessage is provided', () => {
+    render(
+      <OpportunitiesListView
+        opportunities={[]}
+        emptyMessage="You have not created any opportunities yet."
+      />,
+    )
+
+    expect(
+      screen.getByText('You have not created any opportunities yet.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText(
+        'No opportunities match your search yet. Try adjusting your filters.',
+      ),
+    ).not.toBeInTheDocument()
+  })
 })
