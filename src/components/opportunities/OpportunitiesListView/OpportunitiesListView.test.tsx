@@ -1,11 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import OpportunitiesListView from './OpportunitiesListView'
 import { mockOpportunities } from '../../../tests/fixtures/opportunities'
 
+function renderView(props: Parameters<typeof OpportunitiesListView>[0]) {
+  return render(
+    <MemoryRouter>
+      <OpportunitiesListView {...props} />
+    </MemoryRouter>,
+  )
+}
+
 describe('OpportunitiesListView', () => {
   it('renders one card per opportunity', () => {
-    render(<OpportunitiesListView opportunities={mockOpportunities} />)
+    renderView({ opportunities: mockOpportunities })
 
     expect(screen.getAllByRole('article')).toHaveLength(mockOpportunities.length)
     expect(
@@ -17,7 +26,7 @@ describe('OpportunitiesListView', () => {
   })
 
   it('shows a loading message and no cards while loading', () => {
-    render(<OpportunitiesListView opportunities={[]} isLoading />)
+    renderView({ opportunities: [], isLoading: true })
 
     expect(screen.getByRole('status')).toHaveTextContent(
       'Loading opportunities...',
@@ -26,12 +35,7 @@ describe('OpportunitiesListView', () => {
   })
 
   it('shows an error message and no cards when an error is present', () => {
-    render(
-      <OpportunitiesListView
-        opportunities={[]}
-        error="Unable to load opportunities."
-      />,
-    )
+    renderView({ opportunities: [], error: 'Unable to load opportunities.' })
 
     expect(screen.getByRole('alert')).toHaveTextContent(
       'Unable to load opportunities.',
@@ -40,7 +44,7 @@ describe('OpportunitiesListView', () => {
   })
 
   it('shows an empty state when there are no opportunities and no error', () => {
-    render(<OpportunitiesListView opportunities={[]} />)
+    renderView({ opportunities: [] })
 
     expect(
       screen.getByText(
@@ -50,12 +54,10 @@ describe('OpportunitiesListView', () => {
   })
 
   it('shows a custom empty message when emptyMessage is provided', () => {
-    render(
-      <OpportunitiesListView
-        opportunities={[]}
-        emptyMessage="You have not created any opportunities yet."
-      />,
-    )
+    renderView({
+      opportunities: [],
+      emptyMessage: 'You have not created any opportunities yet.',
+    })
 
     expect(
       screen.getByText('You have not created any opportunities yet.'),

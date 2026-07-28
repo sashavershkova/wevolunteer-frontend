@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Opportunity } from '../../../types/Opportunity'
 import './OpportunityListItem.css'
 
@@ -24,47 +25,52 @@ function OpportunityListItem({ opportunity }: OpportunityListItemProps) {
   const isClosed = opportunity.status === 'CLOSED'
 
   return (
-    <article className="opportunity-list-item" data-status={opportunity.status}>
-      <div className="opportunity-list-item-image-placeholder" aria-hidden="true" />
+    <Link
+      to={`/opportunities/${opportunity.opportunityId}`}
+      className="opportunity-list-item-link"
+    >
+      <article className="opportunity-list-item" data-status={opportunity.status}>
+        <div className="opportunity-list-item-image-placeholder" aria-hidden="true" />
 
-      <div className="opportunity-list-item-content">
-        <div className="opportunity-list-item-header">
-          <h3 className="opportunity-list-item-title">{opportunity.title}</h3>
-          <span className="opportunity-list-item-category">{opportunity.category}</span>
-        </div>
-
-        <p className="opportunity-list-item-org">{opportunity.organizationName}</p>
-
-        <dl className="opportunity-list-item-details">
-          <div>
-            <dt>Date</dt>
-            <dd>{formatDate(opportunity.date)}</dd>
+        <div className="opportunity-list-item-content">
+          <div className="opportunity-list-item-header">
+            <h3 className="opportunity-list-item-title">{opportunity.title}</h3>
+            <span className="opportunity-list-item-category">{opportunity.category}</span>
           </div>
-          <div>
-            <dt>Location</dt>
-            <dd>{opportunity.location}</dd>
+
+          <p className="opportunity-list-item-org">{opportunity.organizationName}</p>
+
+          <dl className="opportunity-list-item-details">
+            <div>
+              <dt>Date</dt>
+              <dd>{formatDate(opportunity.date)}</dd>
+            </div>
+            <div>
+              <dt>Location</dt>
+              <dd>{opportunity.location}</dd>
+            </div>
+          </dl>
+
+          <p className="opportunity-list-item-description">{opportunity.description}</p>
+
+          <div className="opportunity-list-item-footer">
+            {isClosed ? (
+              <span className="opportunity-list-item-status opportunity-list-item-status-closed">
+                Closed
+              </span>
+            ) : isFull ? (
+              <span className="opportunity-list-item-status opportunity-list-item-status-full">
+                Full
+              </span>
+            ) : (
+              <span className="opportunity-list-item-status opportunity-list-item-status-open">
+                {opportunity.availableSpots} of {opportunity.capacity} spots open
+              </span>
+            )}
           </div>
-        </dl>
-
-        <p className="opportunity-list-item-description">{opportunity.description}</p>
-
-        <div className="opportunity-list-item-footer">
-          {isClosed ? (
-            <span className="opportunity-list-item-status opportunity-list-item-status-closed">
-              Closed
-            </span>
-          ) : isFull ? (
-            <span className="opportunity-list-item-status opportunity-list-item-status-full">
-              Full
-            </span>
-          ) : (
-            <span className="opportunity-list-item-status opportunity-list-item-status-open">
-              {opportunity.availableSpots} of {opportunity.capacity} spots open
-            </span>
-          )}
         </div>
-      </div>
-    </article>
+      </article>
+    </Link>
   )
 }
 
