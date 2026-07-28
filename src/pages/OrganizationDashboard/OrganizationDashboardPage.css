@@ -1,12 +1,172 @@
 .organization-dashboard-page {
-  max-width: 40rem;
+  max-width: 56rem;
+  width: 100%;
   margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  text-align: left;
+  box-sizing: border-box;
 }
 
-.organization-dashboard-details {
-  margin-bottom: 1.5rem;
+.organization-dashboard-header {
+  margin-bottom: 1.75rem;
+}
+
+.organization-dashboard-subtitle {
+  color: var(--text);
+  margin: 0.25rem 0 0;
+}
+
+.organization-dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.organization-dashboard-metric-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.25rem 1.5rem;
+  box-sizing: border-box;
+}
+
+.organization-dashboard-metric-label {
+  font-size: 0.8rem;
+  color: var(--text);
+  margin: 0 0 0.5rem;
+}
+
+.organization-dashboard-metric-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.organization-dashboard-metric-hint {
+  font-size: 0.8rem;
+  color: var(--text);
+  margin: 0.25rem 0 0;
+}
+
+.organization-dashboard-overview {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 2rem;
+  box-sizing: border-box;
+}
+
+.organization-dashboard-overview h2 {
+  margin: 0 0 0.5rem;
+}
+
+.organization-dashboard-description {
+  color: var(--text);
+  margin: 0 0 1rem;
+}
+
+.organization-dashboard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  margin: 0;
+}
+
+.organization-dashboard-meta div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.organization-dashboard-meta dt {
+  font-size: 0.75rem;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.organization-dashboard-meta dd {
+  margin: 0;
+  color: var(--text-h);
+  font-weight: 500;
+}
+
+.organization-dashboard-meta a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.organization-dashboard-meta a:hover {
+  text-decoration: underline;
+}
+
+.organization-dashboard-opportunities-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.organization-dashboard-opportunities-header h2 {
+  margin: 0;
+}
+
+.organization-dashboard-create-button {
+  border: none;
+  border-radius: 8px;
+  background: #2a9d5c;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.65rem 1.1rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.organization-dashboard-create-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .organization-dashboard-coming-soon {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
+  color: var(--text);
+}
+
+@media (max-width: 960px) {
+  .organization-dashboard-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .organization-dashboard-page {
+    padding: 1.5rem 1rem 2rem;
+  }
+
+  .organization-dashboard-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .organization-dashboard-overview {
+    padding: 1.25rem;
+  }
+
+  .organization-dashboard-opportunities-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .organization-dashboard-create-button {
+    width: 100%;
+  }
 }
