@@ -66,91 +66,131 @@ function OnboardingPage() {
   }
 
   return (
-    <main>
-      <h1>Complete your profile</h1>
+    <main className="onboarding-page">
+      <div className="onboarding-card">
+        <h1>Complete your profile</h1>
 
-      <p>
-        Your account is ready. Please give us a little more information so we
-        can set up your WeVolunteer profile.
-      </p>
+        <p className="onboarding-subtitle">
+          Your account is ready. Please give us a little more information so we
+          can set up your WeVolunteer profile.
+        </p>
 
-      <form onSubmit={handleSubmit}>
-        <fieldset>
-          <legend>Account type</legend>
+        <form className="onboarding-form" onSubmit={handleSubmit}>
+          <fieldset className="onboarding-role-fieldset">
+            <legend>Account type</legend>
 
-          <label>
-            <input
-              type="radio"
-              name="role"
-              value="VOLUNTEER"
-              checked={role === 'VOLUNTEER'}
-              onChange={() => handleRoleChange('VOLUNTEER')}
-            />
-            Volunteer
-          </label>
+            <div className="onboarding-role-options">
+              <label
+                className={`onboarding-role-card${role === 'VOLUNTEER' ? ' is-selected' : ''}`}
+                data-role="VOLUNTEER"
+              >
+                <input
+                  type="radio"
+                  name="role"
+                  value="VOLUNTEER"
+                  checked={role === 'VOLUNTEER'}
+                  onChange={() => handleRoleChange('VOLUNTEER')}
+                  className="onboarding-role-input"
+                />
+                <span className="onboarding-role-card-body">
+                  <span className="onboarding-role-card-title">Volunteer</span>
+                  <span className="onboarding-role-card-description">
+                    Find and join volunteer opportunities in your community.
+                  </span>
+                </span>
+              </label>
 
-          <label>
-            <input
-              type="radio"
-              name="role"
-              value="ORGANIZATION"
-              checked={role === 'ORGANIZATION'}
-              onChange={() => handleRoleChange('ORGANIZATION')}
-            />
-            Organization
-          </label>
-        </fieldset>
-
-        <label>
-          {role === 'ORGANIZATION' ? 'Organization name' : 'Name'}
-          <input
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
-        </label>
-
-        {role === 'ORGANIZATION' && (
-          <fieldset>
-            <legend>Organization details</legend>
-
-            <label>
-              Organization email
-              <input type="email" value={auth.email} readOnly />
-            </label>
-
-            <label>
-              Description
-              <textarea
-                value={organizationDescription}
-                onChange={(event) =>
-                  setOrganizationDescription(event.target.value)
-                }
-                required
-              />
-            </label>
-
-            <label>
-              Website
-              <input
-                type="url"
-                value={organizationWebsite}
-                onChange={(event) =>
-                  setOrganizationWebsite(event.target.value)
-                }
-                placeholder="https://example.org"
-              />
-            </label>
+              <label
+                className={`onboarding-role-card${role === 'ORGANIZATION' ? ' is-selected' : ''}`}
+                data-role="ORGANIZATION"
+              >
+                <input
+                  type="radio"
+                  name="role"
+                  value="ORGANIZATION"
+                  checked={role === 'ORGANIZATION'}
+                  onChange={() => handleRoleChange('ORGANIZATION')}
+                  className="onboarding-role-input"
+                />
+                <span className="onboarding-role-card-body">
+                  <span className="onboarding-role-card-title">Organization</span>
+                  <span className="onboarding-role-card-description">
+                    Post opportunities and manage volunteers for your organization.
+                  </span>
+                </span>
+              </label>
+            </div>
           </fieldset>
-        )}
 
-        {errorMessage && <p>{errorMessage}</p>}
+          <label className="onboarding-field">
+            <span className="onboarding-field-label">
+              {role === 'ORGANIZATION' ? 'Organization name' : 'Name'}
+            </span>
+            <input
+              type="text"
+              className="onboarding-input"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+            />
+          </label>
 
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Creating profile...' : 'Create profile'}
-        </button>
-      </form>
+          {role === 'ORGANIZATION' && (
+            <fieldset className="onboarding-org-fieldset">
+              <legend>Organization details</legend>
+
+              <label className="onboarding-field">
+                <span className="onboarding-field-label">Organization email</span>
+                <input
+                  type="email"
+                  className="onboarding-input"
+                  value={auth.email}
+                  readOnly
+                />
+              </label>
+
+              <label className="onboarding-field">
+                <span className="onboarding-field-label">Description</span>
+                <textarea
+                  className="onboarding-textarea"
+                  value={organizationDescription}
+                  onChange={(event) =>
+                    setOrganizationDescription(event.target.value)
+                  }
+                  required
+                />
+              </label>
+
+              <label className="onboarding-field">
+                <span className="onboarding-field-label">Website</span>
+                <input
+                  type="url"
+                  className="onboarding-input"
+                  value={organizationWebsite}
+                  onChange={(event) =>
+                    setOrganizationWebsite(event.target.value)
+                  }
+                  placeholder="https://example.org"
+                />
+              </label>
+            </fieldset>
+          )}
+
+          {errorMessage && (
+            <p role="alert" className="onboarding-error">
+              {errorMessage}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="onboarding-submit-button"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Creating profile...' : 'Create profile'}
+          </button>
+        </form>
+      </div>
     </main>
   )
 }
