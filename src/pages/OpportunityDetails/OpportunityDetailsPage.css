@@ -38,10 +38,17 @@
 
 .opportunity-details-thumb {
   flex: none;
-  width: 108px;
-  height: 108px;
+  width: 180px;
+  height: 180px;
   border-radius: 0.75rem;
   background: var(--border);
+}
+
+@media (max-width: 480px) {
+  .opportunity-details-thumb {
+    width: 120px;
+    height: 120px;
+  }
 }
 
 .opportunity-details-title-col {
@@ -123,6 +130,10 @@
 
 .opportunity-details-meta-spots dd {
   color: #2a9d5c;
+}
+
+.opportunity-details-section {
+  margin-bottom: 1.5rem;
 }
 
 .opportunity-details-section h2,
