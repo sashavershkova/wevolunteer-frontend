@@ -1,12 +1,49 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
-import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
+import {
+  getMyOrganizationOpportunities,
+  updateCurrentOrganization,
+  type OrganizationProfile,
+  type UpdateOrganizationProfileRequest,
+} from '../../services/api/organizationService'
 import { closeOpportunity } from '../../services/api/opportunityService'
 import OrganizationOpportunitiesTable from '../../components/organization/OrganizationOpportunitiesTable/OrganizationOpportunitiesTable'
-import { OrganizationIcon } from '../../components/shared/icons'
+import { OrganizationIcon, EditIcon } from '../../components/shared/icons'
 import type { Opportunity } from '../../types/Opportunity'
 import './OrganizationDashboardPage.css'
+
+type OrganizationFormState = {
+  name: string
+  description: string
+  email: string
+  website: string
+}
+
+type OrganizationFormErrors = Partial<Record<'name' | 'email', string>>
+
+function buildOrganizationFormState(organization: OrganizationProfile): OrganizationFormState {
+  return {
+    name: organization.name,
+    description: organization.description,
+    email: organization.email,
+    website: organization.website,
+  }
+}
+
+function validateOrganizationForm(form: OrganizationFormState): OrganizationFormErrors {
+  const errors: OrganizationFormErrors = {}
+
+  if (!form.name.trim()) {
+    errors.name = 'Organization name is required.'
+  }
+
+  if (!form.email.trim()) {
+    errors.email = 'Email is required.'
+  }
+
+  return errors
+}
 
 function OrganizationDashboardPage() {
   const auth = useAppAuth()
@@ -20,6 +57,15 @@ function OrganizationDashboardPage() {
   const [closingOpportunityId, setClosingOpportunityId] =
     useState<string | null>(null)
   const [closeErrorMessage, setCloseErrorMessage] =
+    useState<string | null>(null)
+
+  const [isEditingOrganization, setIsEditingOrganization] = useState(false)
+  const [organizationForm, setOrganizationForm] =
+    useState<OrganizationFormState | null>(null)
+  const [organizationFormErrors, setOrganizationFormErrors] =
+    useState<OrganizationFormErrors>({})
+  const [isSavingOrganization, setIsSavingOrganization] = useState(false)
+  const [organizationSaveError, setOrganizationSaveError] =
     useState<string | null>(null)
 
   useEffect(() => {
@@ -138,6 +184,71 @@ function OrganizationDashboardPage() {
     return showMetricsPlaceholder ? '—' : String(value)
   }
 
+  function handleStartEditingOrganization() {
+    setOrganizationForm(buildOrganizationFormState(organization))
+    setOrganizationFormErrors({})
+    setOrganizationSaveError(null)
+    setIsEditingOrganization(true)
+  }
+
+  function handleCancelEditingOrganization() {
+    setOrganizationForm(buildOrganizationFormState(organization))
+    setOrganizationFormErrors({})
+    setOrganizationSaveError(null)
+    setIsEditingOrganization(false)
+  }
+
+  function handleOrganizationFieldChange(
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) {
+    const { name, value } = event.target
+    setOrganizationForm((current) => (current ? { ...current, [name]: value } : current))
+  }
+
+  async function handleSaveOrganization(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (isSavingOrganization || !organizationForm) {
+      return
+    }
+
+    const validationErrors = validateOrganizationForm(organizationForm)
+    setOrganizationFormErrors(validationErrors)
+
+    if (Object.keys(validationErrors).length > 0) {
+      return
+    }
+
+    if (!accessToken) {
+      setOrganizationSaveError('Your authentication session is unavailable.')
+      return
+    }
+
+    setOrganizationSaveError(null)
+    setIsSavingOrganization(true)
+
+    const request: UpdateOrganizationProfileRequest = {
+      name: organizationForm.name,
+      description: organizationForm.description,
+      email: organizationForm.email,
+      website: organizationForm.website,
+    }
+
+    try {
+      const updatedOrganization = await updateCurrentOrganization(accessToken, request)
+      auth.updateOrganizationProfile(updatedOrganization)
+      setIsEditingOrganization(false)
+    } catch (error) {
+      setOrganizationSaveError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to update organization information.',
+      )
+    } finally {
+      setIsSavingOrganization(false)
+    }
+  }
+
   return (
     <main className="organization-dashboard-page">
       <header className="organization-dashboard-header">
@@ -203,31 +314,150 @@ function OrganizationDashboardPage() {
           </div>
 
           <div className="organization-dashboard-details">
-            <h2>{organization.name}</h2>
-
-            {organization.description && (
-              <p className="organization-dashboard-description">
-                {organization.description}
-              </p>
-            )}
-
-            <dl className="organization-dashboard-meta">
-              <div>
-                <dt>Email</dt>
-                <dd>{organization.email}</dd>
-              </div>
-
-              {organization.website && (
-                <div>
-                  <dt>Website</dt>
-                  <dd>
-                    <a href={organization.website} target="_blank" rel="noreferrer">
-                      {organization.website}
-                    </a>
-                  </dd>
+            {isEditingOrganization && organizationForm ? (
+              <form
+                className="organization-dashboard-edit-form"
+                onSubmit={handleSaveOrganization}
+                noValidate
+              >
+                <div className="organization-dashboard-edit-field">
+                  <label htmlFor="organization-name">Organization name</label>
+                  <input
+                    id="organization-name"
+                    name="name"
+                    type="text"
+                    value={organizationForm.name}
+                    onChange={handleOrganizationFieldChange}
+                    required
+                    disabled={isSavingOrganization}
+                    aria-invalid={Boolean(organizationFormErrors.name)}
+                    aria-describedby={
+                      organizationFormErrors.name ? 'organization-name-error' : undefined
+                    }
+                  />
+                  {organizationFormErrors.name && (
+                    <p
+                      id="organization-name-error"
+                      className="organization-dashboard-edit-error"
+                      role="alert"
+                    >
+                      {organizationFormErrors.name}
+                    </p>
+                  )}
                 </div>
-              )}
-            </dl>
+
+                <div className="organization-dashboard-edit-field">
+                  <label htmlFor="organization-description">Description</label>
+                  <textarea
+                    id="organization-description"
+                    name="description"
+                    value={organizationForm.description}
+                    onChange={handleOrganizationFieldChange}
+                    disabled={isSavingOrganization}
+                  />
+                </div>
+
+                <div className="organization-dashboard-edit-field">
+                  <label htmlFor="organization-email">Email</label>
+                  <input
+                    id="organization-email"
+                    name="email"
+                    type="email"
+                    value={organizationForm.email}
+                    onChange={handleOrganizationFieldChange}
+                    required
+                    disabled={isSavingOrganization}
+                    aria-invalid={Boolean(organizationFormErrors.email)}
+                    aria-describedby={
+                      organizationFormErrors.email ? 'organization-email-error' : undefined
+                    }
+                  />
+                  {organizationFormErrors.email && (
+                    <p
+                      id="organization-email-error"
+                      className="organization-dashboard-edit-error"
+                      role="alert"
+                    >
+                      {organizationFormErrors.email}
+                    </p>
+                  )}
+                </div>
+
+                <div className="organization-dashboard-edit-field">
+                  <label htmlFor="organization-website">Website</label>
+                  <input
+                    id="organization-website"
+                    name="website"
+                    type="url"
+                    value={organizationForm.website}
+                    onChange={handleOrganizationFieldChange}
+                    disabled={isSavingOrganization}
+                  />
+                </div>
+
+                {organizationSaveError && (
+                  <p className="organization-dashboard-edit-error" role="alert">
+                    {organizationSaveError}
+                  </p>
+                )}
+
+                <div className="organization-dashboard-edit-actions">
+                  <button
+                    type="button"
+                    className="organization-dashboard-edit-cancel-button"
+                    onClick={handleCancelEditingOrganization}
+                    disabled={isSavingOrganization}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="organization-dashboard-edit-save-button"
+                    disabled={isSavingOrganization}
+                  >
+                    {isSavingOrganization ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className="organization-dashboard-details-header">
+                  <h2>{organization.name}</h2>
+                  <button
+                    type="button"
+                    className="organization-dashboard-edit-button"
+                    aria-label="Edit organization information"
+                    onClick={handleStartEditingOrganization}
+                  >
+                    <EditIcon aria-hidden="true" size={16} />
+                  </button>
+                </div>
+
+                {organization.description && (
+                  <p className="organization-dashboard-description">
+                    {organization.description}
+                  </p>
+                )}
+
+                <dl className="organization-dashboard-meta">
+                  <div>
+                    <dt>Email</dt>
+                    <dd>{organization.email}</dd>
+                  </div>
+
+                  {organization.website && (
+                    <div>
+                      <dt>Website</dt>
+                      <dd>
+                        <a href={organization.website} target="_blank" rel="noreferrer">
+                          {organization.website}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </>
+            )}
           </div>
         </div>
       </section>

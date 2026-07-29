@@ -16,6 +16,13 @@ export type CreateOrganizationProfileRequest = {
   website: string
 }
 
+export type UpdateOrganizationProfileRequest = {
+  name: string
+  description: string
+  email: string
+  website: string
+}
+
 export async function createOrganization(
   accessToken: string,
   request: CreateOrganizationProfileRequest,
@@ -53,6 +60,26 @@ export async function getCurrentOrganization(
     throw new Error(
       `Unable to load organization profile: ${response.status}`,
     )
+  }
+
+  return response.json() as Promise<OrganizationProfile>
+}
+
+export async function updateCurrentOrganization(
+  accessToken: string,
+  request: UpdateOrganizationProfileRequest,
+): Promise<OrganizationProfile> {
+  const response = await fetch(`${env.apiUrl}/organizations/me`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Unable to update organization profile: ${response.status}`)
   }
 
   return response.json() as Promise<OrganizationProfile>
