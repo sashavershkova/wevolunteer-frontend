@@ -9,7 +9,13 @@ import {
   type Registration,
 } from '../../services/api/registrationService'
 import type { Opportunity } from '../../types/Opportunity'
-import { DateIcon, LocationIcon, SpotsIcon, TimeIcon } from '../../components/shared/icons'
+import {
+  ChecklistIcon,
+  DateIcon,
+  LocationIcon,
+  SpotsIcon,
+  TimeIcon,
+} from '../../components/shared/icons'
 import './OpportunityDetailsPage.css'
 
 function formatDate(dateString: string): string {
@@ -251,6 +257,20 @@ function OpportunityDetailsPage() {
             <h2>About the Opportunity</h2>
             <p>{opportunity.description}</p>
           </section>
+
+          {opportunity.whatYoullDo.length > 0 && (
+            <section className="opportunity-details-section">
+              <h2>What You&apos;ll Do</h2>
+              <ul className="opportunity-details-checklist">
+                {opportunity.whatYoullDo.map((task) => (
+                  <li key={task}>
+                    <ChecklistIcon className="opportunity-details-checklist-icon" aria-hidden="true" />
+                    {task}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
 
         <div>

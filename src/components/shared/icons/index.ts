@@ -7,4 +7,5 @@ export {
   Clock as TimeIcon,
   User as SpotsIcon,
   Bell as NotificationsIcon,
+  Check as ChecklistIcon,
 } from 'lucide-react'

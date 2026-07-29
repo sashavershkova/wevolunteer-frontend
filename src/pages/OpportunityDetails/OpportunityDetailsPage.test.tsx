@@ -135,6 +135,33 @@ describe('OpportunityDetailsPage', () => {
     expect(screen.queryByText('Time')).not.toBeInTheDocument()
   })
 
+  it('shows the What You\'ll Do checklist when the opportunity has one', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp1)
+    mockedGetOrganization.mockResolvedValue(organizationFixture)
+    mockedGetMyRegistrations.mockResolvedValue([])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+    expect(screen.getByRole('heading', { name: "What You'll Do" })).toBeInTheDocument()
+    for (const task of opp1.whatYoullDo) {
+      expect(screen.getByText(task)).toBeInTheDocument()
+    }
+  })
+
+  it('omits the What You\'ll Do section when the checklist is empty', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp2)
+    mockedGetOrganization.mockResolvedValue(organizationFixture)
+    mockedGetMyRegistrations.mockResolvedValue([])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: opp2.title })
+
+    expect(screen.queryByRole('heading', { name: "What You'll Do" })).not.toBeInTheDocument()
+  })
+
   it('shows a not-found message when the opportunity does not exist', async () => {
     mockedGetOpportunity.mockResolvedValue(null)
 
