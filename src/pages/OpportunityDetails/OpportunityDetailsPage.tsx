@@ -318,6 +318,60 @@ function OpportunityDetailsPage() {
               </ul>
             </section>
           )}
+
+          {auth.userProfile && (
+            <div className="opportunity-details-action-bar">
+              {actionErrorMessage && (
+                <p role="alert" className="opportunity-details-action-error">
+                  {actionErrorMessage}
+                </p>
+              )}
+
+              {isRegistered ? (
+                <>
+                  <p className="opportunity-details-registered-note">You&apos;re registered</p>
+                  <button
+                    type="button"
+                    className="opportunity-details-cancel-button"
+                    disabled={isActionPending}
+                    onClick={handleCancel}
+                  >
+                    {isActionPending ? 'Cancelling...' : 'Cancel registration'}
+                  </button>
+                </>
+              ) : isClosed || isFull ? (
+                <button type="button" className="opportunity-details-cancel-button" disabled>
+                  {isClosed ? 'Registration closed' : 'This opportunity is full'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="opportunity-details-register-button"
+                  disabled={isActionPending}
+                  onClick={handleRegister}
+                >
+                  {isActionPending ? 'Registering...' : 'Register'}
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="opportunity-details-save-button"
+                disabled={isFavoritePending}
+                onClick={handleToggleFavorite}
+                aria-pressed={isFavorited}
+              >
+                <SaveIcon className="opportunity-details-save-icon" aria-hidden="true" />
+                {isFavoritePending ? 'Saving...' : isFavorited ? 'Saved' : 'Save'}
+              </button>
+
+              {favoriteErrorMessage && (
+                <p role="alert" className="opportunity-details-action-error">
+                  {favoriteErrorMessage}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <div>
@@ -334,60 +388,6 @@ function OpportunityDetailsPage() {
           )}
         </div>
       </div>
-
-      {auth.userProfile && (
-        <div className="opportunity-details-action-bar">
-          {actionErrorMessage && (
-            <p role="alert" className="opportunity-details-action-error">
-              {actionErrorMessage}
-            </p>
-          )}
-
-          {isRegistered ? (
-            <>
-              <p className="opportunity-details-registered-note">You&apos;re registered</p>
-              <button
-                type="button"
-                className="opportunity-details-cancel-button"
-                disabled={isActionPending}
-                onClick={handleCancel}
-              >
-                {isActionPending ? 'Cancelling...' : 'Cancel registration'}
-              </button>
-            </>
-          ) : isClosed || isFull ? (
-            <button type="button" className="opportunity-details-cancel-button" disabled>
-              {isClosed ? 'Registration closed' : 'This opportunity is full'}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="opportunity-details-register-button"
-              disabled={isActionPending}
-              onClick={handleRegister}
-            >
-              {isActionPending ? 'Registering...' : 'Register'}
-            </button>
-          )}
-
-          <button
-            type="button"
-            className="opportunity-details-save-button"
-            disabled={isFavoritePending}
-            onClick={handleToggleFavorite}
-            aria-pressed={isFavorited}
-          >
-            <SaveIcon className="opportunity-details-save-icon" aria-hidden="true" />
-            {isFavoritePending ? 'Saving...' : isFavorited ? 'Saved' : 'Save'}
-          </button>
-
-          {favoriteErrorMessage && (
-            <p role="alert" className="opportunity-details-action-error">
-              {favoriteErrorMessage}
-            </p>
-          )}
-        </div>
-      )}
     </main>
   )
 }
