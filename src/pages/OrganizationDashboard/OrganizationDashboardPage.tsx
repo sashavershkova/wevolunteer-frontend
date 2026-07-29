@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
 import { closeOpportunity } from '../../services/api/opportunityService'
@@ -9,6 +9,7 @@ import './OrganizationDashboardPage.css'
 
 function OrganizationDashboardPage() {
   const auth = useAppAuth()
+  const navigate = useNavigate()
   const { accessToken } = auth
 
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
@@ -218,8 +219,11 @@ function OrganizationDashboardPage() {
         <div className="organization-dashboard-opportunities-header">
           <h2>My Opportunities</h2>
 
-          {/* TODO: wire up navigation to the Create Opportunity page once it exists */}
-          <button type="button" className="organization-dashboard-create-button" disabled>
+          <button
+            type="button"
+            className="organization-dashboard-create-button"
+            onClick={() => navigate('/organization/opportunities/new')}
+          >
             + Create New Opportunity
           </button>
         </div>

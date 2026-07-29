@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import OrganizationDashboardPage from './OrganizationDashboardPage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
@@ -53,7 +54,17 @@ function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {
 }
 
 function renderPage() {
-  return render(<OrganizationDashboardPage />)
+  return render(
+    <MemoryRouter initialEntries={['/organization']}>
+      <Routes>
+        <Route path="/organization" element={<OrganizationDashboardPage />} />
+        <Route
+          path="/organization/opportunities/new"
+          element={<div>Create Opportunity Page</div>}
+        />
+      </Routes>
+    </MemoryRouter>,
+  )
 }
 
 function getMetricValue(label: string): string {
@@ -142,5 +153,29 @@ describe('OrganizationDashboardPage', () => {
     )
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
     expect(screen.getByText('Open')).toBeInTheDocument()
+  })
+
+  it('enables the Create New Opportunity button', async () => {
+    mockedGetMyOrganizationOpportunities.mockResolvedValue([])
+
+    renderPage()
+
+    const createButton = await screen.findByRole('button', {
+      name: '+ Create New Opportunity',
+    })
+    expect(createButton).toBeEnabled()
+  })
+
+  it('navigates to the create opportunity page when clicked', async () => {
+    mockedGetMyOrganizationOpportunities.mockResolvedValue([])
+
+    renderPage()
+
+    const createButton = await screen.findByRole('button', {
+      name: '+ Create New Opportunity',
+    })
+    fireEvent.click(createButton)
+
+    expect(await screen.findByText('Create Opportunity Page')).toBeInTheDocument()
   })
 })

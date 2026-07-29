@@ -1,0 +1,31 @@
+.create-opportunity-page {
+  max-width: 56rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.create-opportunity-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.create-opportunity-back-link:hover {
+  color: var(--text-h);
+}
+
+.create-opportunity-header {
+  margin-bottom: 1.75rem;
+}
+
+.create-opportunity-subtitle {
+  color: var(--text);
+  margin: 0.25rem 0 0;
+}
