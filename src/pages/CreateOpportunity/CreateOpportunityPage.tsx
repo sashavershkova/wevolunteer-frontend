@@ -19,17 +19,17 @@ type CreateOpportunityFormErrors = Partial<Record<keyof CreateOpportunityFormSta
 const OTHER_CATEGORY = 'Other...'
 
 const CATEGORY_OPTIONS = [
+  'Animal Welfare',
+  'Arts & Culture',
+  'Community Service',
+  'Disaster Relief',
+  'Education',
   'Environment',
   'Food & Hunger Relief',
-  'Education',
-  'Community Service',
   'Health',
-  'Animal Welfare',
   'Seniors',
-  'Youth',
-  'Disaster Relief',
-  'Arts & Culture',
   'Sports & Recreation',
+  'Youth',
   OTHER_CATEGORY,
 ]
 

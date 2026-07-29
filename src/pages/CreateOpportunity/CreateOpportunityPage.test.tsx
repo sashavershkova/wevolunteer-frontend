@@ -113,17 +113,17 @@ describe('CreateOpportunityPage', () => {
 
     expect(optionValues).toEqual([
       '',
+      'Animal Welfare',
+      'Arts & Culture',
+      'Community Service',
+      'Disaster Relief',
+      'Education',
       'Environment',
       'Food & Hunger Relief',
-      'Education',
-      'Community Service',
       'Health',
-      'Animal Welfare',
       'Seniors',
-      'Youth',
-      'Disaster Relief',
-      'Arts & Culture',
       'Sports & Recreation',
+      'Youth',
       'Other...',
     ])
   })
