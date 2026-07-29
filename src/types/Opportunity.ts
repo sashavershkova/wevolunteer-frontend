@@ -13,4 +13,7 @@ export type Opportunity = {
   capacity: number
   registeredCount: number
   availableSpots: number
+  time: string | null
+  whatYoullDo: string[]
+  recurring: boolean
 }
