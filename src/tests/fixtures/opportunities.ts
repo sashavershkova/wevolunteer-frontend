@@ -5,11 +5,13 @@ import type { Opportunity } from '../../types/Opportunity'
 // seeded records so these fixtures stay representative of what the live
 // API will actually return once opportunityService is wired up.
 //
-// time/whatYoullDo/recurring are deliberately varied across fixtures so
-// tests exercise both a fully-populated opportunity (opp1, opp3) and one
-// written before these fields existed, where the backend defaults them to
-// null/[]/false (opp2, opp7) - see DynamoDbOpportunityRepository on the
-// backend for the read-side defaulting this mirrors.
+// startTime/endTime/time/whatYoullDo/recurring are deliberately varied across
+// fixtures so tests exercise a fully-populated structured opportunity (opp1,
+// opp3), one written before any time field existed with everything null
+// (opp2), and one written before startTime/endTime existed that still
+// carries only the legacy free-text time (opp7) - see
+// DynamoDbOpportunityRepository on the backend for the read-side defaulting
+// this mirrors.
 
 export const opp1: Opportunity = {
   opportunityId: 'opp1',
@@ -24,7 +26,9 @@ export const opp1: Opportunity = {
   capacity: 10,
   registeredCount: 1,
   availableSpots: 9,
-  time: '9:00 AM - 1:00 PM',
+  time: null,
+  startTime: '09:00',
+  endTime: '12:00',
   whatYoullDo: ['Sort and organize food items', 'Pack boxes for distribution'],
   recurring: false,
 }
@@ -43,6 +47,8 @@ export const opp2: Opportunity = {
   registeredCount: 8,
   availableSpots: 0,
   time: null,
+  startTime: null,
+  endTime: null,
   whatYoullDo: [],
   recurring: false,
 }
@@ -60,7 +66,9 @@ export const opp3: Opportunity = {
   capacity: 20,
   registeredCount: 5,
   availableSpots: 15,
-  time: '10:00 AM - 2:00 PM',
+  time: null,
+  startTime: '14:30',
+  endTime: '16:45',
   whatYoullDo: ['Pick up litter', 'Spread mulch in garden beds'],
   recurring: true,
 }
@@ -78,7 +86,9 @@ export const opp7: Opportunity = {
   capacity: 6,
   registeredCount: 6,
   availableSpots: 0,
-  time: null,
+  time: '9:00 AM - 12:00 PM',
+  startTime: null,
+  endTime: null,
   whatYoullDo: [],
   recurring: false,
 }

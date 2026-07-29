@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import OrganizationOpportunityDetailsPage from './OrganizationOpportunityDetailsPage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getOpportunity } from '../../services/api/opportunityService'
-import { opp1 } from '../../tests/fixtures/opportunities'
+import { opp1, opp2, opp7 } from '../../tests/fixtures/opportunities'
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAppAuth: vi.fn(),
@@ -91,9 +91,29 @@ describe('OrganizationOpportunityDetailsPage', () => {
     expect(screen.getByText(opp1.description)).toBeInTheDocument()
     expect(screen.getByText(opp1.category)).toBeInTheDocument()
     expect(screen.getByText(opp1.location)).toBeInTheDocument()
-    expect(screen.getByText(opp1.time as string)).toBeInTheDocument()
+    expect(screen.getByText('9:00 AM – 12:00 PM')).toBeInTheDocument()
     expect(screen.getByText('Open')).toBeInTheDocument()
     expect(mockedGetOpportunity).toHaveBeenCalledWith('test-token', opp1.opportunityId)
+  })
+
+  it('omits the time row when the opportunity has no time', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp2)
+
+    renderPage(`/organization/opportunities/${opp2.opportunityId}`)
+
+    await screen.findByRole('heading', { name: opp2.title })
+
+    expect(screen.queryByText('Time')).not.toBeInTheDocument()
+  })
+
+  it('shows the legacy time unchanged for an opportunity with only legacy time', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp7)
+
+    renderPage(`/organization/opportunities/${opp7.opportunityId}`)
+
+    await screen.findByRole('heading', { name: opp7.title })
+
+    expect(screen.getByText('9:00 AM - 12:00 PM')).toBeInTheDocument()
   })
 
   it('shows capacity, registered count, and available spots', async () => {

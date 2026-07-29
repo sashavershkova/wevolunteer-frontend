@@ -69,6 +69,8 @@ async function fillValidForm(user: UserEvent, overrides: Partial<typeof validFor
   await user.selectOptions(screen.getByLabelText('Category'), values.category)
   await user.type(screen.getByLabelText('Location'), values.location)
   fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2026-08-01' } })
+  fireEvent.change(screen.getByLabelText('Start time'), { target: { value: '10:00' } })
+  fireEvent.change(screen.getByLabelText('End time'), { target: { value: '12:00' } })
   await user.type(screen.getByLabelText('Capacity'), values.capacity)
 }
 
@@ -94,7 +96,7 @@ describe('CreateOpportunityPage', () => {
     )
   })
 
-  it('renders all six fields with accessible labels', () => {
+  it('renders all eight fields with accessible labels', () => {
     renderPage()
 
     expect(screen.getByLabelText('Title')).toBeInTheDocument()
@@ -102,7 +104,16 @@ describe('CreateOpportunityPage', () => {
     expect(screen.getByLabelText('Category')).toBeInTheDocument()
     expect(screen.getByLabelText('Location')).toBeInTheDocument()
     expect(screen.getByLabelText('Date')).toBeInTheDocument()
+    expect(screen.getByLabelText('Start time')).toBeInTheDocument()
+    expect(screen.getByLabelText('End time')).toBeInTheDocument()
     expect(screen.getByLabelText('Capacity')).toBeInTheDocument()
+  })
+
+  it('starts the Start time and End time fields blank', () => {
+    renderPage()
+
+    expect(screen.getByLabelText('Start time')).toHaveValue('')
+    expect(screen.getByLabelText('End time')).toHaveValue('')
   })
 
   it('offers the expanded project category values', () => {
@@ -199,6 +210,8 @@ describe('CreateOpportunityPage', () => {
     expect(screen.getByText('Please select a category.')).toBeInTheDocument()
     expect(screen.getByText('Location is required.')).toBeInTheDocument()
     expect(screen.getByText('Date is required.')).toBeInTheDocument()
+    expect(screen.getByText('Start time is required.')).toBeInTheDocument()
+    expect(screen.getByText('End time is required.')).toBeInTheDocument()
     expect(screen.getByText('Capacity is required.')).toBeInTheDocument()
     expect(screen.getByLabelText('Title')).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByLabelText('Title')).toHaveAttribute('aria-describedby', 'title-error')
@@ -250,6 +263,8 @@ describe('CreateOpportunityPage', () => {
       category: validFormValues.category,
       location: validFormValues.location,
       date: '2026-08-01',
+      startTime: '10:00',
+      endTime: '12:00',
       capacity: 5,
     })
   })
@@ -273,6 +288,21 @@ describe('CreateOpportunityPage', () => {
     expect(sentRequest).not.toHaveProperty('status')
     expect(sentRequest).not.toHaveProperty('registeredCount')
     expect(sentRequest).not.toHaveProperty('availableSpots')
+  })
+
+  it('does not send a legacy time field', async () => {
+    const user = userEvent.setup()
+    mockedCreateOpportunity.mockResolvedValue(opp1)
+    renderPage()
+
+    await fillValidForm(user)
+    await user.click(screen.getByRole('button', { name: 'Create Opportunity' }))
+
+    await waitFor(() => {
+      expect(mockedCreateOpportunity).toHaveBeenCalledTimes(1)
+    })
+
+    expect(mockedCreateOpportunity.mock.calls[0][1]).not.toHaveProperty('time')
   })
 
   it('navigates to /organization after a successful submission', async () => {

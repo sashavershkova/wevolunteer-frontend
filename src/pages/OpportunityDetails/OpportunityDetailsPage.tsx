@@ -23,6 +23,7 @@ import {
   SpotsIcon,
   TimeIcon,
 } from '../../components/shared/icons'
+import { formatOpportunityTimeRange } from '../../utils/formatOpportunityTimeRange'
 import './OpportunityDetailsPage.css'
 
 function formatDate(dateString: string): string {
@@ -233,6 +234,11 @@ function OpportunityDetailsPage() {
 
   const isClosed = opportunity.status === 'CLOSED'
   const isFull = opportunity.availableSpots <= 0
+  const displayTime = formatOpportunityTimeRange(
+    opportunity.startTime,
+    opportunity.endTime,
+    opportunity.time,
+  )
 
   return (
     <main className="opportunity-details-page">
@@ -265,13 +271,13 @@ function OpportunityDetailsPage() {
               </dt>
               <dd>{formatDate(opportunity.date)}</dd>
             </div>
-            {opportunity.time && (
+            {displayTime && (
               <div>
                 <dt>
                   <TimeIcon className="opportunity-details-meta-icon" aria-hidden="true" />
                   Time
                 </dt>
-                <dd>{opportunity.time}</dd>
+                <dd>{displayTime}</dd>
               </div>
             )}
             <div>

@@ -89,7 +89,6 @@ function ManageOpportunityPage() {
       await updateOpportunity(auth.accessToken, opportunityId, {
         ...values,
         status: opportunity.status,
-        time: opportunity.time,
         whatYoullDo: opportunity.whatYoullDo,
         recurring: opportunity.recurring,
       })
@@ -169,6 +168,8 @@ function ManageOpportunityPage() {
             location: opportunity.location,
             date: opportunity.date,
             capacity: opportunity.capacity,
+            startTime: opportunity.startTime,
+            endTime: opportunity.endTime,
           }}
           submitLabel="Save Changes"
           isSubmitting={isSubmitting}

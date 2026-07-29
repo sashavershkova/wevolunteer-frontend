@@ -116,6 +116,8 @@ describe('createOpportunity', () => {
     location: 'Seattle, WA',
     date: '2026-07-10',
     capacity: 10,
+    startTime: '09:00',
+    endTime: '12:00',
   }
 
   it('sends a POST request to the organization opportunities endpoint', async () => {
@@ -172,6 +174,37 @@ describe('createOpportunity', () => {
     expect(sentBody).not.toHaveProperty('organizationName')
   })
 
+  it('includes the HH:mm startTime and endTime values in the request body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(opp1),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await createOpportunity('test-token', request)
+
+    const [, options] = fetchMock.mock.calls[0]
+    const sentBody = JSON.parse(options.body)
+
+    expect(sentBody.startTime).toBe('09:00')
+    expect(sentBody.endTime).toBe('12:00')
+  })
+
+  it('does not include the legacy time field in the request body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(opp1),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await createOpportunity('test-token', request)
+
+    const [, options] = fetchMock.mock.calls[0]
+    const sentBody = JSON.parse(options.body)
+
+    expect(sentBody).not.toHaveProperty('time')
+  })
+
   it('returns the created Opportunity on success', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -210,7 +243,8 @@ describe('updateOpportunity', () => {
     date: '2026-07-10',
     status: 'OPEN' as const,
     capacity: 10,
-    time: '9:00 AM - 1:00 PM',
+    startTime: '14:30',
+    endTime: '16:45',
     whatYoullDo: ['Sort and organize food items'],
     recurring: false,
   }
@@ -265,6 +299,37 @@ describe('updateOpportunity', () => {
     const sentBody = JSON.parse(options.body)
 
     expect(sentBody).toEqual(request)
+  })
+
+  it('includes the HH:mm startTime and endTime values in the request body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(opp1),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await updateOpportunity('test-token', 'opp1', request)
+
+    const [, options] = fetchMock.mock.calls[0]
+    const sentBody = JSON.parse(options.body)
+
+    expect(sentBody.startTime).toBe('14:30')
+    expect(sentBody.endTime).toBe('16:45')
+  })
+
+  it('does not include the legacy time field in the request body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(opp1),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await updateOpportunity('test-token', 'opp1', request)
+
+    const [, options] = fetchMock.mock.calls[0]
+    const sentBody = JSON.parse(options.body)
+
+    expect(sentBody).not.toHaveProperty('time')
   })
 
   it('returns the updated Opportunity on success', async () => {

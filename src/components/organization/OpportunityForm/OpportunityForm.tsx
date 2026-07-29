@@ -8,6 +8,8 @@ export type OpportunityFormInitialValues = {
   location: string
   date: string
   capacity: number
+  startTime: string | null
+  endTime: string | null
 }
 
 export type OpportunityFormSubmitValues = {
@@ -17,6 +19,8 @@ export type OpportunityFormSubmitValues = {
   location: string
   date: string
   capacity: number
+  startTime: string
+  endTime: string
 }
 
 type OpportunityFormProps = {
@@ -36,6 +40,8 @@ type OpportunityFormState = {
   location: string
   date: string
   capacity: string
+  startTime: string
+  endTime: string
 }
 
 type OpportunityFormErrors = Partial<Record<keyof OpportunityFormState, string>>
@@ -65,6 +71,8 @@ const emptyFormState: OpportunityFormState = {
   location: '',
   date: '',
   capacity: '',
+  startTime: '',
+  endTime: '',
 }
 
 function buildFormState(initialValues?: OpportunityFormInitialValues): OpportunityFormState {
@@ -82,7 +90,17 @@ function buildFormState(initialValues?: OpportunityFormInitialValues): Opportuni
     location: initialValues.location,
     date: initialValues.date,
     capacity: String(initialValues.capacity),
+    startTime: initialValues.startTime ?? '',
+    endTime: initialValues.endTime ?? '',
   }
+}
+
+/**
+ * Both values are zero-padded HH:mm strings from a native time input, so a
+ * plain string comparison correctly reflects chronological order.
+ */
+function isEndTimeAfterStartTime(startTime: string, endTime: string): boolean {
+  return endTime > startTime
 }
 
 function validateForm(form: OpportunityFormState): OpportunityFormErrors {
@@ -108,6 +126,22 @@ function validateForm(form: OpportunityFormState): OpportunityFormErrors {
 
   if (!form.date.trim()) {
     errors.date = 'Date is required.'
+  }
+
+  if (!form.startTime.trim()) {
+    errors.startTime = 'Start time is required.'
+  }
+
+  if (!form.endTime.trim()) {
+    errors.endTime = 'End time is required.'
+  }
+
+  if (
+    form.startTime.trim() &&
+    form.endTime.trim() &&
+    !isEndTimeAfterStartTime(form.startTime, form.endTime)
+  ) {
+    errors.endTime = 'End time must be later than start time.'
   }
 
   if (!form.capacity.trim()) {
@@ -161,6 +195,8 @@ function OpportunityForm({
       location: form.location,
       date: form.date,
       capacity: Number(form.capacity),
+      startTime: form.startTime,
+      endTime: form.endTime,
     })
   }
 
@@ -270,23 +306,63 @@ function OpportunityForm({
         )}
       </div>
 
-      <div className="create-opportunity-field">
-        <label htmlFor="date">Date</label>
-        <input
-          id="date"
-          name="date"
-          type="date"
-          value={form.date}
-          onChange={handleChange}
-          required
-          aria-invalid={Boolean(errors.date)}
-          aria-describedby={errors.date ? 'date-error' : undefined}
-        />
-        {errors.date && (
-          <p id="date-error" className="create-opportunity-error" role="alert">
-            {errors.date}
-          </p>
-        )}
+      <div className="create-opportunity-field-row">
+        <div className="create-opportunity-field">
+          <label htmlFor="date">Date</label>
+          <input
+            id="date"
+            name="date"
+            type="date"
+            value={form.date}
+            onChange={handleChange}
+            required
+            aria-invalid={Boolean(errors.date)}
+            aria-describedby={errors.date ? 'date-error' : undefined}
+          />
+          {errors.date && (
+            <p id="date-error" className="create-opportunity-error" role="alert">
+              {errors.date}
+            </p>
+          )}
+        </div>
+
+        <div className="create-opportunity-field">
+          <label htmlFor="startTime">Start time</label>
+          <input
+            id="startTime"
+            name="startTime"
+            type="time"
+            value={form.startTime}
+            onChange={handleChange}
+            required
+            aria-invalid={Boolean(errors.startTime)}
+            aria-describedby={errors.startTime ? 'startTime-error' : undefined}
+          />
+          {errors.startTime && (
+            <p id="startTime-error" className="create-opportunity-error" role="alert">
+              {errors.startTime}
+            </p>
+          )}
+        </div>
+
+        <div className="create-opportunity-field">
+          <label htmlFor="endTime">End time</label>
+          <input
+            id="endTime"
+            name="endTime"
+            type="time"
+            value={form.endTime}
+            onChange={handleChange}
+            required
+            aria-invalid={Boolean(errors.endTime)}
+            aria-describedby={errors.endTime ? 'endTime-error' : undefined}
+          />
+          {errors.endTime && (
+            <p id="endTime-error" className="create-opportunity-error" role="alert">
+              {errors.endTime}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="create-opportunity-field">

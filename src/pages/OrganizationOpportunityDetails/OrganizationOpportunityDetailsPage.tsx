@@ -11,6 +11,7 @@ import {
   TimeIcon,
 } from '../../components/shared/icons'
 import type { Opportunity } from '../../types/Opportunity'
+import { formatOpportunityTimeRange } from '../../utils/formatOpportunityTimeRange'
 import './OrganizationOpportunityDetailsPage.css'
 
 function formatDate(dateString: string): string {
@@ -112,6 +113,11 @@ function OrganizationOpportunityDetailsPage() {
   const organization = auth.organizationProfile
   const isOwner =
     opportunity !== null && opportunity.organizationId === organization.organizationId
+  const displayTime = formatOpportunityTimeRange(
+    opportunity?.startTime,
+    opportunity?.endTime,
+    opportunity?.time,
+  )
 
   return (
     <main className="organization-opportunity-details-page">
@@ -175,13 +181,13 @@ function OrganizationOpportunityDetailsPage() {
               </dt>
               <dd>{formatDate(opportunity.date)}</dd>
             </div>
-            {opportunity.time && (
+            {displayTime && (
               <div>
                 <dt>
                   <TimeIcon aria-hidden="true" className="organization-opportunity-details-meta-icon" />
                   Time
                 </dt>
-                <dd>{opportunity.time}</dd>
+                <dd>{displayTime}</dd>
               </div>
             )}
             <div>

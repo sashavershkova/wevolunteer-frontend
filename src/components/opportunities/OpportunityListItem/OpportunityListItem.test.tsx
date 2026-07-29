@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import OpportunityListItem from './OpportunityListItem'
-import { opp1, opp2 } from '../../../tests/fixtures/opportunities'
+import { opp1, opp2, opp7 } from '../../../tests/fixtures/opportunities'
 
 function renderItem(
   opportunity: typeof opp1,
@@ -37,13 +37,19 @@ describe('OpportunityListItem', () => {
 
     expect(screen.getByText('Seattle, WA')).toBeInTheDocument()
     expect(screen.getByText('Jul 10, 2026')).toBeInTheDocument()
-    expect(screen.getByText(opp1.time as string)).toBeInTheDocument()
+    expect(screen.getByText('9:00 AM – 12:00 PM')).toBeInTheDocument()
   })
 
   it('omits the time row when the opportunity has no time', () => {
     renderItem(opp2)
 
     expect(screen.queryByText(/AM|PM/)).not.toBeInTheDocument()
+  })
+
+  it('shows the legacy time unchanged for an opportunity with only legacy time', () => {
+    renderItem(opp7)
+
+    expect(screen.getByText('9:00 AM - 12:00 PM')).toBeInTheDocument()
   })
 
   it('shows available spots in green when the opportunity has room', () => {

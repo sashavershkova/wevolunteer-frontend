@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { EditIcon } from '../../shared/icons'
 import type { Opportunity } from '../../../types/Opportunity'
+import { formatOpportunityTimeRange } from '../../../utils/formatOpportunityTimeRange'
 import './OrganizationOpportunitiesTable.css'
 
 type OrganizationOpportunitiesTableProps = {
@@ -63,6 +64,7 @@ function OrganizationOpportunitiesTable({
           <tr>
             <th scope="col">Opportunity</th>
             <th scope="col">Date</th>
+            <th scope="col">Time</th>
             <th scope="col">Registrations</th>
             <th scope="col">Status</th>
             <th scope="col">Actions</th>
@@ -71,6 +73,11 @@ function OrganizationOpportunitiesTable({
         <tbody>
           {opportunities.map((opportunity) => {
             const isClosing = closingOpportunityId === opportunity.opportunityId
+            const displayTime = formatOpportunityTimeRange(
+              opportunity.startTime,
+              opportunity.endTime,
+              opportunity.time,
+            )
 
             return (
               <tr key={opportunity.opportunityId}>
@@ -95,6 +102,7 @@ function OrganizationOpportunitiesTable({
                   </div>
                 </td>
                 <td data-label="Date">{formatEventDate(opportunity.date)}</td>
+                <td data-label="Time">{displayTime}</td>
                 <td data-label="Registrations">
                   {opportunity.registeredCount} / {opportunity.capacity}
                 </td>

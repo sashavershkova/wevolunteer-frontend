@@ -7,7 +7,7 @@ import { getOpportunity, registerForOpportunity } from '../../services/api/oppor
 import { getOrganization } from '../../services/api/organizationService'
 import { getMyRegistrations, cancelMyRegistration } from '../../services/api/registrationService'
 import { getMyFavorites, removeFavorite, saveFavorite } from '../../services/api/favoriteService'
-import { opp1, opp2, opp3 } from '../../tests/fixtures/opportunities'
+import { opp1, opp2, opp3, opp7 } from '../../tests/fixtures/opportunities'
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAppAuth: vi.fn(),
@@ -136,7 +136,7 @@ describe('OpportunityDetailsPage', () => {
     await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
 
     expect(screen.getByText('Time')).toBeInTheDocument()
-    expect(screen.getByText(opp1.time as string)).toBeInTheDocument()
+    expect(screen.getByText('9:00 AM – 12:00 PM')).toBeInTheDocument()
   })
 
   it('omits the time row when the opportunity has no time', async () => {
@@ -149,6 +149,19 @@ describe('OpportunityDetailsPage', () => {
     await screen.findByRole('heading', { name: opp2.title })
 
     expect(screen.queryByText('Time')).not.toBeInTheDocument()
+  })
+
+  it('shows the legacy time unchanged for an opportunity with only legacy time', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp7)
+    mockedGetOrganization.mockResolvedValue(organizationFixture)
+    mockedGetMyRegistrations.mockResolvedValue([])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: opp7.title })
+
+    expect(screen.getByText('Time')).toBeInTheDocument()
+    expect(screen.getByText('9:00 AM - 12:00 PM')).toBeInTheDocument()
   })
 
   it('shows the What You\'ll Do checklist when the opportunity has one', async () => {

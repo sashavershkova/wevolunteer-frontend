@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import ManageOpportunityPage from './ManageOpportunityPage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getOpportunity, updateOpportunity } from '../../services/api/opportunityService'
-import { opp1 } from '../../tests/fixtures/opportunities'
+import { opp1, opp7 } from '../../tests/fixtures/opportunities'
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAppAuth: vi.fn(),
@@ -95,6 +95,8 @@ describe('ManageOpportunityPage', () => {
     expect(screen.getByLabelText('Description')).toHaveValue(opp1.description)
     expect(screen.getByLabelText('Location')).toHaveValue(opp1.location)
     expect(screen.getByLabelText('Date')).toHaveValue(opp1.date)
+    expect(screen.getByLabelText('Start time')).toHaveValue(opp1.startTime as string)
+    expect(screen.getByLabelText('End time')).toHaveValue(opp1.endTime as string)
     expect(screen.getByLabelText('Capacity')).toHaveValue(opp1.capacity)
 
     // opp1's category ('Food') is not one of the fixed dropdown options, so
@@ -130,10 +132,44 @@ describe('ManageOpportunityPage', () => {
       date: opp1.date,
       capacity: opp1.capacity,
       status: opp1.status,
-      time: opp1.time,
+      startTime: opp1.startTime,
+      endTime: opp1.endTime,
       whatYoullDo: opp1.whatYoullDo,
       recurring: opp1.recurring,
     })
+  })
+
+  it('sends the edited startTime and endTime values in the update request', async () => {
+    const user = userEvent.setup()
+    mockedGetOpportunity.mockResolvedValue(opp1)
+    mockedUpdateOpportunity.mockResolvedValue({ ...opp1, startTime: '16:00', endTime: '18:00' })
+
+    renderPage()
+
+    const startTimeInput = await screen.findByLabelText('Start time')
+    fireEvent.change(startTimeInput, { target: { value: '16:00' } })
+    fireEvent.change(screen.getByLabelText('End time'), { target: { value: '18:00' } })
+
+    await user.click(screen.getByRole('button', { name: 'Save Changes' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateOpportunity).toHaveBeenCalledTimes(1)
+    })
+
+    expect(mockedUpdateOpportunity).toHaveBeenCalledWith(
+      'test-token',
+      opp1.opportunityId,
+      expect.objectContaining({ startTime: '16:00', endTime: '18:00' }),
+    )
+  })
+
+  it('opens with blank Start time and End time fields for a legacy-only opportunity', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp7)
+
+    renderPage(`/organization/opportunities/${opp7.opportunityId}/edit`)
+
+    expect(await screen.findByLabelText('Start time')).toHaveValue('')
+    expect(screen.getByLabelText('End time')).toHaveValue('')
   })
 
   it('navigates to /organization after a successful update', async () => {

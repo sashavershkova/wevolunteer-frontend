@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Opportunity } from '../../../types/Opportunity'
 import { LocationIcon, DateIcon, TimeIcon, SpotsIcon } from '../../shared/icons'
+import { formatOpportunityTimeRange } from '../../../utils/formatOpportunityTimeRange'
 import './OpportunityListItem.css'
 
 type OpportunityListItemProps = {
@@ -35,6 +36,11 @@ function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemPro
     const spotsStatusClass = isFull
     ? 'opportunity-list-item-spots-full'
     : 'opportunity-list-item-spots-open'
+    const displayTime = formatOpportunityTimeRange(
+        opportunity.startTime,
+        opportunity.endTime,
+        opportunity.time,
+    )
 
     async function handleRegisterClick() {
         if (!onRegister) {
@@ -86,10 +92,10 @@ function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemPro
               <DateIcon className="opportunity-list-item-meta-icon" aria-hidden="true" />
               {formatDate(opportunity.date)}
             </li>
-            {opportunity.time && (
+            {displayTime && (
               <li>
                 <TimeIcon className="opportunity-list-item-meta-icon" aria-hidden="true" />
-                {opportunity.time}
+                {displayTime}
               </li>
             )}
             <li className={spotsStatusClass}>

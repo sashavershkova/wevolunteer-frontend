@@ -11,6 +11,16 @@
   gap: 0.4rem;
 }
 
+.create-opportunity-field-row {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.create-opportunity-field-row .create-opportunity-field {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 .create-opportunity-field label {
   font-size: 0.85rem;
   font-weight: 600;
@@ -106,6 +116,10 @@
 @media (max-width: 640px) {
   .create-opportunity-form {
     max-width: 100%;
+  }
+
+  .create-opportunity-field-row {
+    flex-direction: column;
   }
 
   .create-opportunity-actions {

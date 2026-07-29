@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import OrganizationOpportunitiesTable from './OrganizationOpportunitiesTable'
-import { opp1, opp3 } from '../../../tests/fixtures/opportunities'
+import { opp1, opp2, opp3, opp7 } from '../../../tests/fixtures/opportunities'
 
 const openOpportunity = opp1
 const closedOpportunity = { ...opp3, opportunityId: 'opp-closed', status: 'CLOSED' as const }
@@ -110,6 +110,34 @@ describe('OrganizationOpportunitiesTable', () => {
       'href',
       `/organization/opportunities/${openOpportunity.opportunityId}/edit`,
     )
+  })
+
+  it('shows the formatted time range for an opportunity with structured startTime/endTime', () => {
+    renderTable(
+      <OrganizationOpportunitiesTable
+        opportunities={[openOpportunity]}
+        onCloseOpportunity={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText('9:00 AM – 12:00 PM')).toBeInTheDocument()
+  })
+
+  it('shows the legacy time unchanged for an opportunity with only legacy time', () => {
+    renderTable(
+      <OrganizationOpportunitiesTable opportunities={[opp7]} onCloseOpportunity={vi.fn()} />,
+    )
+
+    expect(screen.getByText('9:00 AM - 12:00 PM')).toBeInTheDocument()
+  })
+
+  it('shows an empty Time cell when neither structured nor legacy time exists', () => {
+    renderTable(
+      <OrganizationOpportunitiesTable opportunities={[opp2]} onCloseOpportunity={vi.fn()} />,
+    )
+
+    const timeCell = screen.getByText(opp2.title).closest('tr')?.querySelector('[data-label="Time"]')
+    expect(timeCell).toHaveTextContent('')
   })
 
   it('does not navigate when the Close button is clicked', () => {

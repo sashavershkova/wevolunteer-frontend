@@ -9,6 +9,8 @@ export type CreateOpportunityRequest = {
   location: string
   date: string
   capacity: number
+  startTime: string
+  endTime: string
 }
 
 export type UpdateOpportunityRequest = {
@@ -19,7 +21,8 @@ export type UpdateOpportunityRequest = {
   date: string
   status: OpportunityStatus
   capacity: number
-  time: string | null
+  startTime: string
+  endTime: string
   whatYoullDo: string[]
   recurring: boolean
 }
