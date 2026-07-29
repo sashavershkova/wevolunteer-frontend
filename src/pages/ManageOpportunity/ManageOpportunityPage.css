@@ -22,14 +22,25 @@
 }
 
 .manage-opportunity-header {
-  margin-bottom: 1rem;
+  margin-bottom: 1.75rem;
 }
 
-.manage-opportunity-subtitle {
+.manage-opportunity-status {
   color: var(--text);
-  margin: 0.25rem 0 0;
 }
 
-.manage-opportunity-placeholder-note {
-  color: var(--text);
+.manage-opportunity-error {
+  color: #c0392b;
+}
+
+@media (prefers-color-scheme: dark) {
+  .manage-opportunity-error {
+    color: #ff8a80;
+  }
+}
+
+@media (max-width: 640px) {
+  .manage-opportunity-page {
+    padding: 1.5rem 1rem 2rem;
+  }
 }

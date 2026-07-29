@@ -10,4 +10,5 @@ export {
   Check as ChecklistIcon,
   Heart as SaveIcon,
   Building2 as OrganizationIcon,
+  Pencil as EditIcon,
 } from 'lucide-react'

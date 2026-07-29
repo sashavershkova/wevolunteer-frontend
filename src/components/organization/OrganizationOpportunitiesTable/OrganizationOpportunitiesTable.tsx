@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { EditIcon } from '../../shared/icons'
 import type { Opportunity } from '../../../types/Opportunity'
 import './OrganizationOpportunitiesTable.css'
 
@@ -74,12 +75,24 @@ function OrganizationOpportunitiesTable({
             return (
               <tr key={opportunity.opportunityId}>
                 <td data-label="Opportunity">
-                  <Link
-                    to={`/organization/opportunities/${opportunity.opportunityId}/edit`}
-                    className="organization-opportunities-table-title"
-                  >
-                    {opportunity.title}
-                  </Link>
+                  <div className="organization-opportunities-table-title-cell">
+                    <Link
+                      to={`/organization/opportunities/${opportunity.opportunityId}`}
+                      className="organization-opportunities-table-title"
+                    >
+                      {opportunity.title}
+                    </Link>
+                    <Link
+                      to={`/organization/opportunities/${opportunity.opportunityId}/edit`}
+                      className="organization-opportunities-table-edit-link"
+                      aria-label={`Edit ${opportunity.title}`}
+                    >
+                      <EditIcon
+                        aria-hidden="true"
+                        className="organization-opportunities-table-edit-icon"
+                      />
+                    </Link>
+                  </div>
                 </td>
                 <td data-label="Date">{formatEventDate(opportunity.date)}</td>
                 <td data-label="Registrations">

@@ -1,5 +1,5 @@
 import { env } from '../../config/env'
-import type { Opportunity } from '../../types/Opportunity'
+import type { Opportunity, OpportunityStatus } from '../../types/Opportunity'
 
 export type CreateOpportunityRequest = {
   opportunityId: string
@@ -9,6 +9,19 @@ export type CreateOpportunityRequest = {
   location: string
   date: string
   capacity: number
+}
+
+export type UpdateOpportunityRequest = {
+  title: string
+  description: string
+  category: string
+  location: string
+  date: string
+  status: OpportunityStatus
+  capacity: number
+  time: string | null
+  whatYoullDo: string[]
+  recurring: boolean
 }
 
 export async function getOpportunities(accessToken: string): Promise<Opportunity[]> {
@@ -84,6 +97,30 @@ export async function closeOpportunity(
 
   if (!response.ok) {
     throw new Error(`Unable to close this opportunity: ${response.status}`)
+  }
+
+  return response.json() as Promise<Opportunity>
+}
+
+export async function updateOpportunity(
+  accessToken: string,
+  opportunityId: string,
+  request: UpdateOpportunityRequest,
+): Promise<Opportunity> {
+  const response = await fetch(
+    `${env.apiUrl}/opportunities/${encodeURIComponent(opportunityId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error(`Unable to update this opportunity: ${response.status}`)
   }
 
   return response.json() as Promise<Opportunity>

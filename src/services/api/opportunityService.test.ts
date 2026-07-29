@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { closeOpportunity, createOpportunity, getOpportunities } from './opportunityService'
+import {
+  closeOpportunity,
+  createOpportunity,
+  getOpportunities,
+  updateOpportunity,
+} from './opportunityService'
 import { mockOpportunities, opp1 } from '../../tests/fixtures/opportunities'
 
 describe('getOpportunities', () => {
@@ -188,6 +193,102 @@ describe('createOpportunity', () => {
 
     await expect(createOpportunity('test-token', request)).rejects.toThrow(
       'Unable to create this opportunity: 400',
+    )
+  })
+})
+
+describe('updateOpportunity', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const request = {
+    title: 'Food Bank Volunteer Shift',
+    description: 'Help sort and package food donations for local families in need.',
+    category: 'Food',
+    location: 'Seattle, WA',
+    date: '2026-07-10',
+    status: 'OPEN' as const,
+    capacity: 10,
+    time: '9:00 AM - 1:00 PM',
+    whatYoullDo: ['Sort and organize food items'],
+    recurring: false,
+  }
+
+  it('sends a PATCH request to the opportunity endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(opp1),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await updateOpportunity('test-token', 'opp1', request)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/opportunities/opp1'),
+      expect.objectContaining({
+        method: 'PATCH',
+      }),
+    )
+  })
+
+  it('sends the bearer token and JSON content type headers', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(opp1),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await updateOpportunity('test-token', 'opp1', request)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        headers: {
+          Authorization: 'Bearer test-token',
+          'Content-Type': 'application/json',
+        },
+      }),
+    )
+  })
+
+  it('serializes the request object as the JSON body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(opp1),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await updateOpportunity('test-token', 'opp1', request)
+
+    const [, options] = fetchMock.mock.calls[0]
+    const sentBody = JSON.parse(options.body)
+
+    expect(sentBody).toEqual(request)
+  })
+
+  it('returns the updated Opportunity on success', async () => {
+    const updatedOpportunity = { ...opp1, title: 'Updated Title' }
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(updatedOpportunity),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await updateOpportunity('test-token', 'opp1', request)
+
+    expect(result).toEqual(updatedOpportunity)
+  })
+
+  it('throws an error containing the status when the response is not ok', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(updateOpportunity('test-token', 'opp1', request)).rejects.toThrow(
+      'Unable to update this opportunity: 409',
     )
   })
 })

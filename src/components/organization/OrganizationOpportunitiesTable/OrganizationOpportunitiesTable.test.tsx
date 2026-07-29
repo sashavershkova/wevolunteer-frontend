@@ -82,7 +82,7 @@ describe('OrganizationOpportunitiesTable', () => {
     expect(enabledButton).not.toBeDisabled()
   })
 
-  it('links the opportunity title to its edit page', () => {
+  it('links the opportunity title to its organization details page', () => {
     renderTable(
       <OrganizationOpportunitiesTable
         opportunities={[openOpportunity]}
@@ -92,6 +92,21 @@ describe('OrganizationOpportunitiesTable', () => {
 
     const titleLink = screen.getByRole('link', { name: openOpportunity.title })
     expect(titleLink).toHaveAttribute(
+      'href',
+      `/organization/opportunities/${openOpportunity.opportunityId}`,
+    )
+  })
+
+  it('links the edit icon to the edit page with an accessible label', () => {
+    renderTable(
+      <OrganizationOpportunitiesTable
+        opportunities={[openOpportunity]}
+        onCloseOpportunity={vi.fn()}
+      />,
+    )
+
+    const editLink = screen.getByRole('link', { name: `Edit ${openOpportunity.title}` })
+    expect(editLink).toHaveAttribute(
       'href',
       `/organization/opportunities/${openOpportunity.opportunityId}/edit`,
     )
