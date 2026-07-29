@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { EditIcon } from '../../shared/icons'
 import type { Opportunity } from '../../../types/Opportunity'
 import { formatOpportunityTimeRange } from '../../../utils/formatOpportunityTimeRange'
+import { isPastOpportunityDate } from '../../../utils/isPastOpportunityDate'
 import './OrganizationOpportunitiesTable.css'
 
 type OrganizationOpportunitiesTableProps = {
@@ -10,6 +11,8 @@ type OrganizationOpportunitiesTableProps = {
   error?: string | null
   onCloseOpportunity: (opportunityId: string) => void
   closingOpportunityId?: string | null
+  onDeleteOpportunity: (opportunityId: string) => void
+  deletingOpportunityId?: string | null
 }
 
 function formatEventDate(dateString: string): string {
@@ -32,6 +35,8 @@ function OrganizationOpportunitiesTable({
   error = null,
   onCloseOpportunity,
   closingOpportunityId = null,
+  onDeleteOpportunity,
+  deletingOpportunityId = null,
 }: OrganizationOpportunitiesTableProps) {
   if (isLoading) {
     return (
@@ -73,11 +78,20 @@ function OrganizationOpportunitiesTable({
         <tbody>
           {opportunities.map((opportunity) => {
             const isClosing = closingOpportunityId === opportunity.opportunityId
+            const isDeleting = deletingOpportunityId === opportunity.opportunityId
+            const isPast = isPastOpportunityDate(opportunity.date)
             const displayTime = formatOpportunityTimeRange(
               opportunity.startTime,
               opportunity.endTime,
               opportunity.time,
             )
+
+            const statusLabel = isPast
+              ? 'Completed'
+              : opportunity.status === 'OPEN'
+                ? 'Open'
+                : 'Closed'
+            const statusModifier = isPast ? 'completed' : opportunity.status.toLowerCase()
 
             return (
               <tr key={opportunity.opportunityId}>
@@ -89,16 +103,18 @@ function OrganizationOpportunitiesTable({
                     >
                       {opportunity.title}
                     </Link>
-                    <Link
-                      to={`/organization/opportunities/${opportunity.opportunityId}/edit`}
-                      className="organization-opportunities-table-edit-link"
-                      aria-label={`Edit ${opportunity.title}`}
-                    >
-                      <EditIcon
-                        aria-hidden="true"
-                        className="organization-opportunities-table-edit-icon"
-                      />
-                    </Link>
+                    {!isPast && (
+                      <Link
+                        to={`/organization/opportunities/${opportunity.opportunityId}/edit`}
+                        className="organization-opportunities-table-edit-link"
+                        aria-label={`Edit ${opportunity.title}`}
+                      >
+                        <EditIcon
+                          aria-hidden="true"
+                          className="organization-opportunities-table-edit-icon"
+                        />
+                      </Link>
+                    )}
                   </div>
                 </td>
                 <td data-label="Date">{formatEventDate(opportunity.date)}</td>
@@ -108,13 +124,20 @@ function OrganizationOpportunitiesTable({
                 </td>
                 <td data-label="Status">
                   <span
-                    className={`organization-opportunities-status-badge organization-opportunities-status-badge-${opportunity.status.toLowerCase()}`}
+                    className={`organization-opportunities-status-badge organization-opportunities-status-badge-${statusModifier}`}
                   >
-                    {opportunity.status === 'OPEN' ? 'Open' : 'Closed'}
+                    {statusLabel}
                   </span>
                 </td>
                 <td data-label="Actions">
-                  {opportunity.status === 'OPEN' ? (
+                  {isPast ? (
+                    <Link
+                      to={`/organization/opportunities/${opportunity.opportunityId}`}
+                      className="organization-opportunities-view-link"
+                    >
+                      View
+                    </Link>
+                  ) : opportunity.status === 'OPEN' ? (
                     <button
                       type="button"
                       className="organization-opportunities-close-button"
@@ -124,7 +147,14 @@ function OrganizationOpportunitiesTable({
                       {isClosing ? 'Closing...' : 'Close'}
                     </button>
                   ) : (
-                    <span className="organization-opportunities-no-action">—</span>
+                    <button
+                      type="button"
+                      className="organization-opportunities-delete-button"
+                      disabled={isDeleting}
+                      onClick={() => onDeleteOpportunity(opportunity.opportunityId)}
+                    >
+                      {isDeleting ? 'Deleting...' : 'Delete'}
+                    </button>
                   )}
                 </td>
               </tr>

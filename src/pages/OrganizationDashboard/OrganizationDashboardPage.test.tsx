@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import OrganizationDashboardPage from './OrganizationDashboardPage'
@@ -7,9 +7,13 @@ import {
   getMyOrganizationOpportunities,
   updateCurrentOrganization,
 } from '../../services/api/organizationService'
-import { closeOpportunity } from '../../services/api/opportunityService'
+import { closeOpportunity, deleteOpportunity } from '../../services/api/opportunityService'
 import { opp1 } from '../../tests/fixtures/opportunities'
 import type { Opportunity } from '../../types/Opportunity'
+
+// opp1's date (2026-07-10) is fixed in the future relative to this mocked "today", so it
+// exercises future-opportunity behavior deterministically regardless of when tests run.
+const MOCKED_TODAY = '2026-01-01T00:00:00'
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAppAuth: vi.fn(),
@@ -22,11 +26,13 @@ vi.mock('../../services/api/organizationService', () => ({
 
 vi.mock('../../services/api/opportunityService', () => ({
   closeOpportunity: vi.fn(),
+  deleteOpportunity: vi.fn(),
 }))
 
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetMyOrganizationOpportunities = vi.mocked(getMyOrganizationOpportunities)
 const mockedCloseOpportunity = vi.mocked(closeOpportunity)
+const mockedDeleteOpportunity = vi.mocked(deleteOpportunity)
 const mockedUpdateCurrentOrganization = vi.mocked(updateCurrentOrganization)
 
 const organizationFixture = {
@@ -79,10 +85,17 @@ function getMetricValue(label: string): string {
 
 describe('OrganizationDashboardPage', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(MOCKED_TODAY))
     mockedGetMyOrganizationOpportunities.mockReset()
     mockedCloseOpportunity.mockReset()
+    mockedDeleteOpportunity.mockReset()
     mockedUpdateCurrentOrganization.mockReset()
     mockAuth()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('loads organization opportunities using the existing service', async () => {
@@ -159,6 +172,99 @@ describe('OrganizationDashboardPage', () => {
     )
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
     expect(screen.getByText('Open')).toBeInTheDocument()
+  })
+
+  describe('deleting an opportunity', () => {
+    const closedFutureOpportunity: Opportunity = { ...opp1, status: 'CLOSED' }
+
+    it('confirms before calling the delete API', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([closedFutureOpportunity])
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+      mockedDeleteOpportunity.mockResolvedValue(undefined)
+
+      renderPage()
+
+      const deleteButton = await screen.findByRole('button', { name: 'Delete' })
+      fireEvent.click(deleteButton)
+
+      expect(confirmSpy).toHaveBeenCalledWith(
+        'Are you sure you want to delete this opportunity? This cannot be undone.',
+      )
+      await waitFor(() => {
+        expect(mockedDeleteOpportunity).toHaveBeenCalledWith('token', opp1.opportunityId)
+      })
+    })
+
+    it('does not call the API when the confirmation is dismissed', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([closedFutureOpportunity])
+      vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+      renderPage()
+
+      const deleteButton = await screen.findByRole('button', { name: 'Delete' })
+      fireEvent.click(deleteButton)
+
+      expect(mockedDeleteOpportunity).not.toHaveBeenCalled()
+      expect(screen.getByText(opp1.title)).toBeInTheDocument()
+    })
+
+    it('removes the row from the table after a successful delete', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([closedFutureOpportunity])
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      mockedDeleteOpportunity.mockResolvedValue(undefined)
+
+      renderPage()
+
+      const deleteButton = await screen.findByRole('button', { name: 'Delete' })
+      fireEvent.click(deleteButton)
+
+      await waitFor(() => {
+        expect(screen.queryByText(opp1.title)).not.toBeInTheDocument()
+      })
+    })
+
+    it('shows a pending state on the deleting row while the request is in flight', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([closedFutureOpportunity])
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      let resolveDelete: () => void = () => {}
+      mockedDeleteOpportunity.mockReturnValue(
+        new Promise((resolve) => {
+          resolveDelete = resolve
+        }),
+      )
+
+      renderPage()
+
+      const deleteButton = await screen.findByRole('button', { name: 'Delete' })
+      fireEvent.click(deleteButton)
+
+      const pendingButton = await screen.findByRole('button', { name: 'Deleting...' })
+      expect(pendingButton).toBeDisabled()
+
+      resolveDelete()
+
+      await waitFor(() => {
+        expect(screen.queryByText(opp1.title)).not.toBeInTheDocument()
+      })
+    })
+
+    it('shows an action-specific error and keeps the row when deleting fails', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([closedFutureOpportunity])
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      mockedDeleteOpportunity.mockRejectedValue(
+        new Error('Unable to delete this opportunity: 409'),
+      )
+
+      renderPage()
+
+      const deleteButton = await screen.findByRole('button', { name: 'Delete' })
+      fireEvent.click(deleteButton)
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Unable to delete this opportunity: 409',
+      )
+      expect(screen.getByText(opp1.title)).toBeInTheDocument()
+    })
   })
 
   it('enables the Create New Opportunity button', async () => {

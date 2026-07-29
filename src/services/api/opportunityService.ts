@@ -105,6 +105,25 @@ export async function closeOpportunity(
   return response.json() as Promise<Opportunity>
 }
 
+export async function deleteOpportunity(
+  accessToken: string,
+  opportunityId: string,
+): Promise<void> {
+  const response = await fetch(
+    `${env.apiUrl}/organizations/me/opportunities/${encodeURIComponent(opportunityId)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error(`Unable to delete this opportunity: ${response.status}`)
+  }
+}
+
 export async function updateOpportunity(
   accessToken: string,
   opportunityId: string,

@@ -7,7 +7,7 @@ import {
   type OrganizationProfile,
   type UpdateOrganizationProfileRequest,
 } from '../../services/api/organizationService'
-import { closeOpportunity } from '../../services/api/opportunityService'
+import { closeOpportunity, deleteOpportunity } from '../../services/api/opportunityService'
 import OrganizationOpportunitiesTable from '../../components/organization/OrganizationOpportunitiesTable/OrganizationOpportunitiesTable'
 import { OrganizationIcon, EditIcon } from '../../components/shared/icons'
 import type { Opportunity } from '../../types/Opportunity'
@@ -56,7 +56,9 @@ function OrganizationDashboardPage() {
     useState<string | null>(null)
   const [closingOpportunityId, setClosingOpportunityId] =
     useState<string | null>(null)
-  const [closeErrorMessage, setCloseErrorMessage] =
+  const [deletingOpportunityId, setDeletingOpportunityId] =
+    useState<string | null>(null)
+  const [opportunityActionErrorMessage, setOpportunityActionErrorMessage] =
     useState<string | null>(null)
 
   const [isEditingOrganization, setIsEditingOrganization] = useState(false)
@@ -109,11 +111,11 @@ function OrganizationDashboardPage() {
 
   async function handleCloseOpportunity(opportunityId: string) {
     if (!accessToken) {
-      setCloseErrorMessage('Your authentication session is unavailable.')
+      setOpportunityActionErrorMessage('Your authentication session is unavailable.')
       return
     }
 
-    setCloseErrorMessage(null)
+    setOpportunityActionErrorMessage(null)
     setClosingOpportunityId(opportunityId)
 
     try {
@@ -127,13 +129,47 @@ function OrganizationDashboardPage() {
         ),
       )
     } catch (error) {
-      setCloseErrorMessage(
+      setOpportunityActionErrorMessage(
         error instanceof Error
           ? error.message
           : 'Unable to close this opportunity.',
       )
     } finally {
       setClosingOpportunityId(null)
+    }
+  }
+
+  async function handleDeleteOpportunity(opportunityId: string) {
+    if (!accessToken) {
+      setOpportunityActionErrorMessage('Your authentication session is unavailable.')
+      return
+    }
+
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this opportunity? This cannot be undone.',
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setOpportunityActionErrorMessage(null)
+    setDeletingOpportunityId(opportunityId)
+
+    try {
+      await deleteOpportunity(accessToken, opportunityId)
+
+      setOpportunities((current) =>
+        current.filter((opportunity) => opportunity.opportunityId !== opportunityId),
+      )
+    } catch (error) {
+      setOpportunityActionErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to delete this opportunity.',
+      )
+    } finally {
+      setDeletingOpportunityId(null)
     }
   }
 
@@ -475,9 +511,9 @@ function OrganizationDashboardPage() {
           </button>
         </div>
 
-        {closeErrorMessage && (
+        {opportunityActionErrorMessage && (
           <p role="alert" className="organization-dashboard-close-error">
-            {closeErrorMessage}
+            {opportunityActionErrorMessage}
           </p>
         )}
 
@@ -487,6 +523,8 @@ function OrganizationDashboardPage() {
           error={opportunitiesError}
           onCloseOpportunity={handleCloseOpportunity}
           closingOpportunityId={closingOpportunityId}
+          onDeleteOpportunity={handleDeleteOpportunity}
+          deletingOpportunityId={deletingOpportunityId}
         />
       </section>
 
