@@ -1,5 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAppAuth } from '../../contexts/AuthContext'
+import { createOpportunity } from '../../services/api/opportunityService'
 import './CreateOpportunityPage.css'
 
 type CreateOpportunityFormState = {
@@ -58,9 +60,12 @@ function validateForm(form: CreateOpportunityFormState): CreateOpportunityFormEr
 
 function CreateOpportunityPage() {
   const navigate = useNavigate()
+  const auth = useAppAuth()
 
   const [form, setForm] = useState<CreateOpportunityFormState>(initialFormState)
   const [errors, setErrors] = useState<CreateOpportunityFormErrors>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   function handleChange(
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -69,11 +74,48 @@ function CreateOpportunityPage() {
     setForm((current) => ({ ...current, [name]: value }))
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
+    if (isSubmitting) {
+      return
+    }
+
+    setSubmitError(null)
 
     const validationErrors = validateForm(form)
     setErrors(validationErrors)
+
+    if (Object.keys(validationErrors).length > 0) {
+      return
+    }
+
+    if (!auth.accessToken) {
+      setSubmitError('Your authentication session is unavailable.')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      await createOpportunity(auth.accessToken, {
+        opportunityId: crypto.randomUUID(),
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        location: form.location,
+        date: form.date,
+        capacity: Number(form.capacity),
+      })
+
+      navigate('/organization')
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : 'Unable to create this opportunity.',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   function handleCancel() {
@@ -216,15 +258,26 @@ function CreateOpportunityPage() {
           )}
         </div>
 
+        {submitError && (
+          <p className="create-opportunity-error" role="alert">
+            {submitError}
+          </p>
+        )}
+
         <div className="create-opportunity-actions">
           <button
             type="button"
             className="create-opportunity-cancel-button"
             onClick={handleCancel}
+            disabled={isSubmitting}
           >
             Cancel
           </button>
-          <button type="submit" className="create-opportunity-submit-button">
+          <button
+            type="submit"
+            className="create-opportunity-submit-button"
+            disabled={isSubmitting}
+          >
             Create Opportunity
           </button>
         </div>
