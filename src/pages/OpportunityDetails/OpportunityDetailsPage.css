@@ -205,6 +205,43 @@
   cursor: default;
 }
 
+.opportunity-details-save-button {
+  flex: none;
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: var(--bg);
+  color: var(--text-h);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.7rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.opportunity-details-save-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.opportunity-details-save-button[aria-pressed='true'] {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.opportunity-details-save-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.opportunity-details-save-button[aria-pressed='true'] .opportunity-details-save-icon {
+  fill: currentColor;
+}
+
 .opportunity-details-registered-note {
   color: #2a9d5c;
   font-weight: 600;

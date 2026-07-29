@@ -8,4 +8,5 @@ export {
   User as SpotsIcon,
   Bell as NotificationsIcon,
   Check as ChecklistIcon,
+  Heart as SaveIcon,
 } from 'lucide-react'

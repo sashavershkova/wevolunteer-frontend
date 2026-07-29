@@ -8,11 +8,18 @@ import {
   getMyRegistrations,
   type Registration,
 } from '../../services/api/registrationService'
+import {
+  getMyFavorites,
+  removeFavorite,
+  saveFavorite,
+  type Favorite,
+} from '../../services/api/favoriteService'
 import type { Opportunity } from '../../types/Opportunity'
 import {
   ChecklistIcon,
   DateIcon,
   LocationIcon,
+  SaveIcon,
   SpotsIcon,
   TimeIcon,
 } from '../../components/shared/icons'
@@ -45,6 +52,10 @@ function OpportunityDetailsPage() {
   const [isActionPending, setIsActionPending] = useState(false)
   const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null)
 
+  const [isFavorited, setIsFavorited] = useState(false)
+  const [isFavoritePending, setIsFavoritePending] = useState(false)
+  const [favoriteErrorMessage, setFavoriteErrorMessage] = useState<string | null>(null)
+
   useEffect(() => {
     if (!auth.accessToken || !opportunityId) {
       return
@@ -71,11 +82,14 @@ function OpportunityDetailsPage() {
 
         setOpportunity(foundOpportunity)
 
-        const [organizationResult, registrations] = await Promise.all([
+        const [organizationResult, registrations, favorites] = await Promise.all([
           getOrganization(auth.accessToken, foundOpportunity.organizationId),
           auth.userProfile
             ? getMyRegistrations(auth.accessToken)
             : Promise.resolve([] as Registration[]),
+          auth.userProfile
+            ? getMyFavorites(auth.accessToken)
+            : Promise.resolve([] as Favorite[]),
         ])
 
         if (ignore) {
@@ -86,6 +100,11 @@ function OpportunityDetailsPage() {
         setIsRegistered(
           registrations.some(
             (registration) => registration.opportunityId === foundOpportunity.opportunityId,
+          ),
+        )
+        setIsFavorited(
+          favorites.some(
+            (favorite) => favorite.opportunityId === foundOpportunity.opportunityId,
           ),
         )
       } catch (error) {
@@ -165,6 +184,31 @@ function OpportunityDetailsPage() {
       )
     } finally {
       setIsActionPending(false)
+    }
+  }
+
+  async function handleToggleFavorite() {
+    if (!auth.userProfile || !opportunity) {
+      return
+    }
+
+    setFavoriteErrorMessage(null)
+    setIsFavoritePending(true)
+
+    try {
+      if (isFavorited) {
+        await removeFavorite(auth.accessToken, opportunity.opportunityId)
+        setIsFavorited(false)
+      } else {
+        await saveFavorite(auth.accessToken, opportunity.opportunityId)
+        setIsFavorited(true)
+      }
+    } catch (error) {
+      setFavoriteErrorMessage(
+        error instanceof Error ? error.message : 'Unable to update your saved opportunities.',
+      )
+    } finally {
+      setIsFavoritePending(false)
     }
   }
 
@@ -324,6 +368,23 @@ function OpportunityDetailsPage() {
             >
               {isActionPending ? 'Registering...' : 'Register'}
             </button>
+          )}
+
+          <button
+            type="button"
+            className="opportunity-details-save-button"
+            disabled={isFavoritePending}
+            onClick={handleToggleFavorite}
+            aria-pressed={isFavorited}
+          >
+            <SaveIcon className="opportunity-details-save-icon" aria-hidden="true" />
+            {isFavoritePending ? 'Saving...' : isFavorited ? 'Saved' : 'Save'}
+          </button>
+
+          {favoriteErrorMessage && (
+            <p role="alert" className="opportunity-details-action-error">
+              {favoriteErrorMessage}
+            </p>
           )}
         </div>
       )}
