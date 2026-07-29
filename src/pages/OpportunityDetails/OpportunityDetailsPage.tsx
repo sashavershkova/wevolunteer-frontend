@@ -9,6 +9,7 @@ import {
   type Registration,
 } from '../../services/api/registrationService'
 import type { Opportunity } from '../../types/Opportunity'
+import { DateIcon, LocationIcon, SpotsIcon } from '../../components/shared/icons'
 import './OpportunityDetailsPage.css'
 
 function formatDate(dateString: string): string {
@@ -189,28 +190,44 @@ function OpportunityDetailsPage() {
         &larr; Back to opportunities
       </Link>
 
-      <div className="opportunity-details-hero" aria-hidden="true" />
-
       <div className="opportunity-details-grid">
         <div>
-          <div className="opportunity-details-header">
-            <h1>{opportunity.title}</h1>
-            <span className="opportunity-details-category">{opportunity.category}</span>
-          </div>
+          <div className="opportunity-details-top">
+            <div className="opportunity-details-thumb" aria-hidden="true" />
 
-          <p className="opportunity-details-org-name">{opportunity.organizationName}</p>
+            <div className="opportunity-details-title-col">
+              <div className="opportunity-details-header">
+                <h1>{opportunity.title}</h1>
+              </div>
+
+              <div className="opportunity-details-badges">
+                <span className="opportunity-details-category">{opportunity.category}</span>
+              </div>
+
+              <p className="opportunity-details-org-name">{opportunity.organizationName}</p>
+            </div>
+          </div>
 
           <dl className="opportunity-details-meta">
             <div>
-              <dt>Date</dt>
+              <dt>
+                <DateIcon className="opportunity-details-meta-icon" aria-hidden="true" />
+                Date
+              </dt>
               <dd>{formatDate(opportunity.date)}</dd>
             </div>
             <div>
-              <dt>Location</dt>
+              <dt>
+                <LocationIcon className="opportunity-details-meta-icon" aria-hidden="true" />
+                Location
+              </dt>
               <dd>{opportunity.location}</dd>
             </div>
             <div className="opportunity-details-meta-spots">
-              <dt>Spots</dt>
+              <dt>
+                <SpotsIcon className="opportunity-details-meta-icon" aria-hidden="true" />
+                Spots
+              </dt>
               <dd>
                 {isClosed
                   ? 'Closed'
@@ -228,43 +245,6 @@ function OpportunityDetailsPage() {
         </div>
 
         <div>
-          {auth.userProfile && (
-            <div className="opportunity-details-action">
-              {actionErrorMessage && (
-                <p role="alert" className="opportunity-details-action-error">
-                  {actionErrorMessage}
-                </p>
-              )}
-
-              {isRegistered ? (
-                <>
-                  <p className="opportunity-details-registered-note">You&apos;re registered</p>
-                  <button
-                    type="button"
-                    className="opportunity-details-cancel-button"
-                    disabled={isActionPending}
-                    onClick={handleCancel}
-                  >
-                    {isActionPending ? 'Cancelling...' : 'Cancel registration'}
-                  </button>
-                </>
-              ) : isClosed || isFull ? (
-                <button type="button" className="opportunity-details-cancel-button" disabled>
-                  {isClosed ? 'Registration closed' : 'This opportunity is full'}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="opportunity-details-register-button"
-                  disabled={isActionPending}
-                  onClick={handleRegister}
-                >
-                  {isActionPending ? 'Registering...' : 'Register'}
-                </button>
-              )}
-            </div>
-          )}
-
           {organization && (
             <div className="opportunity-details-org-card">
               <h2>About the Organization</h2>
@@ -278,6 +258,43 @@ function OpportunityDetailsPage() {
           )}
         </div>
       </div>
+
+      {auth.userProfile && (
+        <div className="opportunity-details-action-bar">
+          {actionErrorMessage && (
+            <p role="alert" className="opportunity-details-action-error">
+              {actionErrorMessage}
+            </p>
+          )}
+
+          {isRegistered ? (
+            <>
+              <p className="opportunity-details-registered-note">You&apos;re registered</p>
+              <button
+                type="button"
+                className="opportunity-details-cancel-button"
+                disabled={isActionPending}
+                onClick={handleCancel}
+              >
+                {isActionPending ? 'Cancelling...' : 'Cancel registration'}
+              </button>
+            </>
+          ) : isClosed || isFull ? (
+            <button type="button" className="opportunity-details-cancel-button" disabled>
+              {isClosed ? 'Registration closed' : 'This opportunity is full'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="opportunity-details-register-button"
+              disabled={isActionPending}
+              onClick={handleRegister}
+            >
+              {isActionPending ? 'Registering...' : 'Register'}
+            </button>
+          )}
+        </div>
+      )}
     </main>
   )
 }
