@@ -105,13 +105,69 @@ describe('CreateOpportunityPage', () => {
     expect(screen.getByLabelText('Capacity')).toBeInTheDocument()
   })
 
-  it('offers the existing project category values', () => {
+  it('offers the expanded project category values', () => {
     renderPage()
 
     const categorySelect = screen.getByLabelText('Category') as HTMLSelectElement
     const optionValues = Array.from(categorySelect.options).map((option) => option.value)
 
-    expect(optionValues).toEqual(['', 'Food', 'Environment'])
+    expect(optionValues).toEqual([
+      '',
+      'Environment',
+      'Food & Hunger Relief',
+      'Education',
+      'Community Service',
+      'Health',
+      'Animal Welfare',
+      'Seniors',
+      'Youth',
+      'Disaster Relief',
+      'Arts & Culture',
+      'Sports & Recreation',
+      'Other...',
+    ])
+  })
+
+  it('hides the Custom Category field until "Other..." is selected', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    expect(screen.queryByLabelText('Custom Category')).not.toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Category'), 'Other...')
+    expect(screen.getByLabelText('Custom Category')).toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Category'), 'Environment')
+    expect(screen.queryByLabelText('Custom Category')).not.toBeInTheDocument()
+  })
+
+  it('requires a Custom Category value when "Other..." is selected', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await fillValidForm(user, { category: 'Other...' })
+    await user.click(screen.getByRole('button', { name: 'Create Opportunity' }))
+
+    expect(screen.getByText('Custom category is required.')).toBeInTheDocument()
+    expect(mockedCreateOpportunity).not.toHaveBeenCalled()
+  })
+
+  it('sends the Custom Category text instead of "Other..." on submission', async () => {
+    const user = userEvent.setup()
+    mockedCreateOpportunity.mockResolvedValue(opp1)
+    renderPage()
+
+    await fillValidForm(user, { category: 'Other...' })
+    await user.type(screen.getByLabelText('Custom Category'), 'Housing Assistance')
+    await user.click(screen.getByRole('button', { name: 'Create Opportunity' }))
+
+    await waitFor(() => {
+      expect(mockedCreateOpportunity).toHaveBeenCalledTimes(1)
+    })
+
+    expect(mockedCreateOpportunity.mock.calls[0][1]).toMatchObject({
+      category: 'Housing Assistance',
+    })
   })
 
   it('the Create Opportunity button is a submit button', () => {

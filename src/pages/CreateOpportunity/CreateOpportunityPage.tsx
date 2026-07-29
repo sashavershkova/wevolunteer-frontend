@@ -8,6 +8,7 @@ type CreateOpportunityFormState = {
   title: string
   description: string
   category: string
+  customCategory: string
   location: string
   date: string
   capacity: string
@@ -15,12 +16,28 @@ type CreateOpportunityFormState = {
 
 type CreateOpportunityFormErrors = Partial<Record<keyof CreateOpportunityFormState, string>>
 
-const CATEGORY_OPTIONS = ['Food', 'Environment']
+const OTHER_CATEGORY = 'Other...'
+
+const CATEGORY_OPTIONS = [
+  'Environment',
+  'Food & Hunger Relief',
+  'Education',
+  'Community Service',
+  'Health',
+  'Animal Welfare',
+  'Seniors',
+  'Youth',
+  'Disaster Relief',
+  'Arts & Culture',
+  'Sports & Recreation',
+  OTHER_CATEGORY,
+]
 
 const initialFormState: CreateOpportunityFormState = {
   title: '',
   description: '',
   category: '',
+  customCategory: '',
   location: '',
   date: '',
   capacity: '',
@@ -39,6 +56,8 @@ function validateForm(form: CreateOpportunityFormState): CreateOpportunityFormEr
 
   if (!form.category) {
     errors.category = 'Please select a category.'
+  } else if (form.category === OTHER_CATEGORY && !form.customCategory.trim()) {
+    errors.customCategory = 'Custom category is required.'
   }
 
   if (!form.location.trim()) {
@@ -98,11 +117,14 @@ function CreateOpportunityPage() {
     setIsSubmitting(true)
 
     try {
+      const category =
+        form.category === OTHER_CATEGORY ? form.customCategory.trim() : form.category
+
       await createOpportunity(auth.accessToken, {
         opportunityId: crypto.randomUUID(),
         title: form.title,
         description: form.description,
-        category: form.category,
+        category,
         location: form.location,
         date: form.date,
         capacity: Number(form.capacity),
@@ -199,6 +221,27 @@ function CreateOpportunityPage() {
             </p>
           )}
         </div>
+
+        {form.category === OTHER_CATEGORY && (
+          <div className="create-opportunity-field">
+            <label htmlFor="customCategory">Custom Category</label>
+            <input
+              id="customCategory"
+              name="customCategory"
+              type="text"
+              value={form.customCategory}
+              onChange={handleChange}
+              required
+              aria-invalid={Boolean(errors.customCategory)}
+              aria-describedby={errors.customCategory ? 'customCategory-error' : undefined}
+            />
+            {errors.customCategory && (
+              <p id="customCategory-error" className="create-opportunity-error" role="alert">
+                {errors.customCategory}
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="create-opportunity-field">
           <label htmlFor="location">Location</label>
