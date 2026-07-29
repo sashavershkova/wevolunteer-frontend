@@ -6,4 +6,5 @@ export {
   Calendar as DateIcon,
   Clock as TimeIcon,
   User as SpotsIcon,
+  Bell as NotificationsIcon,
 } from 'lucide-react'
