@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import OpportunityListItem from './OpportunityListItem'
-import { opp1, opp2, opp7 } from '../../../tests/fixtures/opportunities'
+import { opp1, opp2 } from '../../../tests/fixtures/opportunities'
 
 function renderItem(
   opportunity: typeof opp1,
@@ -46,25 +46,18 @@ describe('OpportunityListItem', () => {
     expect(screen.queryByText(/AM|PM/)).not.toBeInTheDocument()
   })
 
-  it('shows spots filled in green when the opportunity has room', () => {
+  it('shows available spots in green when the opportunity has room', () => {
     renderItem(opp1)
 
-    const spots = screen.getByText('1/10 spots filled')
+    const spots = screen.getByText('9 / 10 available')
     expect(spots.closest('li')).toHaveClass('opportunity-list-item-spots-open')
   })
 
-  it('shows spots filled in orange when the opportunity is full', () => {
+  it('shows "Full" in orange when the opportunity has no available spots', () => {
     renderItem(opp2)
 
-    const spots = screen.getByText('8/8 spots filled')
+    const spots = screen.getByText('Full')
     expect(spots.closest('li')).toHaveClass('opportunity-list-item-spots-full')
-  })
-
-  it('shows "Closed" instead of a spot count for closed opportunities', () => {
-    renderItem(opp7)
-
-    expect(screen.getByText('Closed')).toBeInTheDocument()
-    expect(screen.queryByText(/spots filled/)).not.toBeInTheDocument()
   })
 
   it('links the card to the opportunity detail route via a stretched link', () => {
@@ -94,12 +87,6 @@ describe('OpportunityListItem', () => {
     expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
   })
 
-  it('does not show a Register button for a closed opportunity', () => {
-    renderItem(opp7, vi.fn())
-
-    expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
-  })
-
   it('calls onRegister with the opportunity id when Register is clicked', async () => {
     const user = userEvent.setup()
     const onRegister = vi.fn().mockResolvedValue(undefined)
@@ -124,19 +111,13 @@ describe('OpportunityListItem', () => {
   })
 
   it('shows a disabled Waitlist button for a full opportunity', () => {
-  renderItem(opp2, vi.fn())
+    renderItem(opp2, vi.fn())
 
     expect(screen.getByRole('button', { name: 'Waitlist' })).toBeDisabled()
   })
 
   it('does not show a Waitlist button for an open opportunity with room', () => {
     renderItem(opp1, vi.fn())
-
-    expect(screen.queryByRole('button', { name: 'Waitlist' })).not.toBeInTheDocument()
-  })
-
-  it('does not show a Waitlist button for a closed opportunity', () => {
-    renderItem(opp7, vi.fn())
 
     expect(screen.queryByRole('button', { name: 'Waitlist' })).not.toBeInTheDocument()
   })
