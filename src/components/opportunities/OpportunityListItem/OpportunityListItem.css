@@ -31,10 +31,6 @@
   outline-offset: 2px;
 }
 
-.opportunity-list-item[data-status='CLOSED'] {
-  opacity: 0.7;
-}
-
 .opportunity-list-item-image-placeholder {
   background: var(--border);
   border-radius: 0.5rem;

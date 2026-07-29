@@ -28,11 +28,10 @@ function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemPro
     const [registerError, setRegisterError] = useState<string | null>(null)
 
     const isFull = opportunity.availableSpots <= 0
-    const isClosed = opportunity.status === 'CLOSED'
-    const canRegister = !isClosed && !isFull && Boolean(onRegister)
+    const canRegister = !isFull && Boolean(onRegister)
     // Waitlist is a placeholder for now (not wired to a real backend flow yet) -
     // shown whenever an opportunity is full, but genuinely non-functional.
-    const isWaitlist = !isClosed && isFull
+    const isWaitlist = isFull
     const spotsStatusClass = isFull
     ? 'opportunity-list-item-spots-full'
     : 'opportunity-list-item-spots-open'
@@ -58,7 +57,7 @@ function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemPro
     }
 
   return (
-    <article className="opportunity-list-item" data-status={opportunity.status}>
+    <article className="opportunity-list-item">
       <Link
         to={`/opportunities/${opportunity.opportunityId}`}
         className="opportunity-list-item-stretched-link"
@@ -95,9 +94,9 @@ function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemPro
             )}
             <li className={spotsStatusClass}>
               <SpotsIcon className="opportunity-list-item-meta-icon" aria-hidden="true" />
-              {isClosed
-                ? 'Closed'
-                : `${opportunity.registeredCount}/${opportunity.capacity} spots filled`}
+              {isFull
+                ? 'Full'
+                : `${opportunity.availableSpots} / ${opportunity.capacity} available`}
             </li>
           </ul>
 
