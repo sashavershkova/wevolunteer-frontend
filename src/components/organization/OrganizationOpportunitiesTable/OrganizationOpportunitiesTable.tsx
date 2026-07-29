@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Opportunity } from '../../../types/Opportunity'
 import './OrganizationOpportunitiesTable.css'
 
@@ -73,9 +74,12 @@ function OrganizationOpportunitiesTable({
             return (
               <tr key={opportunity.opportunityId}>
                 <td data-label="Opportunity">
-                  <span className="organization-opportunities-table-title">
+                  <Link
+                    to={`/organization/opportunities/${opportunity.opportunityId}/edit`}
+                    className="organization-opportunities-table-title"
+                  >
                     {opportunity.title}
-                  </span>
+                  </Link>
                 </td>
                 <td data-label="Date">{formatEventDate(opportunity.date)}</td>
                 <td data-label="Registrations">
