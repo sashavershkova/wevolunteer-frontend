@@ -23,11 +23,6 @@ function formatDate(dateString: string): string {
   })
 }
 
-// Placeholder only: the backend's `date` field has no time component yet
-// (see Opportunity type / backend model). Remove this once a real
-// start/end time is available from the API.
-const PLACEHOLDER_TIME = '9:00 AM - 1:00 PM'
-
 function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemProps) {
     const [isRegistering, setIsRegistering] = useState(false)
     const [registerError, setRegisterError] = useState<string | null>(null)
@@ -92,10 +87,12 @@ function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemPro
               <DateIcon className="opportunity-list-item-meta-icon" aria-hidden="true" />
               {formatDate(opportunity.date)}
             </li>
-            <li>
-              <TimeIcon className="opportunity-list-item-meta-icon" aria-hidden="true" />
-              {PLACEHOLDER_TIME}
-            </li>
+            {opportunity.time && (
+              <li>
+                <TimeIcon className="opportunity-list-item-meta-icon" aria-hidden="true" />
+                {opportunity.time}
+              </li>
+            )}
             <li className={spotsStatusClass}>
               <SpotsIcon className="opportunity-list-item-meta-icon" aria-hidden="true" />
               {isClosed

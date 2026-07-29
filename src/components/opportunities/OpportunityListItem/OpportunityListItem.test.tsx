@@ -32,12 +32,18 @@ describe('OpportunityListItem', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows location, formatted date, and placeholder time in the meta row', () => {
+  it('shows location, formatted date, and time in the meta row', () => {
     renderItem(opp1)
 
     expect(screen.getByText('Seattle, WA')).toBeInTheDocument()
     expect(screen.getByText('Jul 10, 2026')).toBeInTheDocument()
-    expect(screen.getByText('9:00 AM - 1:00 PM')).toBeInTheDocument()
+    expect(screen.getByText(opp1.time as string)).toBeInTheDocument()
+  })
+
+  it('omits the time row when the opportunity has no time', () => {
+    renderItem(opp2)
+
+    expect(screen.queryByText(/AM|PM/)).not.toBeInTheDocument()
   })
 
   it('shows spots filled in green when the opportunity has room', () => {
