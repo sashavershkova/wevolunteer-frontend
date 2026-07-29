@@ -208,6 +208,9 @@ function OpportunityDetailsPage() {
 
               <div className="opportunity-details-badges">
                 <span className="opportunity-details-category">{opportunity.category}</span>
+                {opportunity.recurring && (
+                  <span className="opportunity-details-recurring-badge">Ongoing</span>
+                )}
               </div>
 
               <p className="opportunity-details-org-name">{opportunity.organizationName}</p>

@@ -73,6 +73,16 @@
   white-space: nowrap;
 }
 
+.opportunity-details-recurring-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--text-h);
+  white-space: nowrap;
+}
+
 .opportunity-details-org-name {
   font-weight: 600;
   color: var(--text-h);

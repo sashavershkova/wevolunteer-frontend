@@ -6,7 +6,7 @@ import { useAppAuth } from '../../contexts/AuthContext'
 import { getOpportunity, registerForOpportunity } from '../../services/api/opportunityService'
 import { getOrganization } from '../../services/api/organizationService'
 import { getMyRegistrations, cancelMyRegistration } from '../../services/api/registrationService'
-import { opp1, opp2 } from '../../tests/fixtures/opportunities'
+import { opp1, opp2, opp3 } from '../../tests/fixtures/opportunities'
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAppAuth: vi.fn(),
@@ -160,6 +160,30 @@ describe('OpportunityDetailsPage', () => {
     await screen.findByRole('heading', { name: opp2.title })
 
     expect(screen.queryByRole('heading', { name: "What You'll Do" })).not.toBeInTheDocument()
+  })
+
+  it('shows an Ongoing badge for a recurring opportunity', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp3)
+    mockedGetOrganization.mockResolvedValue(organizationFixture)
+    mockedGetMyRegistrations.mockResolvedValue([])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: opp3.title })
+
+    expect(screen.getByText('Ongoing')).toBeInTheDocument()
+  })
+
+  it('omits the Ongoing badge for a one-time opportunity', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp1)
+    mockedGetOrganization.mockResolvedValue(organizationFixture)
+    mockedGetMyRegistrations.mockResolvedValue([])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: opp1.title })
+
+    expect(screen.queryByText('Ongoing')).not.toBeInTheDocument()
   })
 
   it('shows a not-found message when the opportunity does not exist', async () => {
