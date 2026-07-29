@@ -4,6 +4,7 @@ import { useAppAuth } from '../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
 import { closeOpportunity } from '../../services/api/opportunityService'
 import OrganizationOpportunitiesTable from '../../components/organization/OrganizationOpportunitiesTable/OrganizationOpportunitiesTable'
+import { OrganizationIcon } from '../../components/shared/icons'
 import type { Opportunity } from '../../types/Opportunity'
 import './OrganizationDashboardPage.css'
 
@@ -188,31 +189,47 @@ function OrganizationDashboardPage() {
         className="organization-dashboard-overview"
         aria-label="Organization overview"
       >
-        <h2>{organization.name}</h2>
-
-        {organization.description && (
-          <p className="organization-dashboard-description">
-            {organization.description}
-          </p>
-        )}
-
-        <dl className="organization-dashboard-meta">
-          <div>
-            <dt>Email</dt>
-            <dd>{organization.email}</dd>
+        <div className="organization-dashboard-profile">
+          <div className="organization-dashboard-logo-placeholder">
+            <div className="organization-dashboard-logo-circle">
+              <OrganizationIcon aria-hidden="true" />
+            </div>
+            <button type="button" className="organization-dashboard-upload-button" disabled>
+              Upload logo
+            </button>
+            <p className="organization-dashboard-logo-note">
+              Logo upload will be available soon.
+            </p>
           </div>
 
-          {organization.website && (
-            <div>
-              <dt>Website</dt>
-              <dd>
-                <a href={organization.website} target="_blank" rel="noreferrer">
-                  {organization.website}
-                </a>
-              </dd>
-            </div>
-          )}
-        </dl>
+          <div className="organization-dashboard-details">
+            <h2>{organization.name}</h2>
+
+            {organization.description && (
+              <p className="organization-dashboard-description">
+                {organization.description}
+              </p>
+            )}
+
+            <dl className="organization-dashboard-meta">
+              <div>
+                <dt>Email</dt>
+                <dd>{organization.email}</dd>
+              </div>
+
+              {organization.website && (
+                <div>
+                  <dt>Website</dt>
+                  <dd>
+                    <a href={organization.website} target="_blank" rel="noreferrer">
+                      {organization.website}
+                    </a>
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </div>
+        </div>
       </section>
 
       <section className="organization-dashboard-opportunities">

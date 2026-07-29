@@ -9,4 +9,5 @@ export {
   Bell as NotificationsIcon,
   Check as ChecklistIcon,
   Heart as SaveIcon,
+  Building2 as OrganizationIcon,
 } from 'lucide-react'
