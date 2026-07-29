@@ -6,7 +6,7 @@ import { useAppAuth } from '../../contexts/AuthContext'
 import { getOpportunity, registerForOpportunity } from '../../services/api/opportunityService'
 import { getOrganization } from '../../services/api/organizationService'
 import { getMyRegistrations, cancelMyRegistration } from '../../services/api/registrationService'
-import { opp1 } from '../../tests/fixtures/opportunities'
+import { opp1, opp2 } from '../../tests/fixtures/opportunities'
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAppAuth: vi.fn(),
@@ -108,6 +108,31 @@ describe('OpportunityDetailsPage', () => {
     expect(screen.getByText('Seattle Food Bank')).toBeInTheDocument()
     expect(screen.getByText('We distribute food to local families.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Register' })).toBeInTheDocument()
+  })
+
+  it('shows the time row when the opportunity has a time', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp1)
+    mockedGetOrganization.mockResolvedValue(organizationFixture)
+    mockedGetMyRegistrations.mockResolvedValue([])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+    expect(screen.getByText('Time')).toBeInTheDocument()
+    expect(screen.getByText(opp1.time as string)).toBeInTheDocument()
+  })
+
+  it('omits the time row when the opportunity has no time', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp2)
+    mockedGetOrganization.mockResolvedValue(organizationFixture)
+    mockedGetMyRegistrations.mockResolvedValue([])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: opp2.title })
+
+    expect(screen.queryByText('Time')).not.toBeInTheDocument()
   })
 
   it('shows a not-found message when the opportunity does not exist', async () => {

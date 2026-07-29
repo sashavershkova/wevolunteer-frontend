@@ -9,7 +9,7 @@ import {
   type Registration,
 } from '../../services/api/registrationService'
 import type { Opportunity } from '../../types/Opportunity'
-import { DateIcon, LocationIcon, SpotsIcon } from '../../components/shared/icons'
+import { DateIcon, LocationIcon, SpotsIcon, TimeIcon } from '../../components/shared/icons'
 import './OpportunityDetailsPage.css'
 
 function formatDate(dateString: string): string {
@@ -216,6 +216,15 @@ function OpportunityDetailsPage() {
               </dt>
               <dd>{formatDate(opportunity.date)}</dd>
             </div>
+            {opportunity.time && (
+              <div>
+                <dt>
+                  <TimeIcon className="opportunity-details-meta-icon" aria-hidden="true" />
+                  Time
+                </dt>
+                <dd>{opportunity.time}</dd>
+              </div>
+            )}
             <div>
               <dt>
                 <LocationIcon className="opportunity-details-meta-icon" aria-hidden="true" />
