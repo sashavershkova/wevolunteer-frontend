@@ -31,15 +31,15 @@
 
 .opportunity-details-top {
   display: flex;
-  gap: 1rem;
+  gap: 1.25rem;
   align-items: flex-start;
-  margin-bottom: 1.25rem;
+  margin-bottom: 2rem;
 }
 
 .opportunity-details-thumb {
   flex: none;
-  width: 180px;
-  height: 180px;
+  width: 200px;
+  height: 200px;
   border-radius: 0.75rem;
   background: var(--border);
 }
@@ -97,22 +97,25 @@
 }
 
 .opportunity-details-meta {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: 0.9rem 1rem;
-  margin: 0 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0.6rem 0 0;
+}
+
+.opportunity-details-meta > div {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .opportunity-details-meta dt {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: var(--text);
-  margin-bottom: 0.15rem;
+  margin: 0;
 }
 
 .opportunity-details-meta-icon {
@@ -122,7 +125,7 @@
 }
 
 .opportunity-details-meta dd {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-h);
   margin: 0;
@@ -181,8 +184,8 @@
 }
 
 .opportunity-details-register-button {
-  flex: 1;
-  min-width: 200px;
+  flex: none;
+  width: 260px;
   background: var(--accent);
   color: #fff;
   border: none;
@@ -199,8 +202,8 @@
 }
 
 .opportunity-details-cancel-button {
-  flex: 1;
-  min-width: 200px;
+  flex: none;
+  width: 260px;
   background: transparent;
   color: var(--text-h);
   border: 1px solid var(--border);
@@ -214,6 +217,13 @@
 .opportunity-details-cancel-button:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+@media (max-width: 480px) {
+  .opportunity-details-register-button,
+  .opportunity-details-cancel-button {
+    width: 100%;
+  }
 }
 
 .opportunity-details-save-button {

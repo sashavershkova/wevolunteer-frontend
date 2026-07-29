@@ -240,25 +240,21 @@ function OpportunityDetailsPage() {
         &larr; Back to opportunities
       </Link>
 
-      <div className="opportunity-details-grid">
-        <div>
-          <div className="opportunity-details-top">
-            <div className="opportunity-details-thumb" aria-hidden="true" />
+      <div className="opportunity-details-top">
+        <div className="opportunity-details-thumb" aria-hidden="true" />
 
-            <div className="opportunity-details-title-col">
-              <div className="opportunity-details-header">
-                <h1>{opportunity.title}</h1>
-              </div>
+        <div className="opportunity-details-title-col">
+          <div className="opportunity-details-header">
+            <h1>{opportunity.title}</h1>
+          </div>
 
-              <div className="opportunity-details-badges">
-                <span className="opportunity-details-category">{opportunity.category}</span>
-                {opportunity.recurring && (
-                  <span className="opportunity-details-recurring-badge">Ongoing</span>
-                )}
-              </div>
+          <p className="opportunity-details-org-name">{opportunity.organizationName}</p>
 
-              <p className="opportunity-details-org-name">{opportunity.organizationName}</p>
-            </div>
+          <div className="opportunity-details-badges">
+            <span className="opportunity-details-category">{opportunity.category}</span>
+            {opportunity.recurring && (
+              <span className="opportunity-details-recurring-badge">Ongoing</span>
+            )}
           </div>
 
           <dl className="opportunity-details-meta">
@@ -299,7 +295,11 @@ function OpportunityDetailsPage() {
               </dd>
             </div>
           </dl>
+        </div>
+      </div>
 
+      <div className="opportunity-details-grid">
+        <div>
           <section className="opportunity-details-section">
             <h2>About the Opportunity</h2>
             <p>{opportunity.description}</p>
