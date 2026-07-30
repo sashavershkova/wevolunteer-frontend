@@ -35,6 +35,13 @@ const pastClosedOpportunity = {
   date: '2025-06-01',
   status: 'CLOSED' as const,
 }
+const pastClosedOpportunityWithZeroRegistrations = {
+  ...opp1,
+  opportunityId: 'opp-past-closed-zero-registrations',
+  date: '2025-06-01',
+  status: 'CLOSED' as const,
+  registeredCount: 0,
+}
 
 function renderTable(ui: ReactElement) {
   return render(<MemoryRouter>{ui}</MemoryRouter>)
@@ -268,7 +275,7 @@ describe('OrganizationOpportunitiesTable', () => {
       expect(screen.queryByText('Open')).not.toBeInTheDocument()
     })
 
-    it('shows Completed as the status regardless of the stored CLOSED status', () => {
+    it('shows Closed as the status for a past opportunity with stored CLOSED status - stored status takes precedence over date', () => {
       renderTable(
         <OrganizationOpportunitiesTable
           opportunities={[pastClosedOpportunity]}
@@ -277,22 +284,48 @@ describe('OrganizationOpportunitiesTable', () => {
         />,
       )
 
-      expect(screen.getByText('Completed')).toBeInTheDocument()
-      expect(screen.queryByText('Closed')).not.toBeInTheDocument()
+      expect(screen.getByText('Closed')).toBeInTheDocument()
+      expect(screen.queryByText('Completed')).not.toBeInTheDocument()
     })
 
-    it('shows only a View link in the Actions column, never Close or Delete', () => {
+    it('shows only a View link for a past OPEN (Completed) opportunity, never Close or Delete', () => {
       renderTable(
         <OrganizationOpportunitiesTable
-          opportunities={[pastOpenOpportunity, pastClosedOpportunity]}
+          opportunities={[pastOpenOpportunity]}
           onCloseOpportunity={vi.fn()}
           onDeleteOpportunity={vi.fn()}
         />,
       )
 
-      expect(screen.getAllByRole('link', { name: 'View' })).toHaveLength(2)
+      expect(screen.getByRole('link', { name: 'View' })).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    })
+
+    it('shows the closed action behavior (not View) for a past CLOSED opportunity', () => {
+      renderTable(
+        <OrganizationOpportunitiesTable
+          opportunities={[pastClosedOpportunity]}
+          onCloseOpportunity={vi.fn()}
+          onDeleteOpportunity={vi.fn()}
+        />,
+      )
+
+      expect(screen.queryByRole('link', { name: 'View' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    })
+
+    it('shows a Delete button for a past CLOSED opportunity with zero registrations', () => {
+      renderTable(
+        <OrganizationOpportunitiesTable
+          opportunities={[pastClosedOpportunityWithZeroRegistrations]}
+          onCloseOpportunity={vi.fn()}
+          onDeleteOpportunity={vi.fn()}
+        />,
+      )
+
+      expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
     })
 
     it('does not show the edit icon link', () => {

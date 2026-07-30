@@ -3,6 +3,7 @@ import { EditIcon } from '../../shared/icons'
 import type { Opportunity } from '../../../types/Opportunity'
 import { formatOpportunityTimeRange } from '../../../utils/formatOpportunityTimeRange'
 import { isPastOpportunityDate } from '../../../utils/isPastOpportunityDate'
+import { getOpportunityDisplayStatus } from '../../../utils/getOpportunityDisplayStatus'
 import './OrganizationOpportunitiesTable.css'
 
 type OrganizationOpportunitiesTableProps = {
@@ -13,6 +14,7 @@ type OrganizationOpportunitiesTableProps = {
   closingOpportunityId?: string | null
   onDeleteOpportunity: (opportunityId: string) => void
   deletingOpportunityId?: string | null
+  emptyMessage?: string
 }
 
 function formatEventDate(dateString: string): string {
@@ -37,6 +39,7 @@ function OrganizationOpportunitiesTable({
   closingOpportunityId = null,
   onDeleteOpportunity,
   deletingOpportunityId = null,
+  emptyMessage = 'You have not created any opportunities yet.',
 }: OrganizationOpportunitiesTableProps) {
   if (isLoading) {
     return (
@@ -55,11 +58,7 @@ function OrganizationOpportunitiesTable({
   }
 
   if (opportunities.length === 0) {
-    return (
-      <p className="organization-opportunities-table-message">
-        You have not created any opportunities yet.
-      </p>
-    )
+    return <p className="organization-opportunities-table-message">{emptyMessage}</p>
   }
 
   return (
@@ -86,12 +85,10 @@ function OrganizationOpportunitiesTable({
               opportunity.time,
             )
 
-            const statusLabel = isPast
-              ? 'Completed'
-              : opportunity.status === 'OPEN'
-                ? 'Open'
-                : 'Closed'
-            const statusModifier = isPast ? 'completed' : opportunity.status.toLowerCase()
+            const displayStatus = getOpportunityDisplayStatus(opportunity)
+            const statusLabel =
+              displayStatus === 'COMPLETED' ? 'Completed' : displayStatus === 'OPEN' ? 'Open' : 'Closed'
+            const statusModifier = displayStatus.toLowerCase()
 
             return (
               <tr key={opportunity.opportunityId}>
@@ -130,14 +127,14 @@ function OrganizationOpportunitiesTable({
                   </span>
                 </td>
                 <td data-label="Actions">
-                  {isPast ? (
+                  {displayStatus === 'COMPLETED' ? (
                     <Link
                       to={`/organization/opportunities/${opportunity.opportunityId}`}
                       className="organization-opportunities-view-link"
                     >
                       View
                     </Link>
-                  ) : opportunity.status === 'OPEN' ? (
+                  ) : displayStatus === 'OPEN' ? (
                     <button
                       type="button"
                       className="organization-opportunities-close-button"

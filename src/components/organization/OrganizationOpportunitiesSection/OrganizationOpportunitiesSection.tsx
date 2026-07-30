@@ -1,10 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppAuth } from '../../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../../services/api/organizationService'
 import { closeOpportunity, deleteOpportunity } from '../../../services/api/opportunityService'
 import OrganizationOpportunitiesTable from '../OrganizationOpportunitiesTable/OrganizationOpportunitiesTable'
+import OrganizationOpportunityFilters from '../OrganizationOpportunityFilters/OrganizationOpportunityFilters'
 import type { Opportunity } from '../../../types/Opportunity'
+import {
+  EMPTY_ORGANIZATION_OPPORTUNITY_FILTERS,
+  filterOrganizationOpportunities,
+  type OrganizationOpportunityFiltersValue,
+} from '../../../utils/organizationOpportunityFilters'
+import { sortOrganizationOpportunities } from '../../../utils/sortOrganizationOpportunities'
 import './OrganizationOpportunitiesSection.css'
 
 type OrganizationOpportunitiesSectionProps = {
@@ -26,6 +33,9 @@ function OrganizationOpportunitiesSection({
   const [deletingOpportunityId, setDeletingOpportunityId] = useState<string | null>(null)
   const [opportunityActionErrorMessage, setOpportunityActionErrorMessage] =
     useState<string | null>(null)
+  const [filters, setFilters] = useState<OrganizationOpportunityFiltersValue>(
+    EMPTY_ORGANIZATION_OPPORTUNITY_FILTERS,
+  )
 
   useEffect(() => {
     let ignore = false
@@ -63,6 +73,16 @@ function OrganizationOpportunitiesSection({
       ignore = true
     }
   }, [accessToken])
+
+  const visibleOpportunities = useMemo(
+    () => sortOrganizationOpportunities(filterOrganizationOpportunities(opportunities, filters)),
+    [opportunities, filters],
+  )
+
+  const emptyMessage =
+    opportunities.length === 0
+      ? 'You have not created any opportunities yet.'
+      : 'No opportunities match the selected filters.'
 
   async function handleCloseOpportunity(opportunityId: string) {
     if (!accessToken) {
@@ -144,14 +164,23 @@ function OrganizationOpportunitiesSection({
         </p>
       )}
 
+      {!isOpportunitiesLoading && !opportunitiesError && (
+        <OrganizationOpportunityFilters
+          opportunities={opportunities}
+          value={filters}
+          onChange={setFilters}
+        />
+      )}
+
       <OrganizationOpportunitiesTable
-        opportunities={opportunities}
+        opportunities={visibleOpportunities}
         isLoading={isOpportunitiesLoading}
         error={opportunitiesError}
         onCloseOpportunity={handleCloseOpportunity}
         closingOpportunityId={closingOpportunityId}
         onDeleteOpportunity={handleDeleteOpportunity}
         deletingOpportunityId={deletingOpportunityId}
+        emptyMessage={emptyMessage}
       />
     </div>
   )

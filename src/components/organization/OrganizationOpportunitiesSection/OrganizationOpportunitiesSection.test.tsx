@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import OrganizationOpportunitiesSection from './OrganizationOpportunitiesSection'
 import { useAppAuth } from '../../../contexts/AuthContext'
@@ -111,7 +112,8 @@ describe('OrganizationOpportunitiesSection', () => {
       expect(mockedCloseOpportunity).toHaveBeenCalledWith('token', opp1.opportunityId)
     })
 
-    expect(await screen.findByText('Closed')).toBeInTheDocument()
+    const table = await screen.findByRole('table')
+    expect(await within(table).findByText('Closed')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
     expect(mockedGetMyOrganizationOpportunities).toHaveBeenCalledTimes(1)
   })
@@ -137,7 +139,8 @@ describe('OrganizationOpportunitiesSection', () => {
       expect(mockedCloseOpportunity).toHaveBeenCalledWith('token', opp1.opportunityId)
     })
 
-    expect(await screen.findByText('Closed')).toBeInTheDocument()
+    const table = await screen.findByRole('table')
+    expect(await within(table).findByText('Closed')).toBeInTheDocument()
     expect(screen.getByText(`0 / ${opp1.capacity}`)).toBeInTheDocument()
     // A zeroed registeredCount means the Delete guard now allows deletion.
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
@@ -182,7 +185,7 @@ describe('OrganizationOpportunitiesSection', () => {
       'Unable to close this opportunity: 403',
     )
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
-    expect(screen.getByText('Open')).toBeInTheDocument()
+    expect(within(screen.getByRole('table')).getByText('Open')).toBeInTheDocument()
   })
 
   describe('deleting an opportunity', () => {
@@ -323,5 +326,118 @@ describe('OrganizationOpportunitiesSection', () => {
     renderSection()
 
     expect(await screen.findByRole('heading', { level: 1, name: 'My Opportunities' })).toBeInTheDocument()
+  })
+
+  describe('sorting and filtering', () => {
+    const closedEarly: Opportunity = {
+      ...opp1,
+      opportunityId: 'closed-early',
+      title: 'Closed Early Shift',
+      date: '2026-01-05',
+      status: 'CLOSED',
+    }
+    const openLate: Opportunity = {
+      ...opp1,
+      opportunityId: 'open-late',
+      title: 'Open Late Shift',
+      date: '2026-12-01',
+      status: 'OPEN',
+      category: 'Environment',
+    }
+    const openEarly: Opportunity = {
+      ...opp1,
+      opportunityId: 'open-early',
+      title: 'Open Early Shift',
+      date: '2026-02-01',
+      status: 'OPEN',
+    }
+
+    it('renders non-CLOSED opportunities before CLOSED ones, sorted by date, with CLOSED at the bottom regardless of date', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([closedEarly, openLate, openEarly])
+
+      renderSection()
+
+      await screen.findByText(openEarly.title)
+
+      const rows = screen.getAllByRole('row').slice(1)
+      const titlesInOrder = rows.map((row) => row.textContent)
+
+      expect(titlesInOrder[0]).toContain(openEarly.title)
+      expect(titlesInOrder[1]).toContain(openLate.title)
+      expect(titlesInOrder[2]).toContain(closedEarly.title)
+    })
+
+    it('filters by status', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([closedEarly, openLate, openEarly])
+
+      renderSection()
+      await screen.findByText(openEarly.title)
+
+      const user = userEvent.setup({ delay: null })
+      await user.selectOptions(screen.getByRole('combobox', { name: 'Filter by status' }), 'Closed')
+
+      expect(screen.getByText(closedEarly.title)).toBeInTheDocument()
+      expect(screen.queryByText(openLate.title)).not.toBeInTheDocument()
+      expect(screen.queryByText(openEarly.title)).not.toBeInTheDocument()
+    })
+
+    it('clearing filters restores all opportunities', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([closedEarly, openLate, openEarly])
+
+      renderSection()
+      await screen.findByText(openEarly.title)
+
+      const user = userEvent.setup({ delay: null })
+      await user.selectOptions(screen.getByRole('combobox', { name: 'Filter by status' }), 'Closed')
+      expect(screen.queryByText(openEarly.title)).not.toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+
+      expect(screen.getByText(openEarly.title)).toBeInTheDocument()
+      expect(screen.getByText(openLate.title)).toBeInTheDocument()
+      expect(screen.getByText(closedEarly.title)).toBeInTheDocument()
+    })
+
+    it('combines status and category filters with the required sort order', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([closedEarly, openLate, openEarly])
+
+      renderSection()
+      await screen.findByText(openEarly.title)
+
+      const user = userEvent.setup({ delay: null })
+      await user.selectOptions(screen.getByRole('combobox', { name: 'Filter by status' }), 'Open')
+      await user.selectOptions(
+        screen.getByRole('combobox', { name: 'Filter by category' }),
+        'Environment',
+      )
+
+      expect(screen.getByText(openLate.title)).toBeInTheDocument()
+      expect(screen.queryByText(openEarly.title)).not.toBeInTheDocument()
+      expect(screen.queryByText(closedEarly.title)).not.toBeInTheDocument()
+    })
+
+    it('shows a "no opportunities yet" message when the organization has none', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([])
+
+      renderSection()
+
+      expect(
+        await screen.findByText('You have not created any opportunities yet.'),
+      ).toBeInTheDocument()
+    })
+
+    it('shows a "no matches" message when filters exclude every opportunity', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([openEarly])
+
+      renderSection()
+      await screen.findByText(openEarly.title)
+
+      const user = userEvent.setup({ delay: null })
+      await user.selectOptions(screen.getByRole('combobox', { name: 'Filter by status' }), 'Closed')
+
+      expect(
+        await screen.findByText('No opportunities match the selected filters.'),
+      ).toBeInTheDocument()
+    })
   })
 })
