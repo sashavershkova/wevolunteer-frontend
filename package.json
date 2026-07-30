@@ -16,6 +16,7 @@
     "lucide-react": "^1.27.0",
     "oidc-client-ts": "^3.5.0",
     "react": "^19.2.7",
+    "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.7",
     "react-oidc-context": "^3.3.1",
     "react-router-dom": "^7.18.1"
