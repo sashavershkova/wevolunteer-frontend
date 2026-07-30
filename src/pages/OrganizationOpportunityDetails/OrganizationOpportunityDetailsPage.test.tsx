@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import OrganizationOpportunityDetailsPage from './OrganizationOpportunityDetailsPage'
 import { useAppAuth } from '../../contexts/AuthContext'
@@ -252,10 +252,12 @@ describe('OrganizationOpportunityDetailsPage', () => {
 
       await screen.findByRole('heading', { name: opp1.title })
 
-      expect(mockedGetOrganizationOpportunityRegistrations).toHaveBeenCalledWith(
-        'test-token',
-        opp1.opportunityId,
-      )
+      await waitFor(() => {
+        expect(mockedGetOrganizationOpportunityRegistrations).toHaveBeenCalledWith(
+          'test-token',
+          opp1.opportunityId,
+        )
+      })
     })
 
     it('shows an empty state when nobody has registered', async () => {
