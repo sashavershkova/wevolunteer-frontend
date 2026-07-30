@@ -1,5 +1,6 @@
 import type { Registration } from '../../services/api/registrationService'
 import { formatOpportunityTimeRange } from '../../utils/formatOpportunityTimeRange'
+import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
 import './RegistrationCard.css'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -38,6 +39,11 @@ function RegistrationCard({
       registration.time,
     ) ?? 'Time not provided'
 
+  const isCompleted = isPastOpportunityDate(registration.date)
+  const statusLabel = isCompleted
+    ? 'Completed'
+    : formatStatus(registration.registrationStatus)
+
   return (
     <article className="registration-card">
       <div className="registration-card-main">
@@ -63,18 +69,26 @@ function RegistrationCard({
       </div>
 
       <div className="registration-card-status">
-        <span className="registration-status-badge">
-          {formatStatus(registration.registrationStatus)}
+        <span
+          className={
+            isCompleted
+              ? 'registration-status-badge registration-status-badge-completed'
+              : 'registration-status-badge'
+          }
+        >
+          {statusLabel}
         </span>
 
-        <button
-          type="button"
-          className="registration-cancel-button"
-          disabled={isCancelling}
-          onClick={() => onCancel(registration.opportunityId)}
-        >
-          {isCancelling ? 'Cancelling...' : 'Cancel Registration'}
-        </button>
+        {!isCompleted && (
+          <button
+            type="button"
+            className="registration-cancel-button"
+            disabled={isCancelling}
+            onClick={() => onCancel(registration.opportunityId)}
+          >
+            {isCancelling ? 'Cancelling...' : 'Cancel Registration'}
+          </button>
+        )}
       </div>
     </article>
   )

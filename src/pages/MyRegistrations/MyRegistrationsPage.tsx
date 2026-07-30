@@ -120,6 +120,10 @@ function MyRegistrationsPage() {
     )
   }
 
+  const sortedRegistrations = [...registrations].sort((a, b) =>
+    b.date.localeCompare(a.date),
+  )
+
   return (
     <main className="my-registrations-page">
       <h1>My Registrations</h1>
@@ -134,7 +138,7 @@ function MyRegistrationsPage() {
       )}
 
       <ul className="my-registrations-list">
-        {registrations.map((registration) => (
+        {sortedRegistrations.map((registration) => (
           <li key={registration.opportunityId}>
             <RegistrationCard
               registration={registration}

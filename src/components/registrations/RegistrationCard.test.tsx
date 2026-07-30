@@ -1,8 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import RegistrationCard from './RegistrationCard'
 import type { Registration } from '../../services/api/registrationService'
+
+const MOCKED_TODAY = '2026-07-29T12:00:00'
 
 const baseRegistration: Registration = {
   userId: 'user-1',
@@ -37,6 +39,15 @@ function renderCard(
 }
 
 describe('RegistrationCard', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(MOCKED_TODAY))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders a readable time range when startTime and endTime are present', () => {
     renderCard({ startTime: '09:00', endTime: '13:00', time: null })
 
@@ -78,5 +89,33 @@ describe('RegistrationCard', () => {
 
     const button = screen.getByRole('button', { name: 'Cancelling...' })
     expect(button).toBeDisabled()
+  })
+
+  it('shows Completed and hides the Cancel Registration button for a past registration', () => {
+    renderCard({ date: '2026-07-19' })
+
+    expect(screen.getByText('Completed')).toBeInTheDocument()
+    expect(screen.queryByText('Registered')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Cancel Registration' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows Registered and keeps the Cancel Registration button for a registration happening today', () => {
+    renderCard({ date: '2026-07-29' })
+
+    expect(screen.getByText('Registered')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Cancel Registration' }),
+    ).toBeInTheDocument()
+  })
+
+  it('shows Registered and keeps the Cancel Registration button for a future registration', () => {
+    renderCard({ date: '2026-08-01' })
+
+    expect(screen.getByText('Registered')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Cancel Registration' }),
+    ).toBeInTheDocument()
   })
 })
