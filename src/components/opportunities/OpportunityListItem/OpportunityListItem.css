@@ -132,12 +132,12 @@
 }
 
 .opportunity-list-item-meta li.opportunity-list-item-spots-full {
-  color: #c76b00;
+  color: #c0392b;
   font-weight: 600;
 }
 
 .opportunity-list-item-spots-full .opportunity-list-item-meta-icon {
-  color: #c76b00;
+  color: #c0392b;
 }
 
 .opportunity-list-item-actions {

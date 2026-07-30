@@ -126,6 +126,28 @@ describe('OpportunityDetailsPage', () => {
     expect(screen.getByRole('button', { name: 'Register' })).toBeInTheDocument()
   })
 
+  it('shows available spots in green, matching the list card wording', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp1)
+    mockedGetOrganization.mockResolvedValue(organizationFixture)
+    mockedGetMyRegistrations.mockResolvedValue([])
+
+    renderPage()
+
+    const spots = await screen.findByText('9 / 10 available')
+    expect(spots.closest('div')).toHaveClass('opportunity-details-meta-spots-open')
+  })
+
+  it('shows "Full" in red when the opportunity has no available spots', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp2)
+    mockedGetOrganization.mockResolvedValue(organizationFixture)
+    mockedGetMyRegistrations.mockResolvedValue([])
+
+    renderPage()
+
+    const spots = await screen.findByText('Full')
+    expect(spots.closest('div')).toHaveClass('opportunity-details-meta-spots-full')
+  })
+
   it('shows the time row when the opportunity has a time', async () => {
     mockedGetOpportunity.mockResolvedValue(opp1)
     mockedGetOrganization.mockResolvedValue(organizationFixture)
