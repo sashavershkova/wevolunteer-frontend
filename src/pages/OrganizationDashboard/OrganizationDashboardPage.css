@@ -364,11 +364,6 @@
   cursor: not-allowed;
 }
 
-.organization-dashboard-coming-soon {
-  margin-top: 2rem;
-  color: var(--text);
-}
-
 @media (max-width: 960px) {
   .organization-dashboard-metrics {
     grid-template-columns: repeat(2, 1fr);

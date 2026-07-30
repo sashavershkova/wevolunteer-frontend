@@ -540,14 +540,6 @@ function OrganizationDashboardPage() {
           deletingOpportunityId={deletingOpportunityId}
         />
       </section>
-
-      <section className="organization-dashboard-coming-soon">
-        <h2>Coming soon</h2>
-        <ul>
-          <li>Volunteer Registrations</li>
-          <li>Organization Settings</li>
-        </ul>
-      </section>
     </main>
   )
 }
