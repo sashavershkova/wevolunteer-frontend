@@ -287,7 +287,15 @@ function OpportunityDetailsPage() {
               </dt>
               <dd>{opportunity.location}</dd>
             </div>
-            <div className="opportunity-details-meta-spots">
+            <div
+              className={
+                isClosed
+                  ? 'opportunity-details-meta-spots'
+                  : isFull
+                    ? 'opportunity-details-meta-spots opportunity-details-meta-spots-full'
+                    : 'opportunity-details-meta-spots opportunity-details-meta-spots-open'
+              }
+            >
               <dt>
                 <SpotsIcon className="opportunity-details-meta-icon" aria-hidden="true" />
                 Spots
@@ -297,7 +305,7 @@ function OpportunityDetailsPage() {
                   ? 'Closed'
                   : isFull
                     ? 'Full'
-                    : `${opportunity.availableSpots} of ${opportunity.capacity} open`}
+                    : `${opportunity.availableSpots} / ${opportunity.capacity} available`}
               </dd>
             </div>
           </dl>

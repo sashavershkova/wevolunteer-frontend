@@ -59,7 +59,7 @@ describe('OpportunityListItem', () => {
     expect(spots.closest('li')).toHaveClass('opportunity-list-item-spots-open')
   })
 
-  it('shows "Full" in orange when the opportunity has no available spots', () => {
+  it('shows "Full" in red when the opportunity has no available spots', () => {
     renderItem(opp2)
 
     const spots = screen.getByText('Full')

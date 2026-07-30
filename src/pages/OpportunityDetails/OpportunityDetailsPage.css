@@ -131,8 +131,20 @@
   margin: 0;
 }
 
-.opportunity-details-meta-spots dd {
+.opportunity-details-meta-spots-open dd {
   color: #2a9d5c;
+}
+
+.opportunity-details-meta-spots-open .opportunity-details-meta-icon {
+  color: #2a9d5c;
+}
+
+.opportunity-details-meta-spots-full dd {
+  color: #c0392b;
+}
+
+.opportunity-details-meta-spots-full .opportunity-details-meta-icon {
+  color: #c0392b;
 }
 
 .opportunity-details-section {
