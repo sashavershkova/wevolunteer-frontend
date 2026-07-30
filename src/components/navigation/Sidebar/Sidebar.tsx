@@ -66,12 +66,12 @@ function Sidebar() {
             {item.label}
           </NavLink>
         ))}
-      </div>
 
-      <button type="button" className="app-sidebar-logout" onClick={() => auth.signOut()}>
-        <LogOutIcon aria-hidden="true" />
-        Log Out
-      </button>
+        <button type="button" className="app-sidebar-logout" onClick={() => auth.signOut()}>
+          <LogOutIcon aria-hidden="true" />
+          Log Out
+        </button>
+      </div>
     </nav>
   )
 }
