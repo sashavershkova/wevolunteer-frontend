@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import OrganizationOpportunityDetailsPage from './OrganizationOpportunityDetailsPage'
@@ -9,6 +9,11 @@ import {
   type Registration,
 } from '../../services/api/registrationService'
 import { opp1, opp2, opp7 } from '../../tests/fixtures/opportunities'
+
+// opp1/opp2/opp7's dates (2026-06-28 through 2026-07-20) are fixed in the future relative
+// to this mocked "today", so they exercise future-opportunity behavior deterministically
+// regardless of when tests run.
+const MOCKED_TODAY = '2026-01-01T00:00:00'
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAppAuth: vi.fn(),
@@ -109,10 +114,16 @@ function renderPageWithoutOpportunityId() {
 
 describe('OrganizationOpportunityDetailsPage', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(MOCKED_TODAY))
     mockedGetOpportunity.mockReset()
     mockedGetOrganizationOpportunityRegistrations.mockReset()
     mockedGetOrganizationOpportunityRegistrations.mockResolvedValue([])
     mockAuth()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('shows a loading state while the opportunity is being fetched', () => {
@@ -183,6 +194,42 @@ describe('OrganizationOpportunityDetailsPage', () => {
       'href',
       `/organization/opportunities/${opp1.opportunityId}/edit`,
     )
+  })
+
+  describe('Edit button visibility', () => {
+    it('displays Edit for a future opportunity', async () => {
+      mockedGetOpportunity.mockResolvedValue({ ...opp1, date: '2026-08-01', status: 'OPEN' })
+
+      renderPage()
+
+      expect(
+        await screen.findByRole('link', { name: `Edit ${opp1.title}` }),
+      ).toBeInTheDocument()
+    })
+
+    it('does not display Edit for a past OPEN opportunity', async () => {
+      mockedGetOpportunity.mockResolvedValue({ ...opp1, date: '2025-06-01', status: 'OPEN' })
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: opp1.title })
+
+      expect(
+        screen.queryByRole('link', { name: `Edit ${opp1.title}` }),
+      ).not.toBeInTheDocument()
+    })
+
+    it('does not display Edit for a past CLOSED opportunity', async () => {
+      mockedGetOpportunity.mockResolvedValue({ ...opp1, date: '2025-06-01', status: 'CLOSED' })
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: opp1.title })
+
+      expect(
+        screen.queryByRole('link', { name: `Edit ${opp1.title}` }),
+      ).not.toBeInTheDocument()
+    })
   })
 
   describe('registered volunteers section', () => {

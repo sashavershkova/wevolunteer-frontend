@@ -174,6 +174,163 @@ describe('OrganizationDashboardPage', () => {
     expect(screen.getByText('Open')).toBeInTheDocument()
   })
 
+  describe('opportunity lifecycle metrics', () => {
+    const futureOpen: Opportunity = { ...opp1, opportunityId: 'future-open', date: '2026-08-01', status: 'OPEN' }
+    const futureClosed: Opportunity = { ...opp1, opportunityId: 'future-closed', date: '2026-08-01', status: 'CLOSED' }
+    const pastOpen: Opportunity = { ...opp1, opportunityId: 'past-open', date: '2025-06-01', status: 'OPEN' }
+    const pastClosed: Opportunity = { ...opp1, opportunityId: 'past-closed', date: '2025-06-01', status: 'CLOSED' }
+
+    it('counts a future OPEN opportunity only in Active', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureOpen])
+
+      renderPage()
+
+      await screen.findByText(futureOpen.title)
+      expect(getMetricValue('Active Opportunities')).toBe('1')
+      expect(getMetricValue('Closed Opportunities')).toBe('0')
+      expect(getMetricValue('Completed Opportunities')).toBe('0')
+    })
+
+    it('counts a future CLOSED opportunity only in Closed', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureClosed])
+
+      renderPage()
+
+      await screen.findByText(futureClosed.title)
+      expect(getMetricValue('Active Opportunities')).toBe('0')
+      expect(getMetricValue('Closed Opportunities')).toBe('1')
+      expect(getMetricValue('Completed Opportunities')).toBe('0')
+    })
+
+    it('counts a past OPEN opportunity only in Completed', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([pastOpen])
+
+      renderPage()
+
+      await screen.findByText(pastOpen.title)
+      expect(getMetricValue('Active Opportunities')).toBe('0')
+      expect(getMetricValue('Closed Opportunities')).toBe('0')
+      expect(getMetricValue('Completed Opportunities')).toBe('1')
+    })
+
+    it('counts a past CLOSED opportunity only in Completed', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([pastClosed])
+
+      renderPage()
+
+      await screen.findByText(pastClosed.title)
+      expect(getMetricValue('Active Opportunities')).toBe('0')
+      expect(getMetricValue('Closed Opportunities')).toBe('0')
+      expect(getMetricValue('Completed Opportunities')).toBe('1')
+    })
+
+    it('produces correct totals for a mix of future and past, open and closed opportunities', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([
+        { ...futureOpen, title: 'Future Open Shift' },
+        { ...futureClosed, title: 'Future Closed Shift' },
+        { ...pastOpen, title: 'Past Open Shift' },
+        { ...pastClosed, title: 'Past Closed Shift' },
+      ])
+
+      renderPage()
+
+      await screen.findByText('Future Open Shift')
+      expect(getMetricValue('Active Opportunities')).toBe('1')
+      expect(getMetricValue('Closed Opportunities')).toBe('1')
+      expect(getMetricValue('Completed Opportunities')).toBe('2')
+    })
+  })
+
+  describe('active registrations and capacity metrics', () => {
+    const futureOpen: Opportunity = {
+      ...opp1,
+      opportunityId: 'future-open',
+      date: '2026-08-01',
+      status: 'OPEN',
+      registeredCount: 3,
+      capacity: 10,
+    }
+    const futureClosed: Opportunity = {
+      ...opp1,
+      opportunityId: 'future-closed',
+      date: '2026-08-01',
+      status: 'CLOSED',
+      registeredCount: 5,
+      capacity: 8,
+    }
+    const pastOpen: Opportunity = {
+      ...opp1,
+      opportunityId: 'past-open',
+      date: '2025-06-01',
+      status: 'OPEN',
+      registeredCount: 7,
+      capacity: 20,
+    }
+    const pastClosed: Opportunity = {
+      ...opp1,
+      opportunityId: 'past-closed',
+      date: '2025-06-01',
+      status: 'CLOSED',
+      registeredCount: 11,
+      capacity: 30,
+    }
+
+    it('includes a future OPEN opportunity in Active Registrations and Active Capacity', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureOpen])
+
+      renderPage()
+
+      await screen.findByText(futureOpen.title)
+      expect(getMetricValue('Active Registrations')).toBe('3')
+      expect(getMetricValue('Active Capacity')).toBe('10')
+    })
+
+    it('includes a future CLOSED opportunity in Active Registrations and Active Capacity', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureClosed])
+
+      renderPage()
+
+      await screen.findByText(futureClosed.title)
+      expect(getMetricValue('Active Registrations')).toBe('5')
+      expect(getMetricValue('Active Capacity')).toBe('8')
+    })
+
+    it('excludes a past OPEN opportunity from Active Registrations and Active Capacity', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([pastOpen])
+
+      renderPage()
+
+      await screen.findByText(pastOpen.title)
+      expect(getMetricValue('Active Registrations')).toBe('0')
+      expect(getMetricValue('Active Capacity')).toBe('0')
+    })
+
+    it('excludes a past CLOSED opportunity from Active Registrations and Active Capacity', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([pastClosed])
+
+      renderPage()
+
+      await screen.findByText(pastClosed.title)
+      expect(getMetricValue('Active Registrations')).toBe('0')
+      expect(getMetricValue('Active Capacity')).toBe('0')
+    })
+
+    it('sums only future opportunities for a mixed set', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([
+        { ...futureOpen, title: 'Future Open Shift' },
+        { ...futureClosed, title: 'Future Closed Shift' },
+        { ...pastOpen, title: 'Past Open Shift' },
+        { ...pastClosed, title: 'Past Closed Shift' },
+      ])
+
+      renderPage()
+
+      await screen.findByText('Future Open Shift')
+      expect(getMetricValue('Active Registrations')).toBe('8')
+      expect(getMetricValue('Active Capacity')).toBe('18')
+    })
+  })
+
   describe('deleting an opportunity', () => {
     const closedFutureOpportunity: Opportunity = { ...opp1, status: 'CLOSED' }
 

@@ -16,6 +16,7 @@ import {
 } from '../../components/shared/icons'
 import type { Opportunity } from '../../types/Opportunity'
 import { formatOpportunityTimeRange } from '../../utils/formatOpportunityTimeRange'
+import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
 import './OrganizationOpportunityDetailsPage.css'
 
 function formatDate(dateString: string): string {
@@ -197,6 +198,7 @@ function OrganizationOpportunityDetailsPage() {
   const organization = auth.organizationProfile
   const isOwner =
     opportunity !== null && opportunity.organizationId === organization.organizationId
+  const isPast = opportunity !== null && isPastOpportunityDate(opportunity.date)
   const displayTime = formatOpportunityTimeRange(
     opportunity?.startTime,
     opportunity?.endTime,
@@ -232,17 +234,19 @@ function OrganizationOpportunityDetailsPage() {
           <header className="organization-opportunity-details-header">
             <div className="organization-opportunity-details-title-row">
               <h1>{opportunity.title}</h1>
-              <Link
-                to={`/organization/opportunities/${opportunity.opportunityId}/edit`}
-                className="organization-opportunity-details-edit-link"
-                aria-label={`Edit ${opportunity.title}`}
-              >
-                <EditIcon
-                  aria-hidden="true"
-                  className="organization-opportunity-details-edit-icon"
-                />
-                Edit
-              </Link>
+              {!isPast && (
+                <Link
+                  to={`/organization/opportunities/${opportunity.opportunityId}/edit`}
+                  className="organization-opportunity-details-edit-link"
+                  aria-label={`Edit ${opportunity.title}`}
+                >
+                  <EditIcon
+                    aria-hidden="true"
+                    className="organization-opportunity-details-edit-icon"
+                  />
+                  Edit
+                </Link>
+              )}
             </div>
 
             <div className="organization-opportunity-details-badges">

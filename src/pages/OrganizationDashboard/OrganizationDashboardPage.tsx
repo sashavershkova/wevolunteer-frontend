@@ -11,6 +11,7 @@ import { closeOpportunity, deleteOpportunity } from '../../services/api/opportun
 import OrganizationOpportunitiesTable from '../../components/organization/OrganizationOpportunitiesTable/OrganizationOpportunitiesTable'
 import { OrganizationIcon, EditIcon } from '../../components/shared/icons'
 import type { Opportunity } from '../../types/Opportunity'
+import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
 import './OrganizationDashboardPage.css'
 
 type OrganizationFormState = {
@@ -199,22 +200,26 @@ function OrganizationDashboardPage() {
   const showMetricsPlaceholder = isOpportunitiesLoading || opportunitiesError !== null
 
   const activeOpportunitiesCount = opportunities.filter(
-    (opportunity) => opportunity.status === 'OPEN',
+    (opportunity) =>
+      !isPastOpportunityDate(opportunity.date) && opportunity.status === 'OPEN',
   ).length
 
   const closedOpportunitiesCount = opportunities.filter(
-    (opportunity) => opportunity.status === 'CLOSED',
+    (opportunity) =>
+      !isPastOpportunityDate(opportunity.date) && opportunity.status === 'CLOSED',
   ).length
 
-  const totalRegistrations = opportunities.reduce(
-    (total, opportunity) => total + opportunity.registeredCount,
-    0,
-  )
+  const completedOpportunitiesCount = opportunities.filter((opportunity) =>
+    isPastOpportunityDate(opportunity.date),
+  ).length
 
-  const totalCapacity = opportunities.reduce(
-    (total, opportunity) => total + opportunity.capacity,
-    0,
-  )
+  const activeRegistrationsCount = opportunities
+    .filter((opportunity) => !isPastOpportunityDate(opportunity.date))
+    .reduce((total, opportunity) => total + opportunity.registeredCount, 0)
+
+  const activeCapacity = opportunities
+    .filter((opportunity) => !isPastOpportunityDate(opportunity.date))
+    .reduce((total, opportunity) => total + opportunity.capacity, 0)
 
   function formatMetric(value: number): string {
     return showMetricsPlaceholder ? '—' : String(value)
@@ -316,19 +321,27 @@ function OrganizationDashboardPage() {
         </div>
 
         <div className="organization-dashboard-metric-card">
-          <p className="organization-dashboard-metric-label">Total Registrations</p>
+          <p className="organization-dashboard-metric-label">Completed Opportunities</p>
           <p className="organization-dashboard-metric-value">
-            {formatMetric(totalRegistrations)}
+            {formatMetric(completedOpportunitiesCount)}
           </p>
-          <p className="organization-dashboard-metric-hint">Across all opportunities</p>
+          <p className="organization-dashboard-metric-hint">Opportunity date has passed</p>
         </div>
 
         <div className="organization-dashboard-metric-card">
-          <p className="organization-dashboard-metric-label">Total Capacity</p>
+          <p className="organization-dashboard-metric-label">Active Registrations</p>
           <p className="organization-dashboard-metric-value">
-            {formatMetric(totalCapacity)}
+            {formatMetric(activeRegistrationsCount)}
           </p>
-          <p className="organization-dashboard-metric-hint">Volunteer spots offered</p>
+          <p className="organization-dashboard-metric-hint">Across current opportunities</p>
+        </div>
+
+        <div className="organization-dashboard-metric-card">
+          <p className="organization-dashboard-metric-label">Active Capacity</p>
+          <p className="organization-dashboard-metric-value">
+            {formatMetric(activeCapacity)}
+          </p>
+          <p className="organization-dashboard-metric-hint">Current volunteer spots offered</p>
         </div>
       </section>
 
