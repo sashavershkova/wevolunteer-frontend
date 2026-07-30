@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAppAuth } from '../../../contexts/AuthContext'
 import { NotificationsIcon } from '../../shared/icons'
 import './Header.css'
@@ -16,10 +16,6 @@ function getInitials(name: string): string {
   }
 
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
-
-function navLinkClassName({ isActive }: { isActive: boolean }): string | undefined {
-  return isActive ? 'is-active' : undefined
 }
 
 function Header() {
@@ -65,22 +61,6 @@ function Header() {
         </svg>
         <span className="app-header-wordmark">WeVolunteer</span>
       </Link>
-
-      <nav className="app-header-nav" aria-label="Main">
-        {auth.userProfile && (
-          <>
-            <NavLink to="/opportunities" className={navLinkClassName}>
-              Opportunities
-            </NavLink>
-            <NavLink to="/my-registrations" className={navLinkClassName}>
-              My Registrations
-            </NavLink>
-            <NavLink to="/favorites" className={navLinkClassName}>
-              Favorites
-            </NavLink>
-          </>
-        )}
-      </nav>
 
       <div className="app-header-actions">
         <button

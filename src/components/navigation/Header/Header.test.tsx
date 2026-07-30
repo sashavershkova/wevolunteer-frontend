@@ -55,16 +55,16 @@ describe('Header', () => {
     expect(screen.getByRole('link', { name: /wevolunteer/i })).toHaveAttribute('href', '/')
   })
 
-  it('shows volunteer nav links for a volunteer profile', () => {
+  it('shows no nav links for a volunteer profile (Sidebar covers volunteer navigation)', () => {
     mockAuth({
       userProfile: { userId: 'user1', name: 'Sasha Vershkova', email: 'sasha@example.com', role: 'VOLUNTEER' },
     })
 
     renderHeader()
 
-    expect(screen.getByRole('link', { name: 'Opportunities' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'My Registrations' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Favorites' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Opportunities' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'My Registrations' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Favorites' })).not.toBeInTheDocument()
     expect(screen.getByText('Sasha Vershkova')).toBeInTheDocument()
     expect(screen.getByText('SV')).toBeInTheDocument()
     expect(screen.getByText('Volunteer')).toBeInTheDocument()
