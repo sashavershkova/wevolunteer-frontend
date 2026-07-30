@@ -8,6 +8,9 @@ import OrganizationDashboardPage from '../pages/OrganizationDashboard/Organizati
 import CreateOpportunityPage from '../pages/CreateOpportunity/CreateOpportunityPage'
 import ManageOpportunityPage from '../pages/ManageOpportunity/ManageOpportunityPage'
 import OrganizationOpportunityDetailsPage from '../pages/OrganizationOpportunityDetails/OrganizationOpportunityDetailsPage'
+import FavoritesPage from '../pages/Favorites/FavoritesPage'
+import MessagesPage from '../pages/Messages/MessagesPage'
+import SettingsPage from '../pages/Settings/SettingsPage'
 import ProtectedRoute from './ProtectedRoute'
 import HomeRoute from './HomeRoute'
 import AppLayout from '../layouts/AppLayout'
@@ -24,6 +27,9 @@ function AppRoutes() {
           <Route path="/opportunities/:opportunityId" element={<OpportunityDetailsPage />} />
           <Route path="/my-registrations" element={<MyRegistrationsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/organization" element={<OrganizationDashboardPage />} />
           <Route path="/organization/opportunities/new" element={<CreateOpportunityPage />} />
           <Route
