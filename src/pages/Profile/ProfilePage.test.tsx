@@ -1,14 +1,42 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import ProfilePage from './ProfilePage'
 import { useAppAuth } from '../../contexts/AuthContext'
+import {
+  getMyRegistrations,
+  type Registration,
+} from '../../services/api/registrationService'
+
+const MOCKED_TODAY = '2026-07-29T12:00:00'
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAppAuth: vi.fn(),
 }))
 
+vi.mock('../../services/api/registrationService', () => ({
+  getMyRegistrations: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
+const mockedGetMyRegistrations = vi.mocked(getMyRegistrations)
+
+function buildRegistration(overrides: Partial<Registration>): Registration {
+  return {
+    userId: 'user1',
+    opportunityId: 'opp-1',
+    title: 'Beach Cleanup',
+    date: '2026-08-01',
+    location: 'Seattle, WA',
+    organizationId: 'org-1',
+    organizationName: 'Green Earth',
+    registrationStatus: 'ACTIVE',
+    volunteerName: 'Sasha Vershkova',
+    email: 'sasha@example.com',
+    registeredAt: '2026-07-24T10:00:00',
+    ...overrides,
+  }
+}
 
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>>) {
   mockedUseAppAuth.mockReturnValue({
@@ -44,6 +72,17 @@ function renderProfilePage() {
 }
 
 describe('ProfilePage', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(MOCKED_TODAY))
+    mockedGetMyRegistrations.mockReset()
+    mockedGetMyRegistrations.mockResolvedValue([])
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('displays the volunteer name, email, and role', () => {
     mockAuth({
       userProfile: {
@@ -116,5 +155,111 @@ describe('ProfilePage', () => {
     renderProfilePage()
 
     expect(screen.getByRole('heading', { name: /loading your profile/i })).toBeInTheDocument()
+  })
+
+  describe('Your Volunteer Activity', () => {
+    function mockVolunteer() {
+      mockAuth({
+        userProfile: {
+          userId: 'user1',
+          name: 'Sasha Vershkova',
+          email: 'sasha@example.com',
+          role: 'VOLUNTEER',
+        },
+      })
+    }
+
+    it('shows a loading message while registrations are pending', () => {
+      mockVolunteer()
+      mockedGetMyRegistrations.mockReturnValue(new Promise(() => {}))
+
+      renderProfilePage()
+
+      expect(screen.getByText('Loading activity...')).toBeInTheDocument()
+    })
+
+    it('calculates upcoming, completed, and total counts correctly', async () => {
+      mockVolunteer()
+      mockedGetMyRegistrations.mockResolvedValue([
+        buildRegistration({ opportunityId: 'opp-past-1', date: '2026-07-19' }),
+        buildRegistration({ opportunityId: 'opp-past-2', date: '2026-06-01' }),
+        buildRegistration({ opportunityId: 'opp-future-1', date: '2026-08-01' }),
+        buildRegistration({ opportunityId: 'opp-future-2', date: '2026-09-15' }),
+        buildRegistration({ opportunityId: 'opp-future-3', date: '2026-12-25' }),
+        buildRegistration({ opportunityId: 'opp-future-4', date: '2027-01-01' }),
+      ])
+
+      renderProfilePage()
+
+      await screen.findByText('Your Volunteer Activity')
+
+      expect(
+        screen.getByText('Upcoming Opportunities').previousElementSibling,
+      ).toHaveTextContent('4')
+      expect(
+        screen.getByText('Completed Opportunities').previousElementSibling,
+      ).toHaveTextContent('2')
+      expect(
+        screen.getByText('Total Registrations').previousElementSibling,
+      ).toHaveTextContent('6')
+    })
+
+    it('counts a registration dated today as Upcoming, not Completed', async () => {
+      mockVolunteer()
+      mockedGetMyRegistrations.mockResolvedValue([
+        buildRegistration({ opportunityId: 'opp-today', date: '2026-07-29' }),
+      ])
+
+      renderProfilePage()
+
+      await screen.findByText('Your Volunteer Activity')
+
+      expect(
+        screen.getByText('Upcoming Opportunities').previousElementSibling,
+      ).toHaveTextContent('1')
+      expect(
+        screen.getByText('Completed Opportunities').previousElementSibling,
+      ).toHaveTextContent('0')
+    })
+
+    it('displays 0 for all three metrics when there are no registrations', async () => {
+      mockVolunteer()
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderProfilePage()
+
+      await screen.findByText('Your Volunteer Activity')
+
+      expect(
+        screen.getByText('Upcoming Opportunities').previousElementSibling,
+      ).toHaveTextContent('0')
+      expect(
+        screen.getByText('Completed Opportunities').previousElementSibling,
+      ).toHaveTextContent('0')
+      expect(
+        screen.getByText('Total Registrations').previousElementSibling,
+      ).toHaveTextContent('0')
+    })
+
+    it('shows a friendly error and keeps profile details visible when loading fails', async () => {
+      mockVolunteer()
+      mockedGetMyRegistrations.mockRejectedValue(
+        new Error('Unable to load registrations: 500'),
+      )
+
+      renderProfilePage()
+
+      expect(
+        await screen.findByText('Unable to load your volunteer activity.'),
+      ).toBeInTheDocument()
+
+      expect(
+        screen.queryByText('Unable to load registrations: 500'),
+      ).not.toBeInTheDocument()
+
+      expect(screen.getByText('Sasha Vershkova')).toBeInTheDocument()
+      expect(screen.getByText('sasha@example.com')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /upload photo/i })).toBeDisabled()
+    })
   })
 })

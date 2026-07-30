@@ -102,6 +102,60 @@
   margin: 0;
 }
 
+.profile-activity {
+  margin-top: 1.5rem;
+}
+
+.profile-activity h2 {
+  font-size: 1.15rem;
+  color: var(--text-h);
+  margin: 0 0 1rem;
+}
+
+.profile-activity-status {
+  color: var(--text);
+  margin: 0;
+}
+
+.profile-activity-error {
+  color: #b3261e;
+}
+
+@media (prefers-color-scheme: dark) {
+  .profile-activity-error {
+    color: #ff8a80;
+  }
+}
+
+.profile-activity-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.profile-activity-metric-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.25rem 1.5rem;
+  box-sizing: border-box;
+}
+
+.profile-activity-metric-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.profile-activity-metric-label {
+  font-size: 0.8rem;
+  color: var(--text);
+  margin: 0.5rem 0 0;
+}
+
 @media (max-width: 640px) {
   .profile-page {
     padding: 1.5rem 1rem;
@@ -116,5 +170,9 @@
   .profile-details {
     width: 100%;
     text-align: left;
+  }
+
+  .profile-activity-metrics {
+    grid-template-columns: 1fr;
   }
 }

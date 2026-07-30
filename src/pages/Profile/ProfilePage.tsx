@@ -1,6 +1,12 @@
+import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { UploadPhotoIcon } from '../../components/shared/icons'
+import {
+  getMyRegistrations,
+  type Registration,
+} from '../../services/api/registrationService'
+import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
 import './ProfilePage.css'
 
 function getInitials(name: string): string {
@@ -19,6 +25,49 @@ function getInitials(name: string): string {
 
 function ProfilePage() {
   const auth = useAppAuth()
+
+  const [registrations, setRegistrations] = useState<Registration[]>([])
+  const [isActivityLoading, setIsActivityLoading] = useState(
+    Boolean(auth.accessToken),
+  )
+  const [activityErrorMessage, setActivityErrorMessage] = useState<
+    string | null
+  >(null)
+
+  useEffect(() => {
+    if (!auth.accessToken || auth.organizationProfile) {
+      return
+    }
+
+    let ignore = false
+
+    const loadRegistrations = async () => {
+      setIsActivityLoading(true)
+      setActivityErrorMessage(null)
+
+      try {
+        const result = await getMyRegistrations(auth.accessToken)
+
+        if (!ignore) {
+          setRegistrations(result)
+        }
+      } catch {
+        if (!ignore) {
+          setActivityErrorMessage('Unable to load your volunteer activity.')
+        }
+      } finally {
+        if (!ignore) {
+          setIsActivityLoading(false)
+        }
+      }
+    }
+
+    void loadRegistrations()
+
+    return () => {
+      ignore = true
+    }
+  }, [auth.accessToken, auth.organizationProfile])
 
   if (auth.isProfileLoading) {
     return (
@@ -46,6 +95,12 @@ function ProfilePage() {
   }
 
   const { name, email } = auth.userProfile
+
+  const completedCount = registrations.filter((registration) =>
+    isPastOpportunityDate(registration.date),
+  ).length
+  const upcomingCount = registrations.length - completedCount
+  const totalCount = registrations.length
 
   return (
     <main className="profile-page">
@@ -83,6 +138,50 @@ function ProfilePage() {
             <dd>Volunteer</dd>
           </div>
         </dl>
+      </section>
+
+      <section className="profile-activity">
+        <h2>Your Volunteer Activity</h2>
+
+        {isActivityLoading && (
+          <p className="profile-activity-status">Loading activity...</p>
+        )}
+
+        {!isActivityLoading && activityErrorMessage && (
+          <p
+            role="alert"
+            className="profile-activity-status profile-activity-error"
+          >
+            {activityErrorMessage}
+          </p>
+        )}
+
+        {!isActivityLoading && !activityErrorMessage && (
+          <div className="profile-activity-metrics">
+            <div className="profile-activity-metric-card">
+              <p className="profile-activity-metric-value">
+                {upcomingCount}
+              </p>
+              <p className="profile-activity-metric-label">
+                Upcoming Opportunities
+              </p>
+            </div>
+            <div className="profile-activity-metric-card">
+              <p className="profile-activity-metric-value">
+                {completedCount}
+              </p>
+              <p className="profile-activity-metric-label">
+                Completed Opportunities
+              </p>
+            </div>
+            <div className="profile-activity-metric-card">
+              <p className="profile-activity-metric-value">{totalCount}</p>
+              <p className="profile-activity-metric-label">
+                Total Registrations
+              </p>
+            </div>
+          </div>
+        )}
       </section>
     </main>
   )
