@@ -13,4 +13,12 @@ describe('Footer', () => {
       screen.getByText(`© ${year} WeVolunteer. All rights reserved.`),
     ).toBeInTheDocument()
   })
+
+  it('credits the team who built it', () => {
+    render(<Footer />)
+
+    expect(
+      screen.getByText('Built by Alexandra, Mariya, Luxi, and Xuan Hien'),
+    ).toBeInTheDocument()
+  })
 })

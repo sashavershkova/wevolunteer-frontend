@@ -26,3 +26,10 @@
   font-size: 0.8rem;
   color: var(--text);
 }
+
+.app-footer-credits {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+}
