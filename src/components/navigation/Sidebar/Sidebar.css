@@ -1,6 +1,6 @@
 .app-sidebar {
   flex: none;
-  width: 220px;
+  width: 240px;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
@@ -26,6 +26,7 @@
   font-weight: 600;
   color: var(--text);
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .app-sidebar a svg {
