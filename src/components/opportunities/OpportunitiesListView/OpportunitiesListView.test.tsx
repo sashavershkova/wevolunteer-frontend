@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import OpportunitiesListView from './OpportunitiesListView'
-import { mockOpportunities } from '../../../tests/fixtures/opportunities'
+import { mockOpportunities, opp1 } from '../../../tests/fixtures/opportunities'
 
 function renderView(props: Parameters<typeof OpportunitiesListView>[0]) {
   return render(
@@ -67,5 +68,31 @@ describe('OpportunitiesListView', () => {
         'No opportunities match your search yet. Try adjusting your filters.',
       ),
     ).not.toBeInTheDocument()
+  })
+
+  it('marks a card as favorited when its id is in favoritedOpportunityIds', () => {
+    renderView({
+      opportunities: [opp1],
+      favoritedOpportunityIds: new Set([opp1.opportunityId]),
+      onToggleFavorite: vi.fn(),
+    })
+
+    expect(
+      screen.getByRole('button', { name: 'Remove from favorites' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('calls onToggleFavorite with the opportunity id when its heart is clicked', async () => {
+    const user = userEvent.setup()
+    const onToggleFavorite = vi.fn().mockResolvedValue(undefined)
+    renderView({
+      opportunities: [opp1],
+      favoritedOpportunityIds: new Set(),
+      onToggleFavorite,
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Save to favorites' }))
+
+    expect(onToggleFavorite).toHaveBeenCalledWith(opp1.opportunityId)
   })
 })

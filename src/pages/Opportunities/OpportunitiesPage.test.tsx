@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -6,6 +6,12 @@ import OpportunitiesPage from './OpportunitiesPage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getOpportunities, registerForOpportunity } from '../../services/api/opportunityService'
 import { getMyRegistrations, type Registration } from '../../services/api/registrationService'
+import {
+  getMyFavorites,
+  removeFavorite,
+  saveFavorite,
+  type Favorite,
+} from '../../services/api/favoriteService'
 import { opp1, opp2, opp3 } from '../../tests/fixtures/opportunities'
 
 vi.mock('../../contexts/AuthContext', () => ({
@@ -21,10 +27,33 @@ vi.mock('../../services/api/registrationService', () => ({
   getMyRegistrations: vi.fn(),
 }))
 
+vi.mock('../../services/api/favoriteService', () => ({
+  getMyFavorites: vi.fn(),
+  saveFavorite: vi.fn(),
+  removeFavorite: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetOpportunities = vi.mocked(getOpportunities)
 const mockedRegisterForOpportunity = vi.mocked(registerForOpportunity)
 const mockedGetMyRegistrations = vi.mocked(getMyRegistrations)
+const mockedGetMyFavorites = vi.mocked(getMyFavorites)
+const mockedSaveFavorite = vi.mocked(saveFavorite)
+const mockedRemoveFavorite = vi.mocked(removeFavorite)
+
+function buildFavorite(overrides: Partial<Favorite>): Favorite {
+  return {
+    userId: 'user1',
+    opportunityId: 'opp1',
+    title: opp1.title,
+    date: opp1.date,
+    location: opp1.location,
+    organizationId: opp1.organizationId,
+    organizationName: opp1.organizationName,
+    favoritedAt: '2026-07-01T00:00:00Z',
+    ...overrides,
+  }
+}
 
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>>) {
   mockedUseAppAuth.mockReturnValue({
@@ -61,6 +90,12 @@ function renderPage() {
 }
 
 describe('OpportunitiesPage', () => {
+  beforeEach(() => {
+    mockedGetMyFavorites.mockReset().mockResolvedValue([])
+    mockedSaveFavorite.mockReset()
+    mockedRemoveFavorite.mockReset()
+  })
+
   it('shows a loading message while the profile is loading', () => {
     mockAuth({ isProfileLoading: true })
 
@@ -183,5 +218,84 @@ describe('OpportunitiesPage', () => {
     expect(
       screen.getByRole('heading', { name: 'Park Cleanup Day' }),
     ).toBeInTheDocument()
+  })
+
+  it('shows a filled heart for an opportunity that is already favorited', async () => {
+    mockAuth({})
+    mockedGetOpportunities.mockResolvedValue([opp1])
+    mockedGetMyRegistrations.mockResolvedValue([])
+    mockedGetMyFavorites.mockResolvedValue([buildFavorite({})])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+    expect(
+      screen.getByRole('button', { name: 'Remove from favorites' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('saves an opportunity as a favorite when its heart is clicked', async () => {
+    const user = userEvent.setup()
+    mockAuth({})
+    mockedGetOpportunities.mockResolvedValue([opp1])
+    mockedGetMyRegistrations.mockResolvedValue([])
+    mockedSaveFavorite.mockResolvedValue(buildFavorite({}))
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+    await user.click(screen.getByRole('button', { name: 'Save to favorites' }))
+
+    expect(mockedSaveFavorite).toHaveBeenCalledWith('token', 'opp1')
+    expect(
+      await screen.findByRole('button', { name: 'Remove from favorites' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('removes an opportunity from favorites when a filled heart is clicked', async () => {
+    const user = userEvent.setup()
+    mockAuth({})
+    mockedGetOpportunities.mockResolvedValue([opp1])
+    mockedGetMyRegistrations.mockResolvedValue([])
+    mockedGetMyFavorites.mockResolvedValue([buildFavorite({})])
+    mockedRemoveFavorite.mockResolvedValue(undefined)
+
+    renderPage()
+
+    await screen.findByRole('button', { name: 'Remove from favorites' })
+
+    await user.click(screen.getByRole('button', { name: 'Remove from favorites' }))
+
+    expect(mockedRemoveFavorite).toHaveBeenCalledWith('token', 'opp1')
+    expect(
+      await screen.findByRole('button', { name: 'Save to favorites' }),
+    ).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('keeps a favorite heart correct after filtering the visible list', async () => {
+    const user = userEvent.setup()
+    mockAuth({})
+    mockedGetOpportunities.mockResolvedValue([opp1, opp3])
+    mockedGetMyRegistrations.mockResolvedValue([])
+    mockedGetMyFavorites.mockResolvedValue([
+      buildFavorite({ opportunityId: opp3.opportunityId, title: opp3.title }),
+    ])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Filter by category' }),
+      'Environment',
+    )
+
+    await screen.findByRole('heading', { name: 'Park Cleanup Day' })
+
+    expect(
+      screen.getByRole('button', { name: 'Remove from favorites' }),
+    ).toHaveAttribute('aria-pressed', 'true')
   })
 })

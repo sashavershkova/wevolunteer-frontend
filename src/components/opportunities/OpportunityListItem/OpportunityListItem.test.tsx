@@ -16,6 +16,22 @@ function renderItem(
   )
 }
 
+function renderItemWithFavorite(
+  opportunity: typeof opp1,
+  isFavorited: boolean,
+  onToggleFavorite: (opportunityId: string) => Promise<void>,
+) {
+  return render(
+    <MemoryRouter>
+      <OpportunityListItem
+        opportunity={opportunity}
+        isFavorited={isFavorited}
+        onToggleFavorite={onToggleFavorite}
+      />
+    </MemoryRouter>,
+  )
+}
+
 describe('OpportunityListItem', () => {
   it('renders the core opportunity fields', () => {
     renderItem(opp1)
@@ -126,5 +142,61 @@ describe('OpportunityListItem', () => {
     renderItem(opp1, vi.fn())
 
     expect(screen.queryByRole('button', { name: 'Waitlist' })).not.toBeInTheDocument()
+  })
+
+  it('does not show a favorite heart when onToggleFavorite is not provided', () => {
+    renderItem(opp1)
+
+    expect(
+      screen.queryByRole('button', { name: 'Save to favorites' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows an unfilled heart labeled "Save to favorites" when not favorited', () => {
+    renderItemWithFavorite(opp1, false, vi.fn())
+
+    const heart = screen.getByRole('button', { name: 'Save to favorites' })
+    expect(heart).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('shows a filled heart labeled "Remove from favorites" when favorited', () => {
+    renderItemWithFavorite(opp1, true, vi.fn())
+
+    const heart = screen.getByRole('button', { name: 'Remove from favorites' })
+    expect(heart).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('calls onToggleFavorite with the opportunity id when the heart is clicked', async () => {
+    const user = userEvent.setup()
+    const onToggleFavorite = vi.fn().mockResolvedValue(undefined)
+    renderItemWithFavorite(opp1, false, onToggleFavorite)
+
+    await user.click(screen.getByRole('button', { name: 'Save to favorites' }))
+
+    expect(onToggleFavorite).toHaveBeenCalledWith('opp1')
+  })
+
+  it('does not navigate to the details page when the heart is clicked', async () => {
+    const user = userEvent.setup()
+    const onToggleFavorite = vi.fn().mockResolvedValue(undefined)
+    renderItemWithFavorite(opp1, false, onToggleFavorite)
+
+    await user.click(screen.getByRole('button', { name: 'Save to favorites' }))
+
+    expect(
+      screen.getByRole('link', { name: 'View details for Food Bank Volunteer Shift' }),
+    ).toBeInTheDocument()
+  })
+
+  it('shows an error message if toggling the favorite fails', async () => {
+    const user = userEvent.setup()
+    const onToggleFavorite = vi.fn().mockRejectedValue(new Error('Unable to save.'))
+    renderItemWithFavorite(opp1, false, onToggleFavorite)
+
+    await user.click(screen.getByRole('button', { name: 'Save to favorites' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Unable to save.')
+    })
   })
 })

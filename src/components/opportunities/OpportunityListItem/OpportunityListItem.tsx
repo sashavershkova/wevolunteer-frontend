@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import type { Opportunity } from '../../../types/Opportunity'
-import { LocationIcon, DateIcon, TimeIcon, SpotsIcon } from '../../shared/icons'
+import { LocationIcon, DateIcon, TimeIcon, SpotsIcon, SaveIcon } from '../../shared/icons'
 import { formatOpportunityTimeRange } from '../../../utils/formatOpportunityTimeRange'
 import './OpportunityListItem.css'
 
 type OpportunityListItemProps = {
   opportunity: Opportunity
   onRegister?: (opportunityId: string) => Promise<void>
+  isFavorited?: boolean
+  onToggleFavorite?: (opportunityId: string) => Promise<void>
 }
 
 function formatDate(dateString: string): string {
@@ -24,9 +26,16 @@ function formatDate(dateString: string): string {
   })
 }
 
-function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemProps) {
+function OpportunityListItem({
+  opportunity,
+  onRegister,
+  isFavorited = false,
+  onToggleFavorite,
+}: OpportunityListItemProps) {
     const [isRegistering, setIsRegistering] = useState(false)
     const [registerError, setRegisterError] = useState<string | null>(null)
+    const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
+    const [favoriteError, setFavoriteError] = useState<string | null>(null)
 
     const isFull = opportunity.availableSpots <= 0
     const canRegister = !isFull && Boolean(onRegister)
@@ -62,6 +71,30 @@ function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemPro
         }
     }
 
+    async function handleToggleFavoriteClick(event: MouseEvent) {
+        // The card is covered by a stretched link to the details page - stop the
+        // click from also triggering that navigation.
+        event.preventDefault()
+        event.stopPropagation()
+
+        if (!onToggleFavorite || isTogglingFavorite) {
+        return
+        }
+
+        setIsTogglingFavorite(true)
+        setFavoriteError(null)
+
+        try {
+        await onToggleFavorite(opportunity.opportunityId)
+        } catch (err) {
+        setFavoriteError(
+            err instanceof Error ? err.message : 'Unable to update favorites.',
+        )
+        } finally {
+        setIsTogglingFavorite(false)
+        }
+    }
+
   return (
     <article className="opportunity-list-item">
       <Link
@@ -71,6 +104,27 @@ function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemPro
       />
 
       <div className="opportunity-list-item-image-placeholder" aria-hidden="true" />
+
+      {onToggleFavorite && (
+        <button
+          type="button"
+          className={
+            isFavorited
+              ? 'opportunity-list-item-favorite-button is-favorited'
+              : 'opportunity-list-item-favorite-button'
+          }
+          onClick={handleToggleFavoriteClick}
+          disabled={isTogglingFavorite}
+          aria-pressed={isFavorited}
+          aria-label={isFavorited ? 'Remove from favorites' : 'Save to favorites'}
+        >
+          <SaveIcon
+            className="opportunity-list-item-favorite-icon"
+            aria-hidden="true"
+            fill={isFavorited ? 'currentColor' : 'none'}
+          />
+        </button>
+      )}
 
       <div className="opportunity-list-item-content">
         <div className="opportunity-list-item-header">
@@ -135,6 +189,12 @@ function OpportunityListItem({ opportunity, onRegister }: OpportunityListItemPro
             </div>
           )}
         </div>
+
+        {favoriteError && (
+          <p role="alert" className="opportunity-list-item-favorite-error">
+            {favoriteError}
+          </p>
+        )}
       </div>
     </article>
   )

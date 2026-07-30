@@ -1,0 +1,39 @@
+.favorites-page {
+  max-width: 48rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.favorites-subtitle {
+  margin: 0 0 2rem;
+  color: var(--text);
+}
+
+.favorites-error {
+  margin: 0 0 1.5rem;
+  color: #b3261e;
+}
+
+@media (prefers-color-scheme: dark) {
+  .favorites-error {
+    color: #ff8a80;
+  }
+}
+
+.favorites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .favorites-page {
+    padding: 1.5rem 1rem;
+  }
+}

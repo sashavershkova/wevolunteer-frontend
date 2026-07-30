@@ -39,6 +39,43 @@
   width: 10rem;
 }
 
+.opportunity-list-item-favorite-button {
+  align-items: center;
+  background: var(--bg);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  display: flex;
+  height: 2.1rem;
+  justify-content: center;
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  width: 2.1rem;
+  z-index: 2;
+}
+
+.opportunity-list-item-favorite-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.opportunity-list-item-favorite-icon {
+  color: var(--text);
+  height: 1.15rem;
+  width: 1.15rem;
+}
+
+.opportunity-list-item-favorite-button.is-favorited .opportunity-list-item-favorite-icon {
+  color: var(--accent);
+}
+
+.opportunity-list-item-favorite-error {
+  color: #c76b00;
+  font-size: 0.8rem;
+  margin: 0.4rem 0 0;
+}
+
 .opportunity-list-item-content {
   display: flex;
   flex: 1;
@@ -52,6 +89,7 @@
   display: flex;
   gap: 0.75rem;
   justify-content: space-between;
+  padding-right: 2.4rem;
 }
 
 .opportunity-list-item-title {

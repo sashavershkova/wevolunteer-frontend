@@ -6,6 +6,7 @@ import OpportunitiesListView from '../../components/opportunities/OpportunitiesL
 import OpportunityFilters from '../../components/opportunities/OpportunityFilters/OpportunityFilters'
 import { getOpportunities, registerForOpportunity } from '../../services/api/opportunityService'
 import { getMyRegistrations } from '../../services/api/registrationService'
+import { getMyFavorites, removeFavorite, saveFavorite } from '../../services/api/favoriteService'
 import {
   EMPTY_FILTERS,
   filterOpportunities,
@@ -21,6 +22,9 @@ function OpportunitiesPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<OpportunityFiltersValue>(EMPTY_FILTERS)
+  const [favoritedOpportunityIds, setFavoritedOpportunityIds] = useState<Set<string>>(
+    new Set(),
+  )
 
   useEffect(() => {
     if (!auth.accessToken) {
@@ -32,9 +36,10 @@ function OpportunitiesPage() {
         setIsLoading(true)
         setError(null)
 
-        const [allOpportunities, myRegistrations] = await Promise.all([
+        const [allOpportunities, myRegistrations, myFavorites] = await Promise.all([
           getOpportunities(auth.accessToken),
           getMyRegistrations(auth.accessToken),
+          getMyFavorites(auth.accessToken),
         ])
 
         const registeredIds = new Set(
@@ -45,6 +50,9 @@ function OpportunitiesPage() {
           allOpportunities.filter(
             (opportunity) => !registeredIds.has(opportunity.opportunityId),
           ),
+        )
+        setFavoritedOpportunityIds(
+          new Set(myFavorites.map((favorite) => favorite.opportunityId)),
         )
       } catch {
         setError('Unable to load opportunities. Please try again later.')
@@ -67,6 +75,28 @@ function OpportunitiesPage() {
     setOpportunities((previous) =>
       previous.filter((opportunity) => opportunity.opportunityId !== opportunityId),
     )
+  }
+
+  async function handleToggleFavorite(opportunityId: string) {
+    const isCurrentlyFavorited = favoritedOpportunityIds.has(opportunityId)
+
+    if (isCurrentlyFavorited) {
+      await removeFavorite(auth.accessToken, opportunityId)
+    } else {
+      await saveFavorite(auth.accessToken, opportunityId)
+    }
+
+    setFavoritedOpportunityIds((previous) => {
+      const next = new Set(previous)
+
+      if (isCurrentlyFavorited) {
+        next.delete(opportunityId)
+      } else {
+        next.add(opportunityId)
+      }
+
+      return next
+    })
   }
 
   if (auth.isProfileLoading) {
@@ -113,6 +143,8 @@ function OpportunitiesPage() {
         isLoading={isLoading}
         error={error}
         onRegister={handleRegister}
+        favoritedOpportunityIds={favoritedOpportunityIds}
+        onToggleFavorite={handleToggleFavorite}
       />
     </main>
   )

@@ -8,6 +8,8 @@ type OpportunitiesListViewProps = {
   error?: string | null
   emptyMessage?: string
   onRegister?: (opportunityId: string) => Promise<void>
+  favoritedOpportunityIds?: Set<string>
+  onToggleFavorite?: (opportunityId: string) => Promise<void>
 }
 
 function OpportunitiesListView({
@@ -16,6 +18,8 @@ function OpportunitiesListView({
   error = null,
   emptyMessage = 'No opportunities match your search yet. Try adjusting your filters.',
   onRegister,
+  favoritedOpportunityIds,
+  onToggleFavorite,
 }: OpportunitiesListViewProps) {
   if (isLoading) {
     return (
@@ -45,7 +49,12 @@ function OpportunitiesListView({
     <ul className="opportunities-list-view">
       {opportunities.map((opportunity) => (
         <li key={opportunity.opportunityId}>
-          <OpportunityListItem opportunity={opportunity} onRegister={onRegister} />
+          <OpportunityListItem
+            opportunity={opportunity}
+            onRegister={onRegister}
+            isFavorited={favoritedOpportunityIds?.has(opportunity.opportunityId)}
+            onToggleFavorite={onToggleFavorite}
+          />
         </li>
       ))}
     </ul>
