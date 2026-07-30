@@ -5,6 +5,7 @@ import OpportunityDetailsPage from '../pages/OpportunityDetails/OpportunityDetai
 import MyRegistrationsPage from '../pages/MyRegistrations/MyRegistrationsPage'
 import ProfilePage from '../pages/Profile/ProfilePage'
 import OrganizationDashboardPage from '../pages/OrganizationDashboard/OrganizationDashboardPage'
+import OrganizationOpportunitiesPage from '../pages/OrganizationOpportunities/OrganizationOpportunitiesPage'
 import CreateOpportunityPage from '../pages/CreateOpportunity/CreateOpportunityPage'
 import ManageOpportunityPage from '../pages/ManageOpportunity/ManageOpportunityPage'
 import OrganizationOpportunityDetailsPage from '../pages/OrganizationOpportunityDetails/OrganizationOpportunityDetailsPage'
@@ -38,7 +39,7 @@ function AppRoutes() {
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/organization" element={<OrganizationDashboardPage />} />
-          <Route path="/organization/opportunities" element={<OrganizationDashboardPage />} />
+          <Route path="/organization/opportunities" element={<OrganizationOpportunitiesPage />} />
           <Route path="/organization/registrations" element={<OrganizationRegistrationsPage />} />
           <Route path="/organization/volunteers" element={<OrganizationVolunteersPage />} />
           <Route path="/organization/messages" element={<OrganizationMessagesPage />} />

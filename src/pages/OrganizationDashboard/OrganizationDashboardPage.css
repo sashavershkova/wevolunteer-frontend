@@ -340,49 +340,6 @@
   outline-offset: 2px;
 }
 
-.organization-dashboard-opportunities-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.organization-dashboard-opportunities-header h2 {
-  margin: 0;
-}
-
-.organization-dashboard-close-error {
-  color: #b3261e;
-  font-size: 0.85rem;
-  margin: 0 0 1rem;
-}
-
-@media (prefers-color-scheme: dark) {
-  .organization-dashboard-close-error {
-    color: #ff8a80;
-  }
-}
-
-.organization-dashboard-create-button {
-  border: none;
-  border-radius: 8px;
-  background: #2a9d5c;
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.65rem 1.1rem;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.organization-dashboard-create-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 @media (max-width: 960px) {
   .organization-dashboard-metrics {
     grid-template-columns: repeat(2, 1fr);
@@ -411,15 +368,6 @@
   .organization-dashboard-details {
     width: 100%;
     text-align: left;
-  }
-
-  .organization-dashboard-opportunities-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .organization-dashboard-create-button {
-    width: 100%;
   }
 
   .organization-dashboard-details-header {

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
+import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import {
   getMyOrganizationOpportunities,
@@ -7,8 +7,6 @@ import {
   type OrganizationProfile,
   type UpdateOrganizationProfileRequest,
 } from '../../services/api/organizationService'
-import { closeOpportunity, deleteOpportunity } from '../../services/api/opportunityService'
-import OrganizationOpportunitiesTable from '../../components/organization/OrganizationOpportunitiesTable/OrganizationOpportunitiesTable'
 import { OrganizationIcon, EditIcon } from '../../components/shared/icons'
 import type { Opportunity } from '../../types/Opportunity'
 import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
@@ -48,20 +46,11 @@ function validateOrganizationForm(form: OrganizationFormState): OrganizationForm
 
 function OrganizationDashboardPage() {
   const auth = useAppAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
   const { accessToken } = auth
-  const opportunitiesSectionRef = useRef<HTMLElement>(null)
 
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [isOpportunitiesLoading, setIsOpportunitiesLoading] = useState(true)
   const [opportunitiesError, setOpportunitiesError] =
-    useState<string | null>(null)
-  const [closingOpportunityId, setClosingOpportunityId] =
-    useState<string | null>(null)
-  const [deletingOpportunityId, setDeletingOpportunityId] =
-    useState<string | null>(null)
-  const [opportunityActionErrorMessage, setOpportunityActionErrorMessage] =
     useState<string | null>(null)
 
   const [isEditingOrganization, setIsEditingOrganization] = useState(false)
@@ -111,76 +100,6 @@ function OrganizationDashboardPage() {
       ignore = true
     }
   }, [accessToken])
-
-  useEffect(() => {
-    if (location.pathname === '/organization/opportunities') {
-      opportunitiesSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [location.pathname])
-
-  async function handleCloseOpportunity(opportunityId: string) {
-    if (!accessToken) {
-      setOpportunityActionErrorMessage('Your authentication session is unavailable.')
-      return
-    }
-
-    setOpportunityActionErrorMessage(null)
-    setClosingOpportunityId(opportunityId)
-
-    try {
-      const updatedOpportunity = await closeOpportunity(accessToken, opportunityId)
-
-      setOpportunities((current) =>
-        current.map((opportunity) =>
-          opportunity.opportunityId === updatedOpportunity.opportunityId
-            ? updatedOpportunity
-            : opportunity,
-        ),
-      )
-    } catch (error) {
-      setOpportunityActionErrorMessage(
-        error instanceof Error
-          ? error.message
-          : 'Unable to close this opportunity.',
-      )
-    } finally {
-      setClosingOpportunityId(null)
-    }
-  }
-
-  async function handleDeleteOpportunity(opportunityId: string) {
-    if (!accessToken) {
-      setOpportunityActionErrorMessage('Your authentication session is unavailable.')
-      return
-    }
-
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this opportunity? This cannot be undone.',
-    )
-
-    if (!confirmed) {
-      return
-    }
-
-    setOpportunityActionErrorMessage(null)
-    setDeletingOpportunityId(opportunityId)
-
-    try {
-      await deleteOpportunity(accessToken, opportunityId)
-
-      setOpportunities((current) =>
-        current.filter((opportunity) => opportunity.opportunityId !== opportunityId),
-      )
-    } catch (error) {
-      setOpportunityActionErrorMessage(
-        error instanceof Error
-          ? error.message
-          : 'Unable to delete this opportunity.',
-      )
-    } finally {
-      setDeletingOpportunityId(null)
-    }
-  }
 
   if (auth.isProfileLoading) {
     return (
@@ -517,36 +436,6 @@ function OrganizationDashboardPage() {
             )}
           </div>
         </div>
-      </section>
-
-      <section className="organization-dashboard-opportunities" ref={opportunitiesSectionRef}>
-        <div className="organization-dashboard-opportunities-header">
-          <h2>My Opportunities</h2>
-
-          <button
-            type="button"
-            className="organization-dashboard-create-button"
-            onClick={() => navigate('/organization/opportunities/new')}
-          >
-            + Create New Opportunity
-          </button>
-        </div>
-
-        {opportunityActionErrorMessage && (
-          <p role="alert" className="organization-dashboard-close-error">
-            {opportunityActionErrorMessage}
-          </p>
-        )}
-
-        <OrganizationOpportunitiesTable
-          opportunities={opportunities}
-          isLoading={isOpportunitiesLoading}
-          error={opportunitiesError}
-          onCloseOpportunity={handleCloseOpportunity}
-          closingOpportunityId={closingOpportunityId}
-          onDeleteOpportunity={handleDeleteOpportunity}
-          deletingOpportunityId={deletingOpportunityId}
-        />
       </section>
     </main>
   )
