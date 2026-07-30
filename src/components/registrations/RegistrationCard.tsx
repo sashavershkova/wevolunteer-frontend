@@ -1,4 +1,5 @@
 import type { Registration } from '../../services/api/registrationService'
+import { formatOpportunityTimeRange } from '../../utils/formatOpportunityTimeRange'
 import './RegistrationCard.css'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -30,6 +31,13 @@ function RegistrationCard({
   onCancel,
   isCancelling,
 }: RegistrationCardProps) {
+  const displayTime =
+    formatOpportunityTimeRange(
+      registration.startTime,
+      registration.endTime,
+      registration.time,
+    ) ?? 'Time not provided'
+
   return (
     <article className="registration-card">
       <div className="registration-card-main">
@@ -42,6 +50,10 @@ function RegistrationCard({
           <div className="registration-card-meta-item">
             <dt>Date</dt>
             <dd>{registration.date}</dd>
+          </div>
+          <div className="registration-card-meta-item">
+            <dt>Time</dt>
+            <dd>{displayTime}</dd>
           </div>
           <div className="registration-card-meta-item">
             <dt>Location</dt>

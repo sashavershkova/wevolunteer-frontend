@@ -40,6 +40,8 @@
 .registration-card-meta-item {
   display: flex;
   flex-direction: column;
+  flex: 1 1 7rem;
+  min-width: 7rem;
 }
 
 .registration-card-meta-item dt {

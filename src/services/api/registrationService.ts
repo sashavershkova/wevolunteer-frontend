@@ -12,6 +12,9 @@ export type Registration = {
   volunteerName: string | null
   email: string | null
   registeredAt: string
+  time?: string | null
+  startTime?: string | null
+  endTime?: string | null
 }
 
 export async function getMyRegistrations(
