@@ -8,6 +8,7 @@ import {
   type UpdateOrganizationProfileRequest,
 } from '../../services/api/organizationService'
 import { OrganizationIcon, EditIcon } from '../../components/shared/icons'
+import OrganizationOpportunitiesSection from '../../components/organization/OrganizationOpportunitiesSection/OrganizationOpportunitiesSection'
 import type { Opportunity } from '../../types/Opportunity'
 import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
 import './OrganizationDashboardPage.css'
@@ -436,6 +437,10 @@ function OrganizationDashboardPage() {
             )}
           </div>
         </div>
+      </section>
+
+      <section className="organization-dashboard-opportunities">
+        <OrganizationOpportunitiesSection headingLevel="h2" />
       </section>
     </main>
   )

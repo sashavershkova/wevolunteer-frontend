@@ -23,6 +23,11 @@ vi.mock('../../services/api/organizationService', () => ({
   updateCurrentOrganization: vi.fn(),
 }))
 
+vi.mock('../../services/api/opportunityService', () => ({
+  closeOpportunity: vi.fn(),
+  deleteOpportunity: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetMyOrganizationOpportunities = vi.mocked(getMyOrganizationOpportunities)
 const mockedUpdateCurrentOrganization = vi.mocked(updateCurrentOrganization)
@@ -91,6 +96,17 @@ describe('OrganizationDashboardPage', () => {
       expect(getMetricValue('Active Opportunities')).toBe('1')
     })
     expect(mockedGetMyOrganizationOpportunities).toHaveBeenCalledWith('token')
+  })
+
+  it('also shows the My Opportunities table below the profile overview', async () => {
+    mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+
+    renderPage()
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'My Opportunities' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(opp1.title)).toBeInTheDocument()
   })
 
   describe('opportunity lifecycle metrics', () => {
