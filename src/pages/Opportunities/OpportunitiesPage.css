@@ -1,0 +1,18 @@
+.opportunities-page {
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  text-align: left;
+  width: 100%;
+}
+
+.opportunities-page-subtitle {
+  color: var(--text);
+  margin: 0 0 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .opportunities-page {
+    padding: 1.5rem 1rem;
+  }
+}

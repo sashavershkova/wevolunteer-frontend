@@ -1,11 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import OnboardingPage from '../Onboarding/OnboardingPage'
 import OpportunitiesListView from '../../components/opportunities/OpportunitiesListView/OpportunitiesListView'
+import OpportunityFilters from '../../components/opportunities/OpportunityFilters/OpportunityFilters'
 import { getOpportunities, registerForOpportunity } from '../../services/api/opportunityService'
 import { getMyRegistrations } from '../../services/api/registrationService'
+import {
+  EMPTY_FILTERS,
+  filterOpportunities,
+  type OpportunityFiltersValue,
+} from '../../utils/opportunityFilters'
 import type { Opportunity } from '../../types/Opportunity'
+import './OpportunitiesPage.css'
 
 function OpportunitiesPage() {
   const auth = useAppAuth()
@@ -13,6 +20,7 @@ function OpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [filters, setFilters] = useState<OpportunityFiltersValue>(EMPTY_FILTERS)
 
   useEffect(() => {
     if (!auth.accessToken) {
@@ -48,6 +56,11 @@ function OpportunitiesPage() {
     void loadOpportunities()
   }, [auth.accessToken])
 
+  const filteredOpportunities = useMemo(
+    () => filterOpportunities(opportunities, filters),
+    [opportunities, filters],
+  )
+
   async function handleRegister(opportunityId: string) {
     await registerForOpportunity(auth.accessToken, auth.userId, opportunityId)
 
@@ -58,7 +71,7 @@ function OpportunitiesPage() {
 
   if (auth.isProfileLoading) {
     return (
-      <main>
+      <main className="opportunities-page">
         <h1>Loading your profile...</h1>
       </main>
     )
@@ -66,7 +79,7 @@ function OpportunitiesPage() {
 
   if (auth.profileErrorMessage) {
     return (
-      <main>
+      <main className="opportunities-page">
         <h1>Unable to load your profile</h1>
         <p>{auth.profileErrorMessage}</p>
       </main>
@@ -82,13 +95,21 @@ function OpportunitiesPage() {
   }
 
   return (
-    <main>
-      <h1>Opportunities</h1>
+    <main className="opportunities-page">
+      <h1>Browse Opportunities</h1>
 
-      <p>Welcome, {auth.userProfile.name}!</p>
+      <p className="opportunities-page-subtitle">
+        Finding meaningful ways to make a difference.
+      </p>
+
+      <OpportunityFilters
+        opportunities={opportunities}
+        value={filters}
+        onChange={setFilters}
+      />
 
       <OpportunitiesListView
-        opportunities={opportunities}
+        opportunities={filteredOpportunities}
         isLoading={isLoading}
         error={error}
         onRegister={handleRegister}

@@ -12,4 +12,5 @@ export {
   Building2 as OrganizationIcon,
   Pencil as EditIcon,
   Camera as UploadPhotoIcon,
+  ChevronDown as DropdownIcon,
 } from 'lucide-react'
