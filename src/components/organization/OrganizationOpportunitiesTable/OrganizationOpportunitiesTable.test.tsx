@@ -11,7 +11,18 @@ import { opp1, opp2, opp3, opp7 } from '../../../tests/fixtures/opportunities'
 const MOCKED_TODAY = '2026-01-01T00:00:00'
 
 const openOpportunity = opp1
-const closedOpportunity = { ...opp3, opportunityId: 'opp-closed', status: 'CLOSED' as const }
+const closedOpportunity = {
+  ...opp3,
+  opportunityId: 'opp-closed',
+  status: 'CLOSED' as const,
+  registeredCount: 0,
+}
+const closedOpportunityWithRegistrations = {
+  ...opp3,
+  opportunityId: 'opp-closed-with-registrations',
+  status: 'CLOSED' as const,
+  registeredCount: 5,
+}
 const pastOpenOpportunity = {
   ...opp1,
   opportunityId: 'opp-past-open',
@@ -51,7 +62,7 @@ describe('OrganizationOpportunitiesTable', () => {
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
   })
 
-  it('shows a Delete button instead of Close for a future CLOSED opportunity', () => {
+  it('shows a Delete button instead of Close for a future CLOSED opportunity with zero registrations', () => {
     renderTable(
       <OrganizationOpportunitiesTable
         opportunities={[closedOpportunity]}
@@ -62,6 +73,19 @@ describe('OrganizationOpportunitiesTable', () => {
 
     expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+  })
+
+  it('does not offer a Delete button for a CLOSED opportunity that still has registrations', () => {
+    renderTable(
+      <OrganizationOpportunitiesTable
+        opportunities={[closedOpportunityWithRegistrations]}
+        onCloseOpportunity={vi.fn()}
+        onDeleteOpportunity={vi.fn()}
+      />,
+    )
+
+    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
   })
 
   it('calls onCloseOpportunity with the correct opportunityId when Close is clicked', () => {

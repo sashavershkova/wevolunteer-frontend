@@ -116,6 +116,33 @@ describe('OrganizationOpportunitiesSection', () => {
     expect(mockedGetMyOrganizationOpportunities).toHaveBeenCalledTimes(1)
   })
 
+  it('replaces the opportunity with the backend response after closing, showing registeredCount reset to 0', async () => {
+    mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+    const closedOpportunity: Opportunity = {
+      ...opp1,
+      status: 'CLOSED',
+      registeredCount: 0,
+      availableSpots: opp1.capacity,
+    }
+    mockedCloseOpportunity.mockResolvedValue(closedOpportunity)
+
+    renderSection()
+
+    expect(await screen.findByText(opp1.title)).toBeInTheDocument()
+
+    const closeButton = screen.getByRole('button', { name: 'Close' })
+    fireEvent.click(closeButton)
+
+    await waitFor(() => {
+      expect(mockedCloseOpportunity).toHaveBeenCalledWith('token', opp1.opportunityId)
+    })
+
+    expect(await screen.findByText('Closed')).toBeInTheDocument()
+    expect(screen.getByText(`0 / ${opp1.capacity}`)).toBeInTheDocument()
+    // A zeroed registeredCount means the Delete guard now allows deletion.
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+  })
+
   it('shows a pending state on the closing row while the request is in flight', async () => {
     mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
     let resolveClose: (value: Opportunity) => void = () => {}
@@ -159,7 +186,22 @@ describe('OrganizationOpportunitiesSection', () => {
   })
 
   describe('deleting an opportunity', () => {
-    const closedFutureOpportunity: Opportunity = { ...opp1, status: 'CLOSED' }
+    const closedFutureOpportunity: Opportunity = {
+      ...opp1,
+      status: 'CLOSED',
+      registeredCount: 0,
+      availableSpots: opp1.capacity,
+    }
+
+    it('does not offer deletion for a closed opportunity that still has registrations', async () => {
+      const closedWithRegistrations: Opportunity = { ...opp1, status: 'CLOSED' }
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([closedWithRegistrations])
+
+      renderSection()
+
+      expect(await screen.findByText(opp1.title)).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    })
 
     it('confirms before calling the delete API', async () => {
       mockedGetMyOrganizationOpportunities.mockResolvedValue([closedFutureOpportunity])

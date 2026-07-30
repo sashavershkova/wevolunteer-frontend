@@ -146,7 +146,7 @@ function OrganizationOpportunitiesTable({
                     >
                       {isClosing ? 'Closing...' : 'Close'}
                     </button>
-                  ) : (
+                  ) : opportunity.registeredCount === 0 ? (
                     <button
                       type="button"
                       className="organization-opportunities-delete-button"
@@ -155,7 +155,7 @@ function OrganizationOpportunitiesTable({
                     >
                       {isDeleting ? 'Deleting...' : 'Delete'}
                     </button>
-                  )}
+                  ) : null}
                 </td>
               </tr>
             )
