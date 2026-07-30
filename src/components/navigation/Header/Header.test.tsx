@@ -64,13 +64,13 @@ describe('Header', () => {
 
     expect(screen.getByRole('link', { name: 'Opportunities' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'My Registrations' })).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Organization Dashboard' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Favorites' })).toBeInTheDocument()
     expect(screen.getByText('Sasha Vershkova')).toBeInTheDocument()
     expect(screen.getByText('SV')).toBeInTheDocument()
     expect(screen.getByText('Volunteer')).toBeInTheDocument()
   })
 
-  it('shows the organization nav link for an organization profile', () => {
+  it('shows no nav links for an organization profile (Sidebar covers org navigation)', () => {
     mockAuth({
       organizationProfile: {
         organizationId: 'org1',
@@ -83,7 +83,7 @@ describe('Header', () => {
 
     renderHeader()
 
-    expect(screen.getByRole('link', { name: 'Organization Dashboard' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Organization Dashboard' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Opportunities' })).not.toBeInTheDocument()
     expect(screen.getByText('SB')).toBeInTheDocument()
     expect(screen.getByText('Organization')).toBeInTheDocument()
@@ -95,7 +95,7 @@ describe('Header', () => {
     renderHeader()
 
     expect(screen.queryByRole('link', { name: 'Opportunities' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Organization Dashboard' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Favorites' })).not.toBeInTheDocument()
   })
 
   it('opens the account menu and signs out when clicked', () => {

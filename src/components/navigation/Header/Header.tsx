@@ -75,12 +75,10 @@ function Header() {
             <NavLink to="/my-registrations" className={navLinkClassName}>
               My Registrations
             </NavLink>
+            <NavLink to="/favorites" className={navLinkClassName}>
+              Favorites
+            </NavLink>
           </>
-        )}
-        {auth.organizationProfile && (
-          <NavLink to="/organization" className={navLinkClassName}>
-            Organization Dashboard
-          </NavLink>
         )}
       </nav>
 
