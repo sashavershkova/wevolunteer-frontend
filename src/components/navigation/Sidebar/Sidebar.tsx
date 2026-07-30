@@ -18,6 +18,7 @@ type SidebarItem = {
   to: string
   label: string
   Icon: typeof DashboardIcon
+  end?: boolean
 }
 
 const VOLUNTEER_ITEMS: SidebarItem[] = [
@@ -31,8 +32,8 @@ const VOLUNTEER_ITEMS: SidebarItem[] = [
 ]
 
 const ORGANIZATION_ITEMS: SidebarItem[] = [
-  { to: '/organization', label: 'Dashboard', Icon: DashboardIcon },
-  { to: '/organization', label: 'My Opportunities', Icon: OpportunitiesIcon },
+  { to: '/organization', label: 'Dashboard', Icon: DashboardIcon, end: true },
+  { to: '/organization/opportunities', label: 'My Opportunities', Icon: OpportunitiesIcon },
   { to: '/organization/registrations', label: 'Registrations', Icon: RegistrationsIcon },
   { to: '/organization/volunteers', label: 'Volunteers', Icon: VolunteersIcon },
   { to: '/organization/messages', label: 'Messages', Icon: MessagesIcon },
@@ -61,7 +62,7 @@ function Sidebar() {
     <nav className="app-sidebar" aria-label="Sidebar">
       <div className="app-sidebar-links">
         {items.map((item) => (
-          <NavLink key={item.label} to={item.to} className={navLinkClassName}>
+          <NavLink key={item.label} to={item.to} end={item.end} className={navLinkClassName}>
             <item.Icon aria-hidden="true" />
             {item.label}
           </NavLink>

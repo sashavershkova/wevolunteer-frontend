@@ -15,6 +15,8 @@ import SettingsPage from '../pages/Settings/SettingsPage'
 import OrganizationRegistrationsPage from '../pages/OrganizationRegistrations/OrganizationRegistrationsPage'
 import OrganizationVolunteersPage from '../pages/OrganizationVolunteers/OrganizationVolunteersPage'
 import OrganizationProfilePage from '../pages/OrganizationProfile/OrganizationProfilePage'
+import OrganizationMessagesPage from '../pages/OrganizationMessages/OrganizationMessagesPage'
+import OrganizationSettingsPage from '../pages/OrganizationSettings/OrganizationSettingsPage'
 import ProtectedRoute from './ProtectedRoute'
 import HomeRoute from './HomeRoute'
 import AppLayout from '../layouts/AppLayout'
@@ -36,9 +38,12 @@ function AppRoutes() {
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/organization" element={<OrganizationDashboardPage />} />
+          <Route path="/organization/opportunities" element={<OrganizationDashboardPage />} />
           <Route path="/organization/registrations" element={<OrganizationRegistrationsPage />} />
           <Route path="/organization/volunteers" element={<OrganizationVolunteersPage />} />
+          <Route path="/organization/messages" element={<OrganizationMessagesPage />} />
           <Route path="/organization/profile" element={<OrganizationProfilePage />} />
+          <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
           <Route path="/organization/opportunities/new" element={<CreateOpportunityPage />} />
           <Route
             path="/organization/opportunities/:opportunityId"

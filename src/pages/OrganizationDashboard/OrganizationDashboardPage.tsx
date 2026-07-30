@@ -1,5 +1,5 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import {
   getMyOrganizationOpportunities,
@@ -49,7 +49,9 @@ function validateOrganizationForm(form: OrganizationFormState): OrganizationForm
 function OrganizationDashboardPage() {
   const auth = useAppAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const { accessToken } = auth
+  const opportunitiesSectionRef = useRef<HTMLElement>(null)
 
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [isOpportunitiesLoading, setIsOpportunitiesLoading] = useState(true)
@@ -109,6 +111,12 @@ function OrganizationDashboardPage() {
       ignore = true
     }
   }, [accessToken])
+
+  useEffect(() => {
+    if (location.pathname === '/organization/opportunities') {
+      opportunitiesSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [location.pathname])
 
   async function handleCloseOpportunity(opportunityId: string) {
     if (!accessToken) {
@@ -511,7 +519,7 @@ function OrganizationDashboardPage() {
         </div>
       </section>
 
-      <section className="organization-dashboard-opportunities">
+      <section className="organization-dashboard-opportunities" ref={opportunitiesSectionRef}>
         <div className="organization-dashboard-opportunities-header">
           <h2>My Opportunities</h2>
 

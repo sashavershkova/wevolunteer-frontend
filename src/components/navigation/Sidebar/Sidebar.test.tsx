@@ -32,9 +32,9 @@ function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>>) {
   })
 }
 
-function renderSidebar() {
+function renderSidebar(initialPath = '/') {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialPath]}>
       <Sidebar />
     </MemoryRouter>,
   )
@@ -83,7 +83,7 @@ describe('Sidebar', () => {
 
     expect(screen.getByRole('link', { name: 'My Opportunities' })).toHaveAttribute(
       'href',
-      '/organization',
+      '/organization/opportunities',
     )
     expect(screen.getByRole('link', { name: 'Registrations' })).toHaveAttribute(
       'href',
@@ -98,6 +98,40 @@ describe('Sidebar', () => {
       '/organization/profile',
     )
     expect(screen.queryByRole('link', { name: 'Browse Opportunities' })).not.toBeInTheDocument()
+  })
+
+  it('highlights only Dashboard, not My Opportunities, when on /organization', () => {
+    mockAuth({
+      organizationProfile: {
+        organizationId: 'org1',
+        name: 'Helping Hands',
+        description: '',
+        email: '',
+        website: '',
+      },
+    })
+
+    renderSidebar('/organization')
+
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveClass('is-active')
+    expect(screen.getByRole('link', { name: 'My Opportunities' })).not.toHaveClass('is-active')
+  })
+
+  it('highlights only My Opportunities, not Dashboard, when on /organization/opportunities', () => {
+    mockAuth({
+      organizationProfile: {
+        organizationId: 'org1',
+        name: 'Helping Hands',
+        description: '',
+        email: '',
+        website: '',
+      },
+    })
+
+    renderSidebar('/organization/opportunities')
+
+    expect(screen.getByRole('link', { name: 'My Opportunities' })).toHaveClass('is-active')
+    expect(screen.getByRole('link', { name: 'Dashboard' })).not.toHaveClass('is-active')
   })
 
   it('renders nothing while onboarding (no profile yet)', () => {
