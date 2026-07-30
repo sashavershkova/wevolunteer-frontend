@@ -1,4 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
+import OpportunityImagePlaceholder from '../../shared/OpportunityImagePlaceholder/OpportunityImagePlaceholder'
 import './OpportunityForm.css'
 
 export type OpportunityFormInitialValues = {
@@ -237,6 +238,14 @@ function OpportunityForm({
             {errors.description}
           </p>
         )}
+      </div>
+
+      <div className="create-opportunity-field">
+        <label>
+          Opportunity Image{' '}
+          <span className="create-opportunity-optional-tag">(optional)</span>
+        </label>
+        <OpportunityImagePlaceholder />
       </div>
 
       <div className="create-opportunity-field">

@@ -161,3 +161,13 @@ describe('OpportunityForm - start/end time fields', () => {
     expect(submitted).not.toHaveProperty('time')
   })
 })
+
+describe('OpportunityForm - opportunity image placeholder', () => {
+  it('shows the image upload placeholder with a disabled Upload Image button', () => {
+    renderForm()
+
+    expect(screen.getByText('Opportunity Image')).toBeInTheDocument()
+    expect(screen.getByText('No image uploaded')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Upload Image' })).toBeDisabled()
+  })
+})

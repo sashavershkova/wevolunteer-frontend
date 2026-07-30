@@ -107,6 +107,17 @@ describe('ManageOpportunityPage', () => {
     expect(mockedGetOpportunity).toHaveBeenCalledWith('test-token', opp1.opportunityId)
   })
 
+  it('shows the image upload placeholder with a disabled Upload Image button', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp1)
+
+    renderPage()
+
+    await screen.findByLabelText('Title')
+
+    expect(screen.getByText('No image uploaded')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Upload Image' })).toBeDisabled()
+  })
+
   it('calls updateOpportunity with the correct opportunityId, changed fields, and preserved backend fields', async () => {
     const user = userEvent.setup()
     mockedGetOpportunity.mockResolvedValue(opp1)

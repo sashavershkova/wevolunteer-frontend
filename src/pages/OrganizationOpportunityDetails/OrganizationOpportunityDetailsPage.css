@@ -126,11 +126,18 @@
   white-space: nowrap;
 }
 
+.organization-opportunity-details-content-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin: 0 0 1.75rem;
+}
+
 .organization-opportunity-details-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 2rem;
-  margin: 0 0 1.75rem;
+  margin: 0;
 }
 
 .organization-opportunity-details-meta div {
@@ -239,6 +246,10 @@
 @media (max-width: 640px) {
   .organization-opportunity-details-page {
     padding: 1.5rem 1rem 2rem;
+  }
+
+  .organization-opportunity-details-content-row {
+    flex-direction: column;
   }
 
   .organization-opportunity-details-registrations-table thead {

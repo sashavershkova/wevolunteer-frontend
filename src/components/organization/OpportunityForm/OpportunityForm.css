@@ -27,6 +27,11 @@
   color: var(--text-h);
 }
 
+.create-opportunity-optional-tag {
+  font-weight: 400;
+  color: var(--text);
+}
+
 .create-opportunity-field input,
 .create-opportunity-field textarea,
 .create-opportunity-field select {

@@ -14,6 +14,7 @@ import {
   SpotsIcon,
   TimeIcon,
 } from '../../components/shared/icons'
+import OpportunityImagePlaceholder from '../../components/shared/OpportunityImagePlaceholder/OpportunityImagePlaceholder'
 import type { Opportunity } from '../../types/Opportunity'
 import { formatOpportunityTimeRange } from '../../utils/formatOpportunityTimeRange'
 import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
@@ -261,46 +262,62 @@ function OrganizationOpportunityDetailsPage() {
             </div>
           </header>
 
-          <dl className="organization-opportunity-details-meta">
-            <div>
-              <dt>
-                <DateIcon aria-hidden="true" className="organization-opportunity-details-meta-icon" />
-                Date
-              </dt>
-              <dd>{formatDate(opportunity.date)}</dd>
-            </div>
-            {displayTime && (
+          <div className="organization-opportunity-details-content-row">
+            <OpportunityImagePlaceholder />
+
+            <dl className="organization-opportunity-details-meta">
               <div>
                 <dt>
-                  <TimeIcon aria-hidden="true" className="organization-opportunity-details-meta-icon" />
-                  Time
+                  <DateIcon
+                    aria-hidden="true"
+                    className="organization-opportunity-details-meta-icon"
+                  />
+                  Date
                 </dt>
-                <dd>{displayTime}</dd>
+                <dd>{formatDate(opportunity.date)}</dd>
               </div>
-            )}
-            <div>
-              <dt>
-                <LocationIcon aria-hidden="true" className="organization-opportunity-details-meta-icon" />
-                Location
-              </dt>
-              <dd>{opportunity.location}</dd>
-            </div>
-            <div>
-              <dt>
-                <SpotsIcon aria-hidden="true" className="organization-opportunity-details-meta-icon" />
-                Capacity
-              </dt>
-              <dd>{opportunity.capacity}</dd>
-            </div>
-            <div>
-              <dt>Registered</dt>
-              <dd>{opportunity.registeredCount}</dd>
-            </div>
-            <div>
-              <dt>Available Spots</dt>
-              <dd>{opportunity.availableSpots}</dd>
-            </div>
-          </dl>
+              {displayTime && (
+                <div>
+                  <dt>
+                    <TimeIcon
+                      aria-hidden="true"
+                      className="organization-opportunity-details-meta-icon"
+                    />
+                    Time
+                  </dt>
+                  <dd>{displayTime}</dd>
+                </div>
+              )}
+              <div>
+                <dt>
+                  <LocationIcon
+                    aria-hidden="true"
+                    className="organization-opportunity-details-meta-icon"
+                  />
+                  Location
+                </dt>
+                <dd>{opportunity.location}</dd>
+              </div>
+              <div>
+                <dt>
+                  <SpotsIcon
+                    aria-hidden="true"
+                    className="organization-opportunity-details-meta-icon"
+                  />
+                  Capacity
+                </dt>
+                <dd>{opportunity.capacity}</dd>
+              </div>
+              <div>
+                <dt>Registered</dt>
+                <dd>{opportunity.registeredCount}</dd>
+              </div>
+              <div>
+                <dt>Available Spots</dt>
+                <dd>{opportunity.availableSpots}</dd>
+              </div>
+            </dl>
+          </div>
 
           <section className="organization-opportunity-details-section">
             <h2>Category</h2>
