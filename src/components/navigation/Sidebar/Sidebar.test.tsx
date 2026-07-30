@@ -32,10 +32,10 @@ function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>>) {
   })
 }
 
-function renderSidebar(props: Partial<{ isOpen: boolean; onClose: () => void }> = {}) {
+function renderSidebar() {
   return render(
     <MemoryRouter>
-      <Sidebar isOpen={props.isOpen ?? false} onClose={props.onClose ?? vi.fn()} />
+      <Sidebar />
     </MemoryRouter>,
   )
 }
@@ -117,39 +117,5 @@ describe('Sidebar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Log Out' }))
 
     expect(signOut).toHaveBeenCalledTimes(1)
-  })
-
-  it('calls onClose when a nav link is clicked', () => {
-    mockAuth({
-      userProfile: { userId: 'user1', name: 'Sasha Vershkova', email: 'sasha@example.com', role: 'VOLUNTEER' },
-    })
-    const onClose = vi.fn()
-
-    renderSidebar({ onClose })
-    fireEvent.click(screen.getByRole('link', { name: 'My Profile' }))
-
-    expect(onClose).toHaveBeenCalledTimes(1)
-  })
-
-  it('shows a backdrop button that closes the sidebar when open', () => {
-    mockAuth({
-      userProfile: { userId: 'user1', name: 'Sasha Vershkova', email: 'sasha@example.com', role: 'VOLUNTEER' },
-    })
-    const onClose = vi.fn()
-
-    renderSidebar({ isOpen: true, onClose })
-    fireEvent.click(screen.getByRole('button', { name: 'Close menu' }))
-
-    expect(onClose).toHaveBeenCalledTimes(1)
-  })
-
-  it('shows no backdrop when closed', () => {
-    mockAuth({
-      userProfile: { userId: 'user1', name: 'Sasha Vershkova', email: 'sasha@example.com', role: 'VOLUNTEER' },
-    })
-
-    renderSidebar({ isOpen: false })
-
-    expect(screen.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument()
   })
 })

@@ -14,11 +14,6 @@ import {
 } from '../../shared/icons'
 import './Sidebar.css'
 
-type SidebarProps = {
-  isOpen: boolean
-  onClose: () => void
-}
-
 type SidebarItem = {
   to: string
   label: string
@@ -49,7 +44,7 @@ function navLinkClassName({ isActive }: { isActive: boolean }): string | undefin
   return isActive ? 'is-active' : undefined
 }
 
-function Sidebar({ isOpen, onClose }: SidebarProps) {
+function Sidebar() {
   const auth = useAppAuth()
 
   const items = auth.userProfile
@@ -63,40 +58,21 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
   }
 
   return (
-    <>
-      {isOpen && (
-        <button
-          type="button"
-          className="app-sidebar-backdrop"
-          aria-label="Close menu"
-          onClick={onClose}
-        />
-      )}
+    <nav className="app-sidebar" aria-label="Sidebar">
+      <div className="app-sidebar-links">
+        {items.map((item) => (
+          <NavLink key={item.label} to={item.to} className={navLinkClassName}>
+            <item.Icon aria-hidden="true" />
+            {item.label}
+          </NavLink>
+        ))}
+      </div>
 
-      <nav
-        className={isOpen ? 'app-sidebar app-sidebar-open' : 'app-sidebar'}
-        aria-label="Sidebar"
-      >
-        <div className="app-sidebar-links">
-          {items.map((item) => (
-            <NavLink
-              key={item.label}
-              to={item.to}
-              className={navLinkClassName}
-              onClick={onClose}
-            >
-              <item.Icon aria-hidden="true" />
-              {item.label}
-            </NavLink>
-          ))}
-        </div>
-
-        <button type="button" className="app-sidebar-logout" onClick={() => auth.signOut()}>
-          <LogOutIcon aria-hidden="true" />
-          Log Out
-        </button>
-      </nav>
-    </>
+      <button type="button" className="app-sidebar-logout" onClick={() => auth.signOut()}>
+        <LogOutIcon aria-hidden="true" />
+        Log Out
+      </button>
+    </nav>
   )
 }
 
