@@ -1,0 +1,17 @@
+.brand-mark {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.brand-mark-bg {
+  fill: var(--accent-bg);
+}
+
+.brand-mark-fill {
+  fill: var(--accent);
+}
+
+.brand-mark-fill-light {
+  opacity: 0.5;
+}
