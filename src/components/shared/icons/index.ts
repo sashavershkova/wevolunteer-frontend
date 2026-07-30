@@ -11,4 +11,5 @@ export {
   Heart as SaveIcon,
   Building2 as OrganizationIcon,
   Pencil as EditIcon,
+  Camera as UploadPhotoIcon,
 } from 'lucide-react'

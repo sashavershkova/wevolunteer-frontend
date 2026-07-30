@@ -196,7 +196,9 @@
   z-index: 5;
 }
 
-.app-header-menu button {
+.app-header-menu button,
+.app-header-menu a {
+  display: block;
   width: 100%;
   text-align: left;
   background: none;
@@ -204,12 +206,15 @@
   font-family: inherit;
   font-size: 13px;
   color: var(--text-h);
+  text-decoration: none;
   padding: 8px 10px;
   border-radius: 6px;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
-.app-header-menu button:hover {
+.app-header-menu button:hover,
+.app-header-menu a:hover {
   background: var(--accent-bg);
 }
 

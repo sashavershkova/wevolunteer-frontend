@@ -112,4 +112,34 @@ describe('Header', () => {
 
     expect(signOut).toHaveBeenCalledTimes(1)
   })
+
+  it('shows a My Account link to /profile for a volunteer profile', () => {
+    mockAuth({
+      userProfile: { userId: 'user1', name: 'Sasha Vershkova', email: 'sasha@example.com', role: 'VOLUNTEER' },
+    })
+
+    renderHeader()
+
+    fireEvent.click(screen.getByRole('button', { name: /sasha vershkova/i }))
+
+    expect(screen.getByRole('link', { name: 'My Account' })).toHaveAttribute('href', '/profile')
+  })
+
+  it('does not show a My Account link for an organization profile', () => {
+    mockAuth({
+      organizationProfile: {
+        organizationId: 'org1',
+        name: 'Seattle Food Bank',
+        description: '',
+        email: '',
+        website: '',
+      },
+    })
+
+    renderHeader()
+
+    fireEvent.click(screen.getByRole('button', { name: /seattle food bank/i }))
+
+    expect(screen.queryByRole('link', { name: 'My Account' })).not.toBeInTheDocument()
+  })
 })

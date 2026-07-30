@@ -115,6 +115,11 @@ function Header() {
 
           {isMenuOpen && (
             <div className="app-header-menu">
+              {auth.userProfile && (
+                <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
+                  My Account
+                </Link>
+              )}
               <button type="button" onClick={handleSignOut}>
                 Sign out
               </button>
