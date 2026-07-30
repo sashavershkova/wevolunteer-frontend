@@ -5,6 +5,7 @@ import { getOpportunityDisplayStatus } from '../../../utils/getOpportunityDispla
 import { sortRegistrations } from '../../../utils/sortRegistrations'
 import { formatOpportunityDate } from '../../../utils/formatOpportunityDate'
 import { formatOpportunityTimeRange } from '../../../utils/formatOpportunityTimeRange'
+import { getVolunteerInitial } from '../../../utils/getVolunteerInitial'
 import './OrganizationRegistrationGroup.css'
 
 type OrganizationRegistrationGroupProps = {
@@ -32,10 +33,6 @@ function formatRegisteredAt(registeredAt: string): string | null {
 
 function getVolunteerDisplayName(volunteerName: string | null): string {
   return volunteerName || 'Volunteer'
-}
-
-function getVolunteerInitial(displayName: string): string {
-  return displayName.trim().charAt(0).toUpperCase() || 'V'
 }
 
 /** Turns a raw status like "ACTIVE" or "NO_SHOW" into a readable "Active" / "No show". */

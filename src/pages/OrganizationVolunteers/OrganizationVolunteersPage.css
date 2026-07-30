@@ -1,0 +1,101 @@
+.organization-volunteers-page {
+  max-width: 56rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.organization-volunteers-header {
+  margin-bottom: 1.75rem;
+}
+
+.organization-volunteers-header h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: normal;
+  margin: 0;
+  max-width: 42rem;
+  overflow-wrap: break-word;
+}
+
+.organization-volunteers-subtitle {
+  color: var(--text);
+  margin: 0.35rem 0 0;
+}
+
+.organization-volunteers-message {
+  color: var(--text);
+  margin: 0;
+}
+
+.organization-volunteers-partial-warning {
+  color: #9a6b00;
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin: 0 0 1.5rem;
+  font-size: 0.9rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .organization-volunteers-partial-warning {
+    color: #ffd873;
+    background: rgba(255, 193, 7, 0.1);
+    border-color: rgba(255, 193, 7, 0.3);
+  }
+}
+
+.organization-volunteers-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.organization-volunteers-empty-link {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.organization-volunteers-empty-link:hover {
+  text-decoration: underline;
+}
+
+.organization-volunteers-filtered-count {
+  color: var(--text);
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+}
+
+.organization-volunteers-clear-filters-button {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.organization-volunteers-list {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 640px) {
+  .organization-volunteers-page {
+    padding: 1.5rem 1rem 2rem;
+  }
+
+  .organization-volunteers-header h1 {
+    font-size: 1.6rem;
+  }
+}
