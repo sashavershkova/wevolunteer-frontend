@@ -4,6 +4,10 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import OrganizationOpportunityDetailsPage from './OrganizationOpportunityDetailsPage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getOpportunity } from '../../services/api/opportunityService'
+import {
+  getOrganizationOpportunityRegistrations,
+  type Registration,
+} from '../../services/api/registrationService'
 import { opp1, opp2, opp7 } from '../../tests/fixtures/opportunities'
 
 vi.mock('../../contexts/AuthContext', () => ({
@@ -14,8 +18,43 @@ vi.mock('../../services/api/opportunityService', () => ({
   getOpportunity: vi.fn(),
 }))
 
+vi.mock('../../services/api/registrationService', () => ({
+  getOrganizationOpportunityRegistrations: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetOpportunity = vi.mocked(getOpportunity)
+const mockedGetOrganizationOpportunityRegistrations = vi.mocked(
+  getOrganizationOpportunityRegistrations,
+)
+
+const registration1: Registration = {
+  userId: 'user-1',
+  opportunityId: opp1.opportunityId,
+  title: opp1.title,
+  date: opp1.date,
+  location: opp1.location,
+  organizationId: opp1.organizationId,
+  organizationName: opp1.organizationName,
+  registrationStatus: 'ACTIVE',
+  volunteerName: 'Anna Johnson',
+  email: 'anna@example.com',
+  registeredAt: '2026-07-24T10:00:00',
+}
+
+const registration2: Registration = {
+  userId: 'user-2',
+  opportunityId: opp1.opportunityId,
+  title: opp1.title,
+  date: opp1.date,
+  location: opp1.location,
+  organizationId: opp1.organizationId,
+  organizationName: opp1.organizationName,
+  registrationStatus: 'ACTIVE',
+  volunteerName: 'Michael Smith',
+  email: 'michael@example.com',
+  registeredAt: '2026-07-25T08:30:00',
+}
 
 const organizationFixture = {
   organizationId: 'org1',
@@ -71,6 +110,8 @@ function renderPageWithoutOpportunityId() {
 describe('OrganizationOpportunityDetailsPage', () => {
   beforeEach(() => {
     mockedGetOpportunity.mockReset()
+    mockedGetOrganizationOpportunityRegistrations.mockReset()
+    mockedGetOrganizationOpportunityRegistrations.mockResolvedValue([])
     mockAuth()
   })
 
@@ -144,15 +185,110 @@ describe('OrganizationOpportunityDetailsPage', () => {
     )
   })
 
-  it('shows a registered-volunteers placeholder section', async () => {
-    mockedGetOpportunity.mockResolvedValue(opp1)
+  describe('registered volunteers section', () => {
+    it('shows a loading state while registrations are being fetched', async () => {
+      mockedGetOpportunity.mockResolvedValue(opp1)
+      mockedGetOrganizationOpportunityRegistrations.mockReturnValue(new Promise(() => {}))
 
-    renderPage()
+      renderPage()
 
-    expect(await screen.findByRole('heading', { name: 'Registered Volunteers' })).toBeInTheDocument()
-    expect(
-      screen.getByText('Volunteer registration management will be added in a future update.'),
-    ).toBeInTheDocument()
+      await screen.findByRole('heading', { name: opp1.title })
+
+      expect(screen.getByText('Loading registered volunteers...')).toBeInTheDocument()
+    })
+
+    it('passes the accessToken and opportunityId to the API function', async () => {
+      mockedGetOpportunity.mockResolvedValue(opp1)
+      mockedGetOrganizationOpportunityRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: opp1.title })
+
+      expect(mockedGetOrganizationOpportunityRegistrations).toHaveBeenCalledWith(
+        'test-token',
+        opp1.opportunityId,
+      )
+    })
+
+    it('shows an empty state when nobody has registered', async () => {
+      mockedGetOpportunity.mockResolvedValue(opp1)
+      mockedGetOrganizationOpportunityRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      expect(
+        await screen.findByText('No volunteers have registered for this opportunity yet.'),
+      ).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Registered Volunteers' })).toBeInTheDocument()
+    })
+
+    it('shows the registration count and volunteer information when populated', async () => {
+      mockedGetOpportunity.mockResolvedValue(opp1)
+      mockedGetOrganizationOpportunityRegistrations.mockResolvedValue([
+        registration1,
+        registration2,
+      ])
+
+      renderPage()
+
+      expect(
+        await screen.findByRole('heading', { name: 'Registered Volunteers (2)' }),
+      ).toBeInTheDocument()
+      expect(screen.getByText('Anna Johnson')).toBeInTheDocument()
+      expect(screen.getByText('anna@example.com')).toBeInTheDocument()
+      expect(screen.getByText('Michael Smith')).toBeInTheDocument()
+      expect(screen.getByText('michael@example.com')).toBeInTheDocument()
+    })
+
+    it('shows a readable status label instead of the raw backend value', async () => {
+      mockedGetOpportunity.mockResolvedValue(opp1)
+      mockedGetOrganizationOpportunityRegistrations.mockResolvedValue([registration1])
+
+      renderPage()
+
+      await screen.findByText('Anna Johnson')
+
+      const statusCell = screen.getByText('Anna Johnson').closest('tr')?.querySelector(
+        '[data-label="Status"]',
+      )
+      expect(statusCell).toHaveTextContent('Registered')
+      expect(screen.queryByText('ACTIVE')).not.toBeInTheDocument()
+    })
+
+    it('formats registeredAt into a readable local date', async () => {
+      mockedGetOpportunity.mockResolvedValue(opp1)
+      mockedGetOrganizationOpportunityRegistrations.mockResolvedValue([registration1])
+
+      renderPage()
+
+      expect(await screen.findByText('Jul 24, 2026')).toBeInTheDocument()
+    })
+
+    it('shows an error state when loading registrations fails', async () => {
+      mockedGetOpportunity.mockResolvedValue(opp1)
+      mockedGetOrganizationOpportunityRegistrations.mockRejectedValue(
+        new Error('Unable to load registered volunteers: 500'),
+      )
+
+      renderPage()
+
+      expect(await screen.findByText('Unable to load registered volunteers: 500')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Registered Volunteers' })).toBeInTheDocument()
+    })
+
+    it('does not request registrations when the organization does not own the opportunity', async () => {
+      mockAuth({
+        organizationProfile: { ...organizationFixture, organizationId: 'org-other' },
+      })
+      mockedGetOpportunity.mockResolvedValue(opp1)
+
+      renderPage()
+
+      await screen.findByText('Your organization cannot view this opportunity.')
+
+      expect(mockedGetOrganizationOpportunityRegistrations).not.toHaveBeenCalled()
+    })
   })
 
   it('shows an error when loading the opportunity fails', async () => {

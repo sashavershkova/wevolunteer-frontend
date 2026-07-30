@@ -3,6 +3,10 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getOpportunity } from '../../services/api/opportunityService'
 import {
+  getOrganizationOpportunityRegistrations,
+  type Registration,
+} from '../../services/api/registrationService'
+import {
   ChecklistIcon,
   DateIcon,
   EditIcon,
@@ -28,6 +32,38 @@ function formatDate(dateString: string): string {
   })
 }
 
+function formatRegisteredAt(dateTimeString: string): string {
+  const date = new Date(dateTimeString)
+
+  if (Number.isNaN(date.getTime())) {
+    return dateTimeString
+  }
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+const REGISTRATION_STATUS_LABELS: Record<string, string> = {
+  ACTIVE: 'Registered',
+}
+
+function formatRegistrationStatus(status: string): string {
+  const knownLabel = REGISTRATION_STATUS_LABELS[status]
+
+  if (knownLabel) {
+    return knownLabel
+  }
+
+  return status
+    .toLowerCase()
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 function OrganizationOpportunityDetailsPage() {
   const { opportunityId } = useParams<{ opportunityId: string }>()
   const auth = useAppAuth()
@@ -35,6 +71,10 @@ function OrganizationOpportunityDetailsPage() {
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+
+  const [registrations, setRegistrations] = useState<Registration[]>([])
+  const [isRegistrationsLoading, setIsRegistrationsLoading] = useState(true)
+  const [registrationsError, setRegistrationsError] = useState<string | null>(null)
 
   useEffect(() => {
     let ignore = false
@@ -88,6 +128,50 @@ function OrganizationOpportunityDetailsPage() {
       ignore = true
     }
   }, [opportunityId, auth.accessToken])
+
+  useEffect(() => {
+    let ignore = false
+
+    const loadRegistrations = async () => {
+      if (!opportunityId || !auth.accessToken || !opportunity) {
+        return
+      }
+
+      if (opportunity.organizationId !== auth.organizationProfile?.organizationId) {
+        return
+      }
+
+      setIsRegistrationsLoading(true)
+      setRegistrationsError(null)
+
+      try {
+        const result = await getOrganizationOpportunityRegistrations(
+          auth.accessToken,
+          opportunityId,
+        )
+
+        if (!ignore) {
+          setRegistrations(result)
+        }
+      } catch (error) {
+        if (!ignore) {
+          setRegistrationsError(
+            error instanceof Error ? error.message : 'Unable to load registered volunteers.',
+          )
+        }
+      } finally {
+        if (!ignore) {
+          setIsRegistrationsLoading(false)
+        }
+      }
+    }
+
+    void loadRegistrations()
+
+    return () => {
+      ignore = true
+    }
+  }, [opportunityId, auth.accessToken, opportunity, auth.organizationProfile])
 
   if (auth.isProfileLoading) {
     return (
@@ -242,10 +326,61 @@ function OrganizationOpportunityDetailsPage() {
           )}
 
           <section className="organization-opportunity-details-section">
-            <h2>Registered Volunteers</h2>
-            <p className="organization-opportunity-details-placeholder-note">
-              Volunteer registration management will be added in a future update.
-            </p>
+            <h2>
+              Registered Volunteers
+              {!isRegistrationsLoading && !registrationsError && registrations.length > 0
+                ? ` (${registrations.length})`
+                : ''}
+            </h2>
+
+            {isRegistrationsLoading && (
+              <p role="status" className="organization-opportunity-details-status">
+                Loading registered volunteers...
+              </p>
+            )}
+
+            {!isRegistrationsLoading && registrationsError && (
+              <p role="alert" className="organization-opportunity-details-error">
+                {registrationsError}
+              </p>
+            )}
+
+            {!isRegistrationsLoading && !registrationsError && registrations.length === 0 && (
+              <p className="organization-opportunity-details-placeholder-note">
+                No volunteers have registered for this opportunity yet.
+              </p>
+            )}
+
+            {!isRegistrationsLoading && !registrationsError && registrations.length > 0 && (
+              <div className="organization-opportunity-details-registrations-table-container">
+                <table className="organization-opportunity-details-registrations-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Volunteer</th>
+                      <th scope="col">Email</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Registered</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {registrations.map((registration) => (
+                      <tr key={registration.userId}>
+                        <td data-label="Volunteer">
+                          {registration.volunteerName ?? 'Unknown volunteer'}
+                        </td>
+                        <td data-label="Email">{registration.email ?? 'Not provided'}</td>
+                        <td data-label="Status">
+                          {formatRegistrationStatus(registration.registrationStatus)}
+                        </td>
+                        <td data-label="Registered">
+                          {formatRegisteredAt(registration.registeredAt)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
         </>
       )}

@@ -203,8 +203,81 @@
   color: var(--text);
 }
 
+.organization-opportunity-details-registrations-table-container {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.organization-opportunity-details-registrations-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.organization-opportunity-details-registrations-table th,
+.organization-opportunity-details-registrations-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.organization-opportunity-details-registrations-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.organization-opportunity-details-registrations-table thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  background: var(--code-bg);
+  font-weight: 600;
+}
+
 @media (max-width: 640px) {
   .organization-opportunity-details-page {
     padding: 1.5rem 1rem 2rem;
+  }
+
+  .organization-opportunity-details-registrations-table thead {
+    display: none;
+  }
+
+  .organization-opportunity-details-registrations-table,
+  .organization-opportunity-details-registrations-table tbody,
+  .organization-opportunity-details-registrations-table tr,
+  .organization-opportunity-details-registrations-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .organization-opportunity-details-registrations-table tbody tr {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .organization-opportunity-details-registrations-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .organization-opportunity-details-registrations-table td {
+    border-bottom: none;
+    padding: 0.35rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .organization-opportunity-details-registrations-table td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    flex-shrink: 0;
   }
 }

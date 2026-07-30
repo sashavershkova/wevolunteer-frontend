@@ -30,6 +30,26 @@ export async function getMyRegistrations(
   return response.json() as Promise<Registration[]>
 }
 
+export async function getOrganizationOpportunityRegistrations(
+  accessToken: string,
+  opportunityId: string,
+): Promise<Registration[]> {
+  const response = await fetch(
+    `${env.apiUrl}/organizations/me/opportunities/${encodeURIComponent(opportunityId)}/registrations`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error(`Unable to load registered volunteers: ${response.status}`)
+  }
+
+  return response.json() as Promise<Registration[]>
+}
+
 export async function cancelMyRegistration(
   accessToken: string,
   opportunityId: string,
