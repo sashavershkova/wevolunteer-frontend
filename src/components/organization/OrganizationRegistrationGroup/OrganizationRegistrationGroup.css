@@ -1,0 +1,288 @@
+.organization-registration-group {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem 1.75rem;
+  box-sizing: border-box;
+  margin-bottom: 1.25rem;
+}
+
+.organization-registration-group-header {
+  margin-bottom: 1rem;
+}
+
+.organization-registration-group-heading {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.organization-registration-group-title {
+  font-size: 1.15rem;
+  line-height: 1.3;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-h);
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.organization-registration-group-status-badge {
+  display: inline-block;
+  flex-shrink: 0;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.organization-registration-group-status-badge-open {
+  background: rgba(42, 157, 92, 0.12);
+  color: #2a9d5c;
+}
+
+.organization-registration-group-status-badge-closed {
+  background: var(--border);
+  color: var(--text);
+}
+
+.organization-registration-group-status-badge-completed {
+  background: var(--code-bg);
+  color: var(--text);
+}
+
+@media (prefers-color-scheme: dark) {
+  .organization-registration-group-status-badge-open {
+    background: rgba(34, 197, 94, 0.18);
+    color: #86efac;
+  }
+}
+
+.organization-registration-group-datetime {
+  margin: 0.35rem 0 0;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.organization-registration-group-count {
+  margin-bottom: 1rem;
+}
+
+.organization-registration-group-count-text {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+  color: var(--text-h);
+  font-size: 0.95rem;
+}
+
+.organization-registration-group-progress {
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.organization-registration-group-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.organization-registration-group-message {
+  color: var(--text);
+  margin: 0.5rem 0;
+}
+
+.organization-registration-group-volunteer-list-container {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.organization-registration-group-volunteer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.organization-registration-group-volunteer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.organization-registration-group-volunteer:last-child {
+  border-bottom: none;
+}
+
+.organization-registration-group-volunteer-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1 1 14rem;
+}
+
+.organization-registration-group-volunteer-avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.organization-registration-group-volunteer-info {
+  min-width: 0;
+}
+
+.organization-registration-group-volunteer-name {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-h);
+  overflow-wrap: break-word;
+}
+
+.organization-registration-group-volunteer-email {
+  display: block;
+  color: var(--accent);
+  font-size: 0.9rem;
+  text-decoration: none;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.organization-registration-group-volunteer-email:hover {
+  text-decoration: underline;
+}
+
+.organization-registration-group-volunteer-meta {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.85rem;
+}
+
+.organization-registration-group-volunteer-registered-at {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.organization-registration-group-volunteer-status {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  white-space: nowrap;
+}
+
+.organization-registration-group-volunteer-status-active {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.organization-registration-group-volunteer-status-other {
+  background: var(--code-bg);
+  color: var(--text);
+}
+
+.organization-registration-group-waitlist {
+  margin: 1rem 0 0;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.organization-registration-group-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.organization-registration-group-action {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.organization-registration-group-action-button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 0.9rem;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.organization-registration-group-action-hint {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.75rem;
+  max-width: 12rem;
+}
+
+.organization-registration-group-view-link {
+  align-self: center;
+  color: var(--text-h);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.organization-registration-group-view-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .organization-registration-group {
+    padding: 1.25rem;
+  }
+
+  .organization-registration-group-volunteer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .organization-registration-group-volunteer-meta {
+    padding-left: 3rem;
+  }
+
+  .organization-registration-group-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .organization-registration-group-view-link {
+    margin-left: 0;
+    align-self: flex-start;
+  }
+}
