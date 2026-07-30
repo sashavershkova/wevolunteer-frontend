@@ -1,0 +1,89 @@
+.upcoming-opportunity-list-message {
+  color: var(--text);
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.upcoming-opportunity-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.upcoming-opportunity-list-create-link {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.upcoming-opportunity-list-create-link:hover {
+  text-decoration: underline;
+}
+
+.upcoming-opportunity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.upcoming-opportunity-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.upcoming-opportunity-list-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.upcoming-opportunity-list-item-main {
+  min-width: 0;
+}
+
+.upcoming-opportunity-list-item-title {
+  display: block;
+  color: var(--text-h);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.upcoming-opportunity-list-item-title:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.upcoming-opportunity-list-item-meta {
+  margin: 0.2rem 0 0;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.upcoming-opportunity-list-item-view-link {
+  flex-shrink: 0;
+  color: var(--text-h);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.upcoming-opportunity-list-item-view-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .upcoming-opportunity-list-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+}

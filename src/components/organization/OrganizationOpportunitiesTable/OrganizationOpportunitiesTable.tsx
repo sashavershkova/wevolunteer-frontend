@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { EditIcon } from '../../shared/icons'
 import type { Opportunity } from '../../../types/Opportunity'
 import { formatOpportunityTimeRange } from '../../../utils/formatOpportunityTimeRange'
+import { formatOpportunityDate } from '../../../utils/formatOpportunityDate'
 import { isPastOpportunityDate } from '../../../utils/isPastOpportunityDate'
 import { getOpportunityDisplayStatus } from '../../../utils/getOpportunityDisplayStatus'
 import './OrganizationOpportunitiesTable.css'
@@ -15,20 +16,6 @@ type OrganizationOpportunitiesTableProps = {
   onDeleteOpportunity: (opportunityId: string) => void
   deletingOpportunityId?: string | null
   emptyMessage?: string
-}
-
-function formatEventDate(dateString: string): string {
-  const date = new Date(`${dateString}T00:00:00`)
-
-  if (Number.isNaN(date.getTime())) {
-    return dateString
-  }
-
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
 }
 
 function OrganizationOpportunitiesTable({
@@ -114,7 +101,7 @@ function OrganizationOpportunitiesTable({
                     )}
                   </div>
                 </td>
-                <td data-label="Date">{formatEventDate(opportunity.date)}</td>
+                <td data-label="Date">{formatOpportunityDate(opportunity.date)}</td>
                 <td data-label="Time">{displayTime}</td>
                 <td data-label="Registrations">
                   {opportunity.registeredCount} / {opportunity.capacity}

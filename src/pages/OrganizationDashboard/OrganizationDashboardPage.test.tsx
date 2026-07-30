@@ -1,12 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import OrganizationDashboardPage from './OrganizationDashboardPage'
 import { useAppAuth } from '../../contexts/AuthContext'
-import {
-  getMyOrganizationOpportunities,
-  updateCurrentOrganization,
-} from '../../services/api/organizationService'
+import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
 import { opp1 } from '../../tests/fixtures/opportunities'
 import type { Opportunity } from '../../types/Opportunity'
 
@@ -20,17 +17,10 @@ vi.mock('../../contexts/AuthContext', () => ({
 
 vi.mock('../../services/api/organizationService', () => ({
   getMyOrganizationOpportunities: vi.fn(),
-  updateCurrentOrganization: vi.fn(),
-}))
-
-vi.mock('../../services/api/opportunityService', () => ({
-  closeOpportunity: vi.fn(),
-  deleteOpportunity: vi.fn(),
 }))
 
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetMyOrganizationOpportunities = vi.mocked(getMyOrganizationOpportunities)
-const mockedUpdateCurrentOrganization = vi.mocked(updateCurrentOrganization)
 
 const organizationFixture = {
   organizationId: 'org1',
@@ -79,7 +69,6 @@ describe('OrganizationDashboardPage', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     vi.setSystemTime(new Date(MOCKED_TODAY))
     mockedGetMyOrganizationOpportunities.mockReset()
-    mockedUpdateCurrentOrganization.mockReset()
     mockAuth()
   })
 
@@ -87,393 +76,299 @@ describe('OrganizationDashboardPage', () => {
     vi.useRealTimers()
   })
 
-  it('loads organization opportunities using the existing service and reflects them in the metrics', async () => {
-    mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
-
-    renderPage()
-
-    await waitFor(() => {
-      expect(getMetricValue('Active Opportunities')).toBe('1')
-    })
-    expect(mockedGetMyOrganizationOpportunities).toHaveBeenCalledWith('token')
-  })
-
-  it('also shows the My Opportunities table below the profile overview', async () => {
-    mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+  it('renders a welcome heading using the organization name', async () => {
+    mockedGetMyOrganizationOpportunities.mockResolvedValue([])
 
     renderPage()
 
     expect(
-      await screen.findByRole('heading', { level: 2, name: 'My Opportunities' }),
+      await screen.findByRole('heading', {
+        level: 1,
+        name: `Welcome back, ${organizationFixture.name}`,
+      }),
     ).toBeInTheDocument()
-    expect(screen.getByText(opp1.title)).toBeInTheDocument()
   })
 
-  describe('opportunity lifecycle metrics', () => {
-    const futureOpen: Opportunity = { ...opp1, opportunityId: 'future-open', date: '2026-08-01', status: 'OPEN' }
-    const futureClosed: Opportunity = { ...opp1, opportunityId: 'future-closed', date: '2026-08-01', status: 'CLOSED' }
-    const pastOpen: Opportunity = { ...opp1, opportunityId: 'past-open', date: '2025-06-01', status: 'OPEN' }
-    const pastClosed: Opportunity = { ...opp1, opportunityId: 'past-closed', date: '2025-06-01', status: 'CLOSED' }
+  it('renders four metric cards', async () => {
+    mockedGetMyOrganizationOpportunities.mockResolvedValue([])
 
-    it('counts a future OPEN opportunity only in Active', async () => {
+    renderPage()
+
+    await screen.findByText('Open Opportunities')
+    expect(screen.getByText('Open Opportunities')).toBeInTheDocument()
+    expect(screen.getByText('Upcoming (30 days)')).toBeInTheDocument()
+    expect(screen.getByText('Total Registrations')).toBeInTheDocument()
+    expect(screen.getByText('Total Capacity')).toBeInTheDocument()
+  })
+
+  it('shows placeholders for all metrics while opportunities are loading', () => {
+    mockedGetMyOrganizationOpportunities.mockReturnValue(new Promise(() => {}))
+
+    renderPage()
+
+    expect(getMetricValue('Open Opportunities')).toBe('—')
+    expect(getMetricValue('Upcoming (30 days)')).toBe('—')
+    expect(getMetricValue('Total Registrations')).toBe('—')
+    expect(getMetricValue('Total Capacity')).toBe('—')
+  })
+
+  describe('Open Opportunities metric', () => {
+    it('counts a future OPEN opportunity as Open', async () => {
+      const futureOpen: Opportunity = { ...opp1, date: '2026-08-01', status: 'OPEN' }
       mockedGetMyOrganizationOpportunities.mockResolvedValue([futureOpen])
 
       renderPage()
 
       await waitFor(() => {
-        expect(getMetricValue('Active Opportunities')).toBe('1')
+        expect(getMetricValue('Open Opportunities')).toBe('1')
       })
-      expect(getMetricValue('Closed Opportunities')).toBe('0')
-      expect(getMetricValue('Completed Opportunities')).toBe('0')
     })
 
-    it('counts a future CLOSED opportunity only in Closed', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureClosed])
-
-      renderPage()
-
-      await waitFor(() => {
-        expect(getMetricValue('Closed Opportunities')).toBe('1')
-      })
-      expect(getMetricValue('Active Opportunities')).toBe('0')
-      expect(getMetricValue('Completed Opportunities')).toBe('0')
-    })
-
-    it('counts a past OPEN opportunity only in Completed', async () => {
+    it('does not count a past OPEN opportunity as Open (it is Completed)', async () => {
+      const pastOpen: Opportunity = { ...opp1, date: '2025-06-01', status: 'OPEN' }
       mockedGetMyOrganizationOpportunities.mockResolvedValue([pastOpen])
 
       renderPage()
 
       await waitFor(() => {
-        expect(getMetricValue('Completed Opportunities')).toBe('1')
+        expect(getMetricValue('Total Registrations')).toBe(String(pastOpen.registeredCount))
       })
-      expect(getMetricValue('Active Opportunities')).toBe('0')
-      expect(getMetricValue('Closed Opportunities')).toBe('0')
+      expect(getMetricValue('Open Opportunities')).toBe('0')
     })
 
-    it('counts a past CLOSED opportunity only in Completed', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([pastClosed])
+    it('does not count a CLOSED opportunity as Open', async () => {
+      const closed: Opportunity = { ...opp1, date: '2026-08-01', status: 'CLOSED' }
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([closed])
 
       renderPage()
 
       await waitFor(() => {
-        expect(getMetricValue('Completed Opportunities')).toBe('1')
+        expect(getMetricValue('Total Registrations')).toBe(String(closed.registeredCount))
       })
-      expect(getMetricValue('Active Opportunities')).toBe('0')
-      expect(getMetricValue('Closed Opportunities')).toBe('0')
-    })
-
-    it('produces correct totals for a mix of future and past, open and closed opportunities', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([
-        { ...futureOpen, title: 'Future Open Shift' },
-        { ...futureClosed, title: 'Future Closed Shift' },
-        { ...pastOpen, title: 'Past Open Shift' },
-        { ...pastClosed, title: 'Past Closed Shift' },
-      ])
-
-      renderPage()
-
-      await waitFor(() => {
-        expect(getMetricValue('Active Opportunities')).toBe('1')
-      })
-      expect(getMetricValue('Closed Opportunities')).toBe('1')
-      expect(getMetricValue('Completed Opportunities')).toBe('2')
+      expect(getMetricValue('Open Opportunities')).toBe('0')
     })
   })
 
-  describe('active registrations and capacity metrics', () => {
-    const futureOpen: Opportunity = {
-      ...opp1,
-      opportunityId: 'future-open',
-      date: '2026-08-01',
-      status: 'OPEN',
-      registeredCount: 3,
-      capacity: 10,
-    }
-    const futureClosed: Opportunity = {
-      ...opp1,
-      opportunityId: 'future-closed',
-      date: '2026-08-01',
-      status: 'CLOSED',
-      registeredCount: 5,
-      capacity: 8,
-    }
-    const pastOpen: Opportunity = {
-      ...opp1,
-      opportunityId: 'past-open',
-      date: '2025-06-01',
-      status: 'OPEN',
-      registeredCount: 7,
-      capacity: 20,
-    }
-    const pastClosed: Opportunity = {
-      ...opp1,
-      opportunityId: 'past-closed',
-      date: '2025-06-01',
-      status: 'CLOSED',
-      registeredCount: 11,
-      capacity: 30,
-    }
-
-    it('includes a future OPEN opportunity in Active Registrations and Active Capacity', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureOpen])
+  describe('Total Registrations and Total Capacity metrics', () => {
+    it('sums registeredCount and capacity across every opportunity regardless of status', async () => {
+      const open: Opportunity = {
+        ...opp1,
+        opportunityId: 'open',
+        date: '2026-08-01',
+        status: 'OPEN',
+        registeredCount: 3,
+        capacity: 10,
+      }
+      const closed: Opportunity = {
+        ...opp1,
+        opportunityId: 'closed',
+        date: '2026-08-01',
+        status: 'CLOSED',
+        registeredCount: 5,
+        capacity: 8,
+      }
+      const pastOpen: Opportunity = {
+        ...opp1,
+        opportunityId: 'past-open',
+        date: '2025-06-01',
+        status: 'OPEN',
+        registeredCount: 7,
+        capacity: 20,
+      }
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([open, closed, pastOpen])
 
       renderPage()
 
       await waitFor(() => {
-        expect(getMetricValue('Active Registrations')).toBe('3')
+        expect(getMetricValue('Total Registrations')).toBe('15')
       })
-      expect(getMetricValue('Active Capacity')).toBe('10')
-    })
-
-    it('includes a future CLOSED opportunity in Active Registrations and Active Capacity', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureClosed])
-
-      renderPage()
-
-      await waitFor(() => {
-        expect(getMetricValue('Active Registrations')).toBe('5')
-      })
-      expect(getMetricValue('Active Capacity')).toBe('8')
-    })
-
-    it('excludes a past OPEN opportunity from Active Registrations and Active Capacity', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([pastOpen])
-
-      renderPage()
-
-      await waitFor(() => {
-        expect(getMetricValue('Completed Opportunities')).toBe('1')
-      })
-      expect(getMetricValue('Active Registrations')).toBe('0')
-      expect(getMetricValue('Active Capacity')).toBe('0')
-    })
-
-    it('excludes a past CLOSED opportunity from Active Registrations and Active Capacity', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([pastClosed])
-
-      renderPage()
-
-      await waitFor(() => {
-        expect(getMetricValue('Completed Opportunities')).toBe('1')
-      })
-      expect(getMetricValue('Active Registrations')).toBe('0')
-      expect(getMetricValue('Active Capacity')).toBe('0')
-    })
-
-    it('sums only future opportunities for a mixed set', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([
-        { ...futureOpen, title: 'Future Open Shift' },
-        { ...futureClosed, title: 'Future Closed Shift' },
-        { ...pastOpen, title: 'Past Open Shift' },
-        { ...pastClosed, title: 'Past Closed Shift' },
-      ])
-
-      renderPage()
-
-      await waitFor(() => {
-        expect(getMetricValue('Active Registrations')).toBe('8')
-      })
-      expect(getMetricValue('Active Capacity')).toBe('18')
+      expect(getMetricValue('Total Capacity')).toBe('38')
     })
   })
 
-  describe('editing organization information', () => {
-    function enterEditMode() {
-      fireEvent.click(
-        screen.getByRole('button', { name: 'Edit organization information' }),
-      )
-    }
+  describe('Upcoming Opportunities section', () => {
+    it('shows only OPEN opportunities, ordered chronologically', async () => {
+      const later: Opportunity = {
+        ...opp1,
+        opportunityId: 'later',
+        title: 'Later Shift',
+        date: '2026-08-01',
+        status: 'OPEN',
+      }
+      const earlier: Opportunity = {
+        ...opp1,
+        opportunityId: 'earlier',
+        title: 'Earlier Shift',
+        date: '2026-07-01',
+        status: 'OPEN',
+      }
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([later, earlier])
 
-    it('shows the edit icon with an accessible name', async () => {
+      renderPage()
+
+      const titles = await screen.findAllByRole('link', { name: /Shift/ })
+      expect(titles.map((link) => link.textContent)).toEqual(['Earlier Shift', 'Later Shift'])
+    })
+
+    it('excludes Completed (past OPEN) opportunities', async () => {
+      const upcoming: Opportunity = {
+        ...opp1,
+        opportunityId: 'upcoming',
+        title: 'Upcoming Shift',
+        date: '2026-07-01',
+        status: 'OPEN',
+      }
+      const completed: Opportunity = {
+        ...opp1,
+        opportunityId: 'completed',
+        title: 'Completed Shift',
+        date: '2025-01-01',
+        status: 'OPEN',
+      }
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([upcoming, completed])
+
+      renderPage()
+
+      expect(await screen.findByText('Upcoming Shift')).toBeInTheDocument()
+      expect(screen.queryByText('Completed Shift')).not.toBeInTheDocument()
+    })
+
+    it('excludes CLOSED opportunities', async () => {
+      const upcoming: Opportunity = {
+        ...opp1,
+        opportunityId: 'upcoming',
+        title: 'Upcoming Shift',
+        date: '2026-07-01',
+        status: 'OPEN',
+      }
+      const closed: Opportunity = {
+        ...opp1,
+        opportunityId: 'closed',
+        title: 'Closed Shift',
+        date: '2026-07-05',
+        status: 'CLOSED',
+      }
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([upcoming, closed])
+
+      renderPage()
+
+      expect(await screen.findByText('Upcoming Shift')).toBeInTheDocument()
+      expect(screen.queryByText('Closed Shift')).not.toBeInTheDocument()
+    })
+
+    it('shows only the first 3 upcoming opportunities', async () => {
+      const opportunities = [1, 2, 3, 4].map((day) => ({
+        ...opp1,
+        opportunityId: `opp-${day}`,
+        title: `Shift ${day}`,
+        date: `2026-07-0${day}`,
+        status: 'OPEN' as const,
+      }))
+      mockedGetMyOrganizationOpportunities.mockResolvedValue(opportunities)
+
+      renderPage()
+
+      await screen.findByText('Shift 1')
+      expect(screen.getByText('Shift 2')).toBeInTheDocument()
+      expect(screen.getByText('Shift 3')).toBeInTheDocument()
+      expect(screen.queryByText('Shift 4')).not.toBeInTheDocument()
+    })
+
+    it('shows an empty state when there are no upcoming opportunities', async () => {
       mockedGetMyOrganizationOpportunities.mockResolvedValue([])
 
       renderPage()
 
       expect(
-        await screen.findByRole('button', { name: 'Edit organization information' }),
+        await screen.findByText('You have no upcoming opportunities.'),
       ).toBeInTheDocument()
     })
 
-    it('shows prepopulated fields when the edit icon is clicked', async () => {
+    it('links "View all opportunities" to the dedicated My Opportunities page', async () => {
       mockedGetMyOrganizationOpportunities.mockResolvedValue([])
 
       renderPage()
-      await screen.findByRole('button', { name: 'Edit organization information' })
-      enterEditMode()
-
-      expect(screen.getByLabelText('Organization name')).toHaveValue(
-        organizationFixture.name,
-      )
-      expect(screen.getByLabelText('Description')).toHaveValue(
-        organizationFixture.description,
-      )
-      expect(screen.getByLabelText('Email')).toHaveValue(organizationFixture.email)
-      expect(screen.getByLabelText('Website')).toHaveValue(organizationFixture.website)
-    })
-
-    it('Cancel restores display mode without calling the API', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([])
-
-      renderPage()
-      await screen.findByRole('button', { name: 'Edit organization information' })
-      enterEditMode()
-
-      fireEvent.change(screen.getByLabelText('Organization name'), {
-        target: { value: 'Changed Name' },
-      })
-      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-
-      expect(screen.queryByLabelText('Organization name')).not.toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: organizationFixture.name })).toBeInTheDocument()
-      expect(mockedUpdateCurrentOrganization).not.toHaveBeenCalled()
-    })
-
-    it('Save calls updateCurrentOrganization with the access token and edited field values', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([])
-      mockedUpdateCurrentOrganization.mockResolvedValue({
-        ...organizationFixture,
-        name: 'Updated Food Bank',
-      })
-
-      renderPage()
-      await screen.findByRole('button', { name: 'Edit organization information' })
-      enterEditMode()
-
-      fireEvent.change(screen.getByLabelText('Organization name'), {
-        target: { value: 'Updated Food Bank' },
-      })
-      fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
-
-      await waitFor(() => {
-        expect(mockedUpdateCurrentOrganization).toHaveBeenCalledWith('token', {
-          name: 'Updated Food Bank',
-          description: organizationFixture.description,
-          email: organizationFixture.email,
-          website: organizationFixture.website,
-        })
-      })
-    })
-
-    it('calls updateOrganizationProfile after a successful save', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([])
-      const updateOrganizationProfile = vi.fn()
-      mockAuth({ updateOrganizationProfile })
-      const updatedOrganization = { ...organizationFixture, name: 'Updated Food Bank' }
-      mockedUpdateCurrentOrganization.mockResolvedValue(updatedOrganization)
-
-      renderPage()
-      await screen.findByRole('button', { name: 'Edit organization information' })
-      enterEditMode()
-
-      fireEvent.change(screen.getByLabelText('Organization name'), {
-        target: { value: 'Updated Food Bank' },
-      })
-      fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
-
-      await waitFor(() => {
-        expect(updateOrganizationProfile).toHaveBeenCalledWith(updatedOrganization)
-      })
-    })
-
-    it('returns to display mode and shows updated information after a successful save', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([])
-      const updatedOrganization = { ...organizationFixture, name: 'Updated Food Bank' }
-      mockedUpdateCurrentOrganization.mockResolvedValue(updatedOrganization)
-      mockAuth({ organizationProfile: updatedOrganization })
-
-      renderPage()
-      await screen.findByRole('button', { name: 'Edit organization information' })
-      enterEditMode()
-
-      fireEvent.change(screen.getByLabelText('Organization name'), {
-        target: { value: 'Updated Food Bank' },
-      })
-      fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
-
-      await waitFor(() => {
-        expect(screen.queryByLabelText('Organization name')).not.toBeInTheDocument()
-      })
-      expect(screen.getByRole('heading', { name: 'Updated Food Bank' })).toBeInTheDocument()
-    })
-
-    it('shows an error and keeps the form open when the update fails', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([])
-      mockedUpdateCurrentOrganization.mockRejectedValue(
-        new Error('Unable to update organization profile: 500'),
-      )
-
-      renderPage()
-      await screen.findByRole('button', { name: 'Edit organization information' })
-      enterEditMode()
-
-      fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
-
-      expect(await screen.findByRole('alert')).toHaveTextContent(
-        'Unable to update organization profile: 500',
-      )
-      expect(screen.getByLabelText('Organization name')).toBeInTheDocument()
-    })
-
-    it('disables Save and Cancel while submitting', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([])
-      let resolveUpdate: (value: typeof organizationFixture) => void = () => {}
-      mockedUpdateCurrentOrganization.mockReturnValue(
-        new Promise((resolve) => {
-          resolveUpdate = resolve
-        }),
-      )
-
-      renderPage()
-      await screen.findByRole('button', { name: 'Edit organization information' })
-      enterEditMode()
-
-      fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Saving...' })).toBeDisabled()
-      })
-      expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled()
-
-      resolveUpdate(organizationFixture)
-
-      await waitFor(() => {
-        expect(screen.queryByLabelText('Organization name')).not.toBeInTheDocument()
-      })
-    })
-
-    it('shows an understandable error when the access token is missing', async () => {
-      mockedGetMyOrganizationOpportunities.mockResolvedValue([])
-      mockAuth({ accessToken: '' })
-
-      renderPage()
-      await screen.findByRole('button', { name: 'Edit organization information' })
-      enterEditMode()
-
-      fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
 
       expect(
-        await screen.findByText('Your authentication session is unavailable.'),
-      ).toBeInTheDocument()
-      expect(mockedUpdateCurrentOrganization).not.toHaveBeenCalled()
+        await screen.findByRole('link', { name: 'View all opportunities' }),
+      ).toHaveAttribute('href', '/organization/opportunities')
     })
+  })
 
-    it('prevents the API request when name and email are blank', async () => {
+  describe('Quick Actions', () => {
+    it('links to the existing routes for each quick action', async () => {
       mockedGetMyOrganizationOpportunities.mockResolvedValue([])
 
       renderPage()
-      await screen.findByRole('button', { name: 'Edit organization information' })
-      enterEditMode()
+      await screen.findByText('Quick Actions')
 
-      fireEvent.change(screen.getByLabelText('Organization name'), {
-        target: { value: '   ' },
-      })
-      fireEvent.change(screen.getByLabelText('Email'), { target: { value: '' } })
-      fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+      expect(screen.getByRole('link', { name: '+ Create New Opportunity' })).toHaveAttribute(
+        'href',
+        '/organization/opportunities/new',
+      )
+      expect(screen.getByRole('link', { name: /View All Opportunities/ })).toHaveAttribute(
+        'href',
+        '/organization/opportunities',
+      )
+      expect(screen.getByRole('link', { name: /View Registrations/ })).toHaveAttribute(
+        'href',
+        '/organization/registrations',
+      )
+      expect(screen.getByRole('link', { name: /View Volunteers/ })).toHaveAttribute(
+        'href',
+        '/organization/volunteers',
+      )
+      expect(screen.getByRole('link', { name: /View Organization Profile/ })).toHaveAttribute(
+        'href',
+        '/organization/profile',
+      )
+    })
+  })
 
-      expect(await screen.findByText('Organization name is required.')).toBeInTheDocument()
-      expect(screen.getByText('Email is required.')).toBeInTheDocument()
-      expect(mockedUpdateCurrentOrganization).not.toHaveBeenCalled()
+  describe('removed duplicated content', () => {
+    it('does not render the full My Opportunities management table', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+
+      renderPage()
+
+      await screen.findByText(`Welcome back, ${organizationFixture.name}`)
+      expect(
+        screen.queryByRole('heading', { level: 2, name: 'My Opportunities' }),
+      ).not.toBeInTheDocument()
+      expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    })
+
+    it('does not render Close/Delete management actions', async () => {
+      const open: Opportunity = { ...opp1, date: '2026-08-01', status: 'OPEN' }
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([open])
+
+      renderPage()
+
+      await screen.findByText(opp1.title)
+      expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    })
+
+    it('does not render the full organization profile block', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([])
+
+      renderPage()
+
+      await screen.findByText(`Welcome back, ${organizationFixture.name}`)
+      expect(screen.queryByText(organizationFixture.description)).not.toBeInTheDocument()
+      expect(screen.queryByText(organizationFixture.email)).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: 'Edit organization information' }),
+      ).not.toBeInTheDocument()
+    })
+
+    it('does not render a generic Coming Soon section', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([])
+
+      renderPage()
+
+      await screen.findByText(`Welcome back, ${organizationFixture.name}`)
+      expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument()
     })
   })
 })
