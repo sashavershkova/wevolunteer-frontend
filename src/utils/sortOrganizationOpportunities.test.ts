@@ -91,9 +91,35 @@ describe('sortOrganizationOpportunities', () => {
     const result = sortOrganizationOpportunities([pastClosed, futureOpen, pastOpenCompleted])
 
     expect(result.map((opportunity) => opportunity.opportunityId)).toEqual([
-      'past-open-completed',
       'future-open',
+      'past-open-completed',
       'past-closed',
+    ])
+  })
+
+  it('orders groups as OPEN, then COMPLETED, then CLOSED regardless of date', () => {
+    const closed = makeOpportunity({
+      opportunityId: 'closed',
+      date: '2020-01-01',
+      status: 'CLOSED',
+    })
+    const completed = makeOpportunity({
+      opportunityId: 'completed',
+      date: '2025-01-01',
+      status: 'OPEN',
+    })
+    const open = makeOpportunity({
+      opportunityId: 'open',
+      date: '2026-12-01',
+      status: 'OPEN',
+    })
+
+    const result = sortOrganizationOpportunities([closed, completed, open])
+
+    expect(result.map((opportunity) => opportunity.opportunityId)).toEqual([
+      'open',
+      'completed',
+      'closed',
     ])
   })
 

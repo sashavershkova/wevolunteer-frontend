@@ -1,5 +1,11 @@
 import type { Opportunity } from '../types/Opportunity'
-import { getOpportunityDisplayStatus } from './getOpportunityDisplayStatus'
+import { getOpportunityDisplayStatus, type OpportunityDisplayStatus } from './getOpportunityDisplayStatus'
+
+const STATUS_GROUP_ORDER: Record<OpportunityDisplayStatus, number> = {
+  OPEN: 0,
+  COMPLETED: 1,
+  CLOSED: 2,
+}
 
 function getComparableTimestamp(opportunity: Opportunity): number {
   if (!opportunity.date) {
@@ -13,20 +19,20 @@ function getComparableTimestamp(opportunity: Opportunity): number {
 }
 
 /**
- * Returns a new array (the input is never mutated) with non-CLOSED opportunities
- * (OPEN or COMPLETED, as displayed) first and CLOSED opportunities last, each group
- * sorted by date/startTime ascending. Opportunities with unusable dates sort after
- * valid ones within their own status group; ties fall back to title, then original order.
+ * Returns a new array (the input is never mutated) grouped OPEN, then COMPLETED, then
+ * CLOSED (as displayed), each group sorted by date/startTime ascending. Opportunities
+ * with unusable dates sort after valid ones within their own status group; ties fall
+ * back to title, then original order.
  */
 export function sortOrganizationOpportunities(opportunities: Opportunity[]): Opportunity[] {
   return opportunities
     .map((opportunity, index) => ({ opportunity, index }))
     .sort((a, b) => {
-      const aIsClosed = getOpportunityDisplayStatus(a.opportunity) === 'CLOSED'
-      const bIsClosed = getOpportunityDisplayStatus(b.opportunity) === 'CLOSED'
+      const aGroup = STATUS_GROUP_ORDER[getOpportunityDisplayStatus(a.opportunity)]
+      const bGroup = STATUS_GROUP_ORDER[getOpportunityDisplayStatus(b.opportunity)]
 
-      if (aIsClosed !== bIsClosed) {
-        return aIsClosed ? 1 : -1
+      if (aGroup !== bGroup) {
+        return aGroup - bGroup
       }
 
       const aTimestamp = getComparableTimestamp(a.opportunity)
