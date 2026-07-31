@@ -165,11 +165,9 @@
   color: #c0392b;
 }
 
-@media (prefers-color-scheme: dark) {
-  .organization-settings-button-danger {
-    border-color: rgba(255, 138, 128, 0.4);
-    color: #ff8a80;
-  }
+:root[data-theme='dark'] .organization-settings-button-danger {
+  border-color: rgba(255, 138, 128, 0.4);
+  color: #ff8a80;
 }
 
 /* Section 2 -- Team & Access tiles */
@@ -352,10 +350,8 @@
   color: #c0392b;
 }
 
-@media (prefers-color-scheme: dark) {
-  .organization-settings-row-danger .organization-settings-row-icon {
-    color: #ff8a80;
-  }
+:root[data-theme='dark'] .organization-settings-row-danger .organization-settings-row-icon {
+  color: #ff8a80;
 }
 
 .organization-settings-row-text {

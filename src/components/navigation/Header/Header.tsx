@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppAuth } from '../../../contexts/AuthContext'
-import { NotificationsIcon } from '../../shared/icons'
+import { useTheme } from '../../../hooks/useTheme'
+import { NotificationsIcon, SunIcon, MoonIcon } from '../../shared/icons'
 import BrandMark from '../../shared/BrandMark/BrandMark'
 import './Header.css'
 
@@ -21,6 +22,7 @@ function getInitials(name: string): string {
 
 function Header() {
   const auth = useAppAuth()
+  const { theme, toggleTheme } = useTheme()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const accountRef = useRef<HTMLDivElement>(null)
 
@@ -46,6 +48,8 @@ function Header() {
     auth.signOut()
   }
 
+  const themeToggleLabel = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+
   return (
     <header className="app-header">
       <Link to="/" className="app-header-brand">
@@ -54,6 +58,21 @@ function Header() {
       </Link>
 
       <div className="app-header-actions">
+        <button
+          type="button"
+          className="app-header-theme-toggle"
+          onClick={toggleTheme}
+          aria-pressed={theme === 'dark'}
+          aria-label={themeToggleLabel}
+          title={themeToggleLabel}
+        >
+          {theme === 'dark' ? (
+            <SunIcon aria-hidden="true" />
+          ) : (
+            <MoonIcon aria-hidden="true" />
+          )}
+        </button>
+
         <button
           type="button"
           className="app-header-bell"

@@ -111,11 +111,9 @@
   color: var(--text);
 }
 
-@media (prefers-color-scheme: dark) {
-  .organization-opportunities-status-badge-open {
-    background: rgba(34, 197, 94, 0.18);
-    color: #86efac;
-  }
+:root[data-theme='dark'] .organization-opportunities-status-badge-open {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
 }
 
 .organization-opportunities-close-button {

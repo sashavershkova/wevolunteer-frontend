@@ -84,16 +84,14 @@
   color: #2a9d5c;
 }
 
-@media (prefers-color-scheme: dark) {
-  .organization-volunteer-card-status-badge-returning {
-    background: rgba(96, 165, 250, 0.18);
-    color: #93c5fd;
-  }
+:root[data-theme='dark'] .organization-volunteer-card-status-badge-returning {
+  background: rgba(96, 165, 250, 0.18);
+  color: #93c5fd;
+}
 
-  .organization-volunteer-card-status-badge-frequent {
-    background: rgba(34, 197, 94, 0.18);
-    color: #86efac;
-  }
+:root[data-theme='dark'] .organization-volunteer-card-status-badge-frequent {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
 }
 
 .organization-volunteer-card-counts {

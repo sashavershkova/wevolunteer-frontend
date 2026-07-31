@@ -95,10 +95,8 @@
   color: #b3261e;
 }
 
-@media (prefers-color-scheme: dark) {
-  .profile-activity-error {
-    color: #ff8a80;
-  }
+:root[data-theme='dark'] .profile-activity-error {
+  color: #ff8a80;
 }
 
 .profile-activity-metrics {

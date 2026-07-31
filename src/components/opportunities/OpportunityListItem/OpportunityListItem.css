@@ -230,11 +230,9 @@
   white-space: nowrap;
 }
 
-@media (prefers-color-scheme: dark) {
-  .opportunity-list-item-registered-badge {
-    background: rgba(34, 197, 94, 0.18);
-    color: #86efac;
-  }
+:root[data-theme='dark'] .opportunity-list-item-registered-badge {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
 }
 
 .opportunity-list-item-cancel-button {

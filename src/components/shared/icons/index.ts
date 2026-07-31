@@ -35,4 +35,6 @@ export {
   ShieldCheck as TwoFactorIcon,
   Monitor as SessionManagementIcon,
   Trash2 as DeleteAccountIcon,
+  Sun as SunIcon,
+  Moon as MoonIcon,
 } from 'lucide-react'

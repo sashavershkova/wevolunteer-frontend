@@ -2,6 +2,29 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Blocking theme bootstrap: applies the resolved theme before first paint
+      so there is no flash of the wrong theme. Mirrors the resolution order in
+      src/utils/theme.ts (saved value -> OS preference -> light) and must stay
+      in sync with it. Kept as plain, non-module script so it runs
+      synchronously during HTML parsing, before CSS is applied.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = window.localStorage.getItem('wevolunteer-theme');
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>vew-frontend</title>

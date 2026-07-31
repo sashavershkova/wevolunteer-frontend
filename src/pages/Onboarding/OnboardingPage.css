@@ -102,15 +102,13 @@
   box-shadow: var(--shadow), 0 0 0 2px rgba(42, 157, 92, 0.35);
 }
 
-@media (prefers-color-scheme: dark) {
-  .onboarding-role-card[data-role='ORGANIZATION']:hover {
-    border-color: rgba(134, 239, 172, 0.5);
-  }
+:root[data-theme='dark'] .onboarding-role-card[data-role='ORGANIZATION']:hover {
+  border-color: rgba(134, 239, 172, 0.5);
+}
 
-  .onboarding-role-card[data-role='ORGANIZATION'].is-selected {
-    border-color: #86efac;
-    box-shadow: var(--shadow), 0 0 0 2px rgba(134, 239, 172, 0.3);
-  }
+:root[data-theme='dark'] .onboarding-role-card[data-role='ORGANIZATION'].is-selected {
+  border-color: #86efac;
+  box-shadow: var(--shadow), 0 0 0 2px rgba(134, 239, 172, 0.3);
 }
 
 .onboarding-role-input {
@@ -185,16 +183,14 @@
   color: #fff;
 }
 
-@media (prefers-color-scheme: dark) {
-  .onboarding-role-card[data-role='ORGANIZATION'] .onboarding-role-card-action {
-    border-color: #86efac;
-    color: #86efac;
-  }
+:root[data-theme='dark'] .onboarding-role-card[data-role='ORGANIZATION'] .onboarding-role-card-action {
+  border-color: #86efac;
+  color: #86efac;
+}
 
-  .onboarding-role-card[data-role='ORGANIZATION'].is-selected .onboarding-role-card-action {
-    background: #86efac;
-    color: #0a3320;
-  }
+:root[data-theme='dark'] .onboarding-role-card[data-role='ORGANIZATION'].is-selected .onboarding-role-card-action {
+  background: #86efac;
+  color: #0a3320;
 }
 
 .onboarding-fields-card {
@@ -262,10 +258,8 @@
   font-size: 0.85rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  .onboarding-error {
-    color: #ff8a80;
-  }
+:root[data-theme='dark'] .onboarding-error {
+  color: #ff8a80;
 }
 
 .onboarding-submit-button {

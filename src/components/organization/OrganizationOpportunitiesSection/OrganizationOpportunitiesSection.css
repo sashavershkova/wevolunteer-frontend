@@ -18,10 +18,8 @@
   margin: 0 0 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  .organization-opportunities-section-error {
-    color: #ff8a80;
-  }
+:root[data-theme='dark'] .organization-opportunities-section-error {
+  color: #ff8a80;
 }
 
 .organization-opportunities-create-button {

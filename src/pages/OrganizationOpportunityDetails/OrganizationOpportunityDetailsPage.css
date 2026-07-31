@@ -29,10 +29,8 @@
   color: #c0392b;
 }
 
-@media (prefers-color-scheme: dark) {
-  .organization-opportunity-details-error {
-    color: #ff8a80;
-  }
+:root[data-theme='dark'] .organization-opportunity-details-error {
+  color: #ff8a80;
 }
 
 .organization-opportunity-details-header {
@@ -109,11 +107,9 @@
   color: var(--text);
 }
 
-@media (prefers-color-scheme: dark) {
-  .organization-opportunity-details-status-badge-open {
-    background: rgba(34, 197, 94, 0.18);
-    color: #86efac;
-  }
+:root[data-theme='dark'] .organization-opportunity-details-status-badge-open {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
 }
 
 .organization-opportunity-details-recurring-badge {

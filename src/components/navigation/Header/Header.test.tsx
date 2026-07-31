@@ -1,8 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import Header from './Header'
 import { useAppAuth } from '../../../contexts/AuthContext'
+import { THEME_STORAGE_KEY } from '../../../utils/theme'
 
 vi.mock('../../../contexts/AuthContext', () => ({
   useAppAuth: vi.fn(),
@@ -10,6 +12,19 @@ vi.mock('../../../contexts/AuthContext', () => ({
 
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const signOut = vi.fn()
+
+function mockMatchMedia(matches: boolean) {
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    matches,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }))
+}
 
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>>) {
   mockedUseAppAuth.mockReturnValue({
@@ -44,6 +59,15 @@ function renderHeader() {
 describe('Header', () => {
   beforeEach(() => {
     signOut.mockClear()
+    window.localStorage.clear()
+    delete document.documentElement.dataset.theme
+    mockMatchMedia(false)
+  })
+
+  afterEach(() => {
+    window.localStorage.clear()
+    delete document.documentElement.dataset.theme
+    vi.unstubAllGlobals()
   })
 
   it('links the brand to the home route', () => {
@@ -168,5 +192,80 @@ describe('Header', () => {
     fireEvent.click(screen.getByRole('button', { name: /seattle food bank/i }))
 
     expect(screen.queryByRole('link', { name: 'My Account' })).not.toBeInTheDocument()
+  })
+
+  describe('theme toggle', () => {
+    beforeEach(() => {
+      mockAuth({
+        userProfile: {
+          userId: 'user1',
+          name: 'Sasha Vershkova',
+          email: 'sasha@example.com',
+          role: 'VOLUNTEER',
+          profileImageUrl: null,
+        },
+      })
+    })
+
+    it('shows the Moon icon and a "Switch to dark mode" label when the theme is light', () => {
+      renderHeader()
+
+      const toggle = screen.getByRole('button', { name: 'Switch to dark mode' })
+
+      expect(toggle).toHaveAttribute('aria-pressed', 'false')
+      expect(toggle).toHaveAttribute('title', 'Switch to dark mode')
+      expect(toggle.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+    })
+
+    it('shows the Sun icon and a "Switch to light mode" label when a dark theme is saved', () => {
+      window.localStorage.setItem(THEME_STORAGE_KEY, 'dark')
+
+      renderHeader()
+
+      const toggle = screen.getByRole('button', { name: 'Switch to light mode' })
+
+      expect(toggle).toHaveAttribute('aria-pressed', 'true')
+      expect(toggle).toHaveAttribute('title', 'Switch to light mode')
+    })
+
+    it('switches from light to dark when clicked, updating the root attribute and localStorage', () => {
+      renderHeader()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Switch to dark mode' }))
+
+      expect(screen.getByRole('button', { name: 'Switch to light mode' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      )
+      expect(document.documentElement.dataset.theme).toBe('dark')
+      expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark')
+    })
+
+    it('switches from dark back to light when clicked again', () => {
+      window.localStorage.setItem(THEME_STORAGE_KEY, 'dark')
+
+      renderHeader()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Switch to light mode' }))
+
+      expect(screen.getByRole('button', { name: 'Switch to dark mode' })).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      )
+      expect(document.documentElement.dataset.theme).toBe('light')
+      expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('light')
+    })
+
+    it('toggles via keyboard interaction on the button itself', async () => {
+      const user = userEvent.setup()
+      renderHeader()
+
+      const toggle = screen.getByRole('button', { name: 'Switch to dark mode' })
+      toggle.focus()
+      await user.keyboard('{Enter}')
+
+      expect(screen.getByRole('button', { name: 'Switch to light mode' })).toBeInTheDocument()
+      expect(document.documentElement.dataset.theme).toBe('dark')
+    })
   })
 })

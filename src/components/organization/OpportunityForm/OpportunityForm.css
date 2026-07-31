@@ -70,16 +70,14 @@
   margin: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  .create-opportunity-error {
-    color: #ff8a80;
-  }
+:root[data-theme='dark'] .create-opportunity-error {
+  color: #ff8a80;
+}
 
-  .create-opportunity-field input[aria-invalid='true'],
-  .create-opportunity-field textarea[aria-invalid='true'],
-  .create-opportunity-field select[aria-invalid='true'] {
-    border-color: #ff8a80;
-  }
+:root[data-theme='dark'] .create-opportunity-field input[aria-invalid='true'],
+:root[data-theme='dark'] .create-opportunity-field textarea[aria-invalid='true'],
+:root[data-theme='dark'] .create-opportunity-field select[aria-invalid='true'] {
+  border-color: #ff8a80;
 }
 
 .create-opportunity-actions {

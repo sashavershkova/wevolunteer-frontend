@@ -17,10 +17,8 @@
   color: #b3261e;
 }
 
-@media (prefers-color-scheme: dark) {
-  .my-registrations-error {
-    color: #ff8a80;
-  }
+:root[data-theme='dark'] .my-registrations-error {
+  color: #ff8a80;
 }
 
 .my-registrations-list {
