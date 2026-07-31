@@ -1,0 +1,39 @@
+.organization-mission-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem 1.75rem;
+  box-sizing: border-box;
+}
+
+.organization-mission-card h2 {
+  margin: 0 0 0.75rem;
+}
+
+.organization-mission-card-description {
+  margin: 0 0 1rem;
+  color: var(--text-h);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.organization-mission-card-placeholder {
+  margin: 0 0 1rem;
+  color: var(--text);
+  font-style: italic;
+}
+
+.organization-mission-card-future-note {
+  margin: 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .organization-mission-card {
+    padding: 1.25rem;
+  }
+}

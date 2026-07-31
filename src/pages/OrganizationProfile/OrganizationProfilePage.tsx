@@ -1,7 +1,20 @@
 import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import OrganizationProfileSection from '../../components/organization/OrganizationProfileSection/OrganizationProfileSection'
+import OrganizationMissionCard from '../../components/organization/OrganizationMissionCard/OrganizationMissionCard'
+import OrganizationDetailsPreview from '../../components/organization/OrganizationDetailsPreview/OrganizationDetailsPreview'
+import OrganizationVerificationPreview from '../../components/organization/OrganizationVerificationPreview/OrganizationVerificationPreview'
+import OrganizationProfileCompletionPreview from '../../components/organization/OrganizationProfileCompletionPreview/OrganizationProfileCompletionPreview'
 import './OrganizationProfilePage.css'
+
+const PLANNED_PROFILE_FEATURES = [
+  'Organization logo uploads',
+  'Public organization profile',
+  'Organization verification',
+  'Service areas and causes',
+  'Social media links',
+  'Team member management',
+]
 
 function OrganizationProfilePage() {
   const auth = useAppAuth()
@@ -27,9 +40,34 @@ function OrganizationProfilePage() {
     return <Navigate to="/" replace />
   }
 
+  const organization = auth.organizationProfile
+
   return (
     <main className="organization-profile-page">
-      <OrganizationProfileSection organization={auth.organizationProfile} headingLevel="h1" />
+      <OrganizationProfileSection organization={organization} headingLevel="h1" />
+
+      <OrganizationMissionCard description={organization.description} />
+
+      <div className="organization-profile-page-row">
+        <OrganizationDetailsPreview />
+        <OrganizationVerificationPreview />
+      </div>
+
+      <div className="organization-profile-page-row">
+        <OrganizationProfileCompletionPreview organization={organization} />
+
+        <section
+          className="organization-profile-page-planned-features"
+          aria-label="Planned profile features"
+        >
+          <h2>Planned Profile Features</h2>
+          <ul>
+            {PLANNED_PROFILE_FEATURES.map((feature) => (
+              <li key={feature}>{feature}</li>
+            ))}
+          </ul>
+        </section>
+      </div>
     </main>
   )
 }
