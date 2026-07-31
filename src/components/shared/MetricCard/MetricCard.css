@@ -32,10 +32,9 @@
 .metric-card-icon {
   color: var(--accent);
   flex-shrink: 0;
-  height: 16px;
-  width: 16px;
+  height: 22px;
+  width: 22px;
 }
-
 .metric-card-value {
   color: var(--text-h);
   font-size: 2rem;
