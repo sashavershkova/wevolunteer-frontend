@@ -10,6 +10,8 @@ type OpportunityListItemProps = {
   onRegister?: (opportunityId: string) => Promise<void>
   isFavorited?: boolean
   onToggleFavorite?: (opportunityId: string) => Promise<void>
+  isRegistered?: boolean
+  onCancelRegistration?: (opportunityId: string) => Promise<void>
 }
 
 function formatDate(dateString: string): string {
@@ -31,17 +33,21 @@ function OpportunityListItem({
   onRegister,
   isFavorited = false,
   onToggleFavorite,
+  isRegistered = false,
+  onCancelRegistration,
 }: OpportunityListItemProps) {
     const [isRegistering, setIsRegistering] = useState(false)
     const [registerError, setRegisterError] = useState<string | null>(null)
     const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
     const [favoriteError, setFavoriteError] = useState<string | null>(null)
+    const [isCancelling, setIsCancelling] = useState(false)
+    const [cancelError, setCancelError] = useState<string | null>(null)
 
     const isFull = opportunity.availableSpots <= 0
-    const canRegister = !isFull && Boolean(onRegister)
+    const canRegister = !isFull && Boolean(onRegister) && !isRegistered
     // Waitlist is a placeholder for now (not wired to a real backend flow yet) -
     // shown whenever an opportunity is full, but genuinely non-functional.
-    const isWaitlist = isFull
+    const isWaitlist = isFull && !isRegistered
     const spotsStatusClass = isFull
     ? 'opportunity-list-item-spots-full'
     : 'opportunity-list-item-spots-open'
@@ -68,6 +74,33 @@ function OpportunityListItem({
             err instanceof Error ? err.message : 'Unable to register for this opportunity.',
         )
         setIsRegistering(false)
+        }
+    }
+
+    async function handleCancelClick() {
+        if (!onCancelRegistration) {
+        return
+        }
+
+        const confirmed = window.confirm(
+            'Are you sure you want to cancel this registration?',
+        )
+
+        if (!confirmed) {
+        return
+        }
+
+        setIsCancelling(true)
+        setCancelError(null)
+
+        try {
+        await onCancelRegistration(opportunity.opportunityId)
+        } catch (err) {
+        setCancelError(
+            err instanceof Error ? err.message : 'Unable to cancel this registration.',
+        )
+        } finally {
+        setIsCancelling(false)
         }
     }
 
@@ -160,6 +193,26 @@ function OpportunityListItem({
             </li>
           </ul>
 
+          {isRegistered && (
+            <div className="opportunity-list-item-actions">
+              <span className="opportunity-list-item-registered-badge">Registered</span>
+              {onCancelRegistration && (
+                <button
+                  type="button"
+                  className="opportunity-list-item-cancel-button"
+                  onClick={handleCancelClick}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? 'Cancelling...' : 'Cancel Registration'}
+                </button>
+              )}
+              {cancelError && (
+                <p role="alert" className="opportunity-list-item-register-error">
+                  {cancelError}
+                </p>
+              )}
+            </div>
+          )}
           {canRegister && (
             <div className="opportunity-list-item-actions">
               <button

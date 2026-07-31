@@ -6,6 +6,11 @@ import FavoritesPage from './FavoritesPage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getOpportunities, registerForOpportunity } from '../../services/api/opportunityService'
 import {
+  cancelMyRegistration,
+  getMyRegistrations,
+  type Registration,
+} from '../../services/api/registrationService'
+import {
   getMyFavorites,
   removeFavorite,
   type Favorite,
@@ -21,6 +26,11 @@ vi.mock('../../services/api/opportunityService', () => ({
   registerForOpportunity: vi.fn(),
 }))
 
+vi.mock('../../services/api/registrationService', () => ({
+  getMyRegistrations: vi.fn(),
+  cancelMyRegistration: vi.fn(),
+}))
+
 vi.mock('../../services/api/favoriteService', () => ({
   getMyFavorites: vi.fn(),
   removeFavorite: vi.fn(),
@@ -29,8 +39,27 @@ vi.mock('../../services/api/favoriteService', () => ({
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetOpportunities = vi.mocked(getOpportunities)
 const mockedRegisterForOpportunity = vi.mocked(registerForOpportunity)
+const mockedGetMyRegistrations = vi.mocked(getMyRegistrations)
+const mockedCancelMyRegistration = vi.mocked(cancelMyRegistration)
 const mockedGetMyFavorites = vi.mocked(getMyFavorites)
 const mockedRemoveFavorite = vi.mocked(removeFavorite)
+
+function buildRegistration(overrides: Partial<Registration>): Registration {
+  return {
+    userId: 'user1',
+    opportunityId: 'opp1',
+    title: opp1.title,
+    date: opp1.date,
+    location: opp1.location,
+    organizationId: opp1.organizationId,
+    organizationName: opp1.organizationName,
+    registrationStatus: 'REGISTERED',
+    volunteerName: 'Sasha Vershkova',
+    email: 'sasha@example.com',
+    registeredAt: '2026-07-01T00:00:00Z',
+    ...overrides,
+  }
+}
 
 function buildFavorite(overrides: Partial<Favorite>): Favorite {
   return {
@@ -84,6 +113,8 @@ describe('FavoritesPage', () => {
   beforeEach(() => {
     mockedGetOpportunities.mockReset()
     mockedRegisterForOpportunity.mockReset()
+    mockedGetMyRegistrations.mockReset().mockResolvedValue([])
+    mockedCancelMyRegistration.mockReset()
     mockedGetMyFavorites.mockReset()
     mockedRemoveFavorite.mockReset()
     mockAuth()
@@ -154,7 +185,7 @@ describe('FavoritesPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('registers for a favorited opportunity and keeps it in the list', async () => {
+  it('registers for a favorited opportunity, keeps it in the list, and shows the Registered state', async () => {
     const user = userEvent.setup()
     mockedGetOpportunities.mockResolvedValue([opp1])
     mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp1' })])
@@ -168,9 +199,49 @@ describe('FavoritesPage', () => {
 
     expect(mockedRegisterForOpportunity).toHaveBeenCalledWith('token', 'user1', 'opp1')
     await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: 'Food Bank Volunteer Shift' }),
-      ).toBeInTheDocument()
+      expect(screen.getByText('Registered')).toBeInTheDocument()
+    })
+    expect(
+      screen.getByRole('heading', { name: 'Food Bank Volunteer Shift' }),
+    ).toBeInTheDocument()
+  })
+
+  it('shows the Registered state on load for an opportunity the volunteer already registered for', async () => {
+    mockedGetOpportunities.mockResolvedValue([opp1])
+    mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp1' })])
+    mockedGetMyRegistrations.mockResolvedValue([
+      buildRegistration({ opportunityId: 'opp1' }),
+    ])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+    expect(screen.getByText('Registered')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Cancel Registration' }),
+    ).toBeInTheDocument()
+  })
+
+  it('cancels a registration and shows the Register button again', async () => {
+    const user = userEvent.setup()
+    mockedGetOpportunities.mockResolvedValue([opp1])
+    mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp1' })])
+    mockedGetMyRegistrations.mockResolvedValue([
+      buildRegistration({ opportunityId: 'opp1' }),
+    ])
+    mockedCancelMyRegistration.mockResolvedValue(undefined)
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+
+    renderPage()
+
+    await screen.findByRole('button', { name: 'Cancel Registration' })
+
+    await user.click(screen.getByRole('button', { name: 'Cancel Registration' }))
+
+    expect(mockedCancelMyRegistration).toHaveBeenCalledWith('token', 'opp1')
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Register' })).toBeInTheDocument()
     })
   })
 

@@ -214,6 +214,51 @@
   margin: 0.4rem 0 0;
 }
 
+.opportunity-list-item-registered-badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: #e3f6e9;
+  color: #1f7a4d;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (prefers-color-scheme: dark) {
+  .opportunity-list-item-registered-badge {
+    background: rgba(34, 197, 94, 0.18);
+    color: #86efac;
+  }
+}
+
+.opportunity-list-item-cancel-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.opportunity-list-item-cancel-button:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.opportunity-list-item-cancel-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.opportunity-list-item-cancel-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .opportunity-list-item-waitlist-button {
   background: var(--border);
   border: none;

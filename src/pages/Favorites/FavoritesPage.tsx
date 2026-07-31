@@ -3,6 +3,7 @@ import { useAppAuth } from '../../contexts/AuthContext'
 import OpportunitiesListView from '../../components/opportunities/OpportunitiesListView/OpportunitiesListView'
 import OpportunityFilters from '../../components/opportunities/OpportunityFilters/OpportunityFilters'
 import { getOpportunities, registerForOpportunity } from '../../services/api/opportunityService'
+import { cancelMyRegistration, getMyRegistrations } from '../../services/api/registrationService'
 import { getMyFavorites, removeFavorite } from '../../services/api/favoriteService'
 import {
   EMPTY_FILTERS,
@@ -16,6 +17,9 @@ function FavoritesPage() {
   const auth = useAppAuth()
 
   const [favoritedOpportunities, setFavoritedOpportunities] = useState<Opportunity[]>([])
+  const [registeredOpportunityIds, setRegisteredOpportunityIds] = useState<Set<string>>(
+    new Set(),
+  )
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<OpportunityFiltersValue>(EMPTY_FILTERS)
@@ -30,9 +34,10 @@ function FavoritesPage() {
         setIsLoading(true)
         setError(null)
 
-        const [allOpportunities, myFavorites] = await Promise.all([
+        const [allOpportunities, myFavorites, myRegistrations] = await Promise.all([
           getOpportunities(auth.accessToken),
           getMyFavorites(auth.accessToken),
+          getMyRegistrations(auth.accessToken),
         ])
 
         const favoritedIds = new Set(
@@ -42,6 +47,11 @@ function FavoritesPage() {
         setFavoritedOpportunities(
           allOpportunities.filter((opportunity) =>
             favoritedIds.has(opportunity.opportunityId),
+          ),
+        )
+        setRegisteredOpportunityIds(
+          new Set(
+            myRegistrations.map((registration) => registration.opportunityId),
           ),
         )
       } catch {
@@ -78,6 +88,28 @@ function FavoritesPage() {
           : opportunity,
       ),
     )
+    setRegisteredOpportunityIds((previous) => new Set(previous).add(opportunityId))
+  }
+
+  async function handleCancelRegistration(opportunityId: string) {
+    await cancelMyRegistration(auth.accessToken, opportunityId)
+
+    setFavoritedOpportunities((previous) =>
+      previous.map((opportunity) =>
+        opportunity.opportunityId === opportunityId
+          ? {
+              ...opportunity,
+              registeredCount: opportunity.registeredCount - 1,
+              availableSpots: opportunity.availableSpots + 1,
+            }
+          : opportunity,
+      ),
+    )
+    setRegisteredOpportunityIds((previous) => {
+      const next = new Set(previous)
+      next.delete(opportunityId)
+      return next
+    })
   }
 
   async function handleToggleFavorite(opportunityId: string) {
@@ -108,6 +140,8 @@ function FavoritesPage() {
         onRegister={handleRegister}
         favoritedOpportunityIds={favoritedOpportunityIds}
         onToggleFavorite={handleToggleFavorite}
+        registeredOpportunityIds={registeredOpportunityIds}
+        onCancelRegistration={handleCancelRegistration}
       />
     </main>
   )
