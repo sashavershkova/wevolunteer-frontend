@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
 import { OpportunitiesIcon, RegistrationsIcon, VolunteersIcon, ProfileIcon } from '../../components/shared/icons'
+import MetricCard from '../../components/shared/MetricCard/MetricCard'
 import UpcomingOpportunityList from '../../components/organization/UpcomingOpportunityList/UpcomingOpportunityList'
 import type { Opportunity } from '../../types/Opportunity'
 import { getOpportunityDisplayStatus } from '../../utils/getOpportunityDisplayStatus'
@@ -140,41 +141,29 @@ function OrganizationDashboardPage() {
         aria-label="Opportunity metrics"
         aria-live="polite"
       >
-        <div className="organization-dashboard-metric-card">
-          <p className="organization-dashboard-metric-label">Open Opportunities</p>
-          <p className="organization-dashboard-metric-value">
-            {formatMetric(openOpportunitiesCount)}
-          </p>
-          <p className="organization-dashboard-metric-hint">Currently accepting volunteers</p>
-        </div>
+        <MetricCard
+          label="Open Opportunities"
+          value={formatMetric(openOpportunitiesCount)}
+          hint="Currently accepting volunteers"
+        />
 
-        <div className="organization-dashboard-metric-card">
-          <p className="organization-dashboard-metric-label">
-            Upcoming ({UPCOMING_WINDOW_DAYS} days)
-          </p>
-          <p className="organization-dashboard-metric-value">
-            {formatMetric(upcomingOpportunitiesCount)}
-          </p>
-          <p className="organization-dashboard-metric-hint">
-            Open opportunities happening soon
-          </p>
-        </div>
+        <MetricCard
+          label={`Upcoming (${UPCOMING_WINDOW_DAYS} days)`}
+          value={formatMetric(upcomingOpportunitiesCount)}
+          hint="Open opportunities happening soon"
+        />
 
-        <div className="organization-dashboard-metric-card">
-          <p className="organization-dashboard-metric-label">Total Registrations</p>
-          <p className="organization-dashboard-metric-value">
-            {formatMetric(totalRegistrationsCount)}
-          </p>
-          <p className="organization-dashboard-metric-hint">Across all opportunities</p>
-        </div>
+        <MetricCard
+          label="Total Registrations"
+          value={formatMetric(totalRegistrationsCount)}
+          hint="Across all opportunities"
+        />
 
-        <div className="organization-dashboard-metric-card">
-          <p className="organization-dashboard-metric-label">Total Capacity</p>
-          <p className="organization-dashboard-metric-value">
-            {formatMetric(totalCapacityCount)}
-          </p>
-          <p className="organization-dashboard-metric-hint">Volunteer spots offered</p>
-        </div>
+        <MetricCard
+          label="Total Capacity"
+          value={formatMetric(totalCapacityCount)}
+          hint="Volunteer spots offered"
+        />
       </section>
 
       <section className="organization-dashboard-upcoming" aria-label="Upcoming opportunities">

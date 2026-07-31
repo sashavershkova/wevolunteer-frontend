@@ -62,7 +62,7 @@ function renderPage() {
 }
 
 function getMetricValue(label: string): string {
-  const card = screen.getByText(label).closest('.organization-dashboard-metric-card')
+  const card = screen.getByText(label).closest('.metric-card')
   return within(card as HTMLElement).getByText(/^(—|\d+)$/).textContent ?? ''
 }
 

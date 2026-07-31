@@ -6,6 +6,7 @@ import { getOrganizationOpportunityRegistrations } from '../../services/api/regi
 import type { Registration } from '../../services/api/registrationService'
 import OrganizationVolunteerCard from '../../components/organization/OrganizationVolunteerCard/OrganizationVolunteerCard'
 import OrganizationVolunteerFilters from '../../components/organization/OrganizationVolunteerFilters/OrganizationVolunteerFilters'
+import MetricCard from '../../components/shared/MetricCard/MetricCard'
 import type { Opportunity } from '../../types/Opportunity'
 import { aggregateOrganizationVolunteers } from '../../utils/aggregateOrganizationVolunteers'
 import {
@@ -255,41 +256,29 @@ function OrganizationVolunteersPage() {
               aria-label="Volunteer summary"
               aria-live="polite"
             >
-              <div className="organization-dashboard-metric-card">
-                <p className="organization-dashboard-metric-label">Total Volunteers</p>
-                <p className="organization-dashboard-metric-value">
-                  {formatMetric(totalVolunteersCount)}
-                </p>
-                <p className="organization-dashboard-metric-hint">Unique volunteers found</p>
-              </div>
+              <MetricCard
+                label="Total Volunteers"
+                value={formatMetric(totalVolunteersCount)}
+                hint="Unique volunteers found"
+              />
 
-              <div className="organization-dashboard-metric-card">
-                <p className="organization-dashboard-metric-label">New Volunteers</p>
-                <p className="organization-dashboard-metric-value">
-                  {formatMetric(newVolunteersCount)}
-                </p>
-                <p className="organization-dashboard-metric-hint">Registered for 1 opportunity</p>
-              </div>
+              <MetricCard
+                label="New Volunteers"
+                value={formatMetric(newVolunteersCount)}
+                hint="Registered for 1 opportunity"
+              />
 
-              <div className="organization-dashboard-metric-card">
-                <p className="organization-dashboard-metric-label">Returning Volunteers</p>
-                <p className="organization-dashboard-metric-value">
-                  {formatMetric(returningVolunteersCount)}
-                </p>
-                <p className="organization-dashboard-metric-hint">
-                  Registered for 2 opportunities
-                </p>
-              </div>
+              <MetricCard
+                label="Returning Volunteers"
+                value={formatMetric(returningVolunteersCount)}
+                hint="Registered for 2 opportunities"
+              />
 
-              <div className="organization-dashboard-metric-card">
-                <p className="organization-dashboard-metric-label">Frequent Volunteers</p>
-                <p className="organization-dashboard-metric-value">
-                  {formatMetric(frequentVolunteersCount)}
-                </p>
-                <p className="organization-dashboard-metric-hint">
-                  Registered for 3 or more opportunities
-                </p>
-              </div>
+              <MetricCard
+                label="Frequent Volunteers"
+                value={formatMetric(frequentVolunteersCount)}
+                hint="Registered for 3 or more opportunities"
+              />
             </section>
 
             <OrganizationVolunteerFilters value={filters} onChange={setFilters} />

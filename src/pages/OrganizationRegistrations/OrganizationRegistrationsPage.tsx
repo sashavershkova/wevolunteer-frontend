@@ -6,6 +6,7 @@ import { getOrganizationOpportunityRegistrations } from '../../services/api/regi
 import type { Registration } from '../../services/api/registrationService'
 import OrganizationRegistrationGroup from '../../components/organization/OrganizationRegistrationGroup/OrganizationRegistrationGroup'
 import OrganizationRegistrationFilters from '../../components/organization/OrganizationRegistrationFilters/OrganizationRegistrationFilters'
+import MetricCard from '../../components/shared/MetricCard/MetricCard'
 import type { Opportunity } from '../../types/Opportunity'
 import { sortOrganizationOpportunities } from '../../utils/sortOrganizationOpportunities'
 import {
@@ -242,31 +243,23 @@ function OrganizationRegistrationsPage() {
             aria-label="Registration summary"
             aria-live="polite"
           >
-            <div className="organization-dashboard-metric-card">
-              <p className="organization-dashboard-metric-label">Total Registrations</p>
-              <p className="organization-dashboard-metric-value">
-                {formatMetric(totalRegistrationsCount)}
-              </p>
-              <p className="organization-dashboard-metric-hint">Across all opportunities</p>
-            </div>
+            <MetricCard
+              label="Total Registrations"
+              value={formatMetric(totalRegistrationsCount)}
+              hint="Across all opportunities"
+            />
 
-            <div className="organization-dashboard-metric-card">
-              <p className="organization-dashboard-metric-label">
-                Opportunities With Registrations
-              </p>
-              <p className="organization-dashboard-metric-value">
-                {formatMetric(opportunitiesWithRegistrationsCount)}
-              </p>
-              <p className="organization-dashboard-metric-hint">Have at least one volunteer</p>
-            </div>
+            <MetricCard
+              label="Opportunities With Registrations"
+              value={formatMetric(opportunitiesWithRegistrationsCount)}
+              hint="Have at least one volunteer"
+            />
 
-            <div className="organization-dashboard-metric-card">
-              <p className="organization-dashboard-metric-label">Total Volunteer Capacity</p>
-              <p className="organization-dashboard-metric-value">
-                {formatMetric(totalCapacityCount)}
-              </p>
-              <p className="organization-dashboard-metric-hint">Volunteer spots offered</p>
-            </div>
+            <MetricCard
+              label="Total Volunteer Capacity"
+              value={formatMetric(totalCapacityCount)}
+              hint="Volunteer spots offered"
+            />
           </section>
 
           <OrganizationRegistrationFilters value={filters} onChange={setFilters} />
