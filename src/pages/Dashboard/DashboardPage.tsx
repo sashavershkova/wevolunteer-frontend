@@ -174,7 +174,7 @@ function DashboardPage() {
 
       <section className="dashboard-upcoming" aria-label="Upcoming opportunities">
         <div className="dashboard-section-header">
-          <h2>Upcoming opportunities</h2>
+          <h2>Upcoming Opportunities</h2>
           <Link to="/my-registrations" className="dashboard-view-all-link">
             View all registrations
           </Link>
