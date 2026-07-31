@@ -49,6 +49,7 @@ const organizationFixture = {
   description: 'We distribute food to local families.',
   email: 'contact@seattlefoodbank.org',
   website: 'https://seattlefoodbank.example',
+  profileImageUrl: null,
 }
 
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>>) {
@@ -64,6 +65,7 @@ function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>>) {
       name: 'Sasha Vershkova',
       email: 'sasha@example.com',
       role: 'VOLUNTEER',
+      profileImageUrl: null,
     },
     organizationProfile: null,
     isProfileLoading: false,
@@ -102,6 +104,33 @@ describe('OpportunityDetailsPage', () => {
     // renderPage() when they need to exercise the "already saved" state.
     mockedGetMyFavorites.mockResolvedValue([])
     mockAuth({})
+  })
+
+  it('renders the opportunity image when the API returned one', async () => {
+    mockedGetOpportunity.mockResolvedValue({
+      ...opp1,
+      imageUrl: 'https://s3.example.com/signed-get',
+    })
+    mockedGetOrganization.mockResolvedValue(organizationFixture)
+    mockedGetMyRegistrations.mockResolvedValue([])
+
+    renderPage()
+
+    expect(
+      await screen.findByRole('img', { name: `${opp1.title} image` }),
+    ).toHaveAttribute('src', 'https://s3.example.com/signed-get')
+  })
+
+  it('shows the plain thumbnail when the opportunity has no image', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp1)
+    mockedGetOrganization.mockResolvedValue(organizationFixture)
+    mockedGetMyRegistrations.mockResolvedValue([])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: opp1.title })
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 
   it('shows a loading state before data arrives', () => {
@@ -331,6 +360,7 @@ describe('OpportunityDetailsPage', () => {
         description: '',
         email: '',
         website: '',
+        profileImageUrl: null,
       },
     })
     mockedGetOpportunity.mockResolvedValue(opp1)

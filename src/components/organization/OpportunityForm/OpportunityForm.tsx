@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
-import OpportunityImagePlaceholder from '../../shared/OpportunityImagePlaceholder/OpportunityImagePlaceholder'
+import ImageUploadField from '../../shared/ImageUploadField/ImageUploadField'
 import './OpportunityForm.css'
 
 export type OpportunityFormInitialValues = {
@@ -31,6 +31,16 @@ type OpportunityFormProps = {
   submitError: string | null
   onCancel: () => void
   onSubmit: (values: OpportunityFormSubmitValues) => void
+  /**
+   * Image state is owned by the page rather than the form: creating uploads the
+   * file first and attaches it once the opportunity exists, while editing
+   * attaches straight away.
+   */
+  imageUrl?: string | null
+  imagePreviewUrl?: string | null
+  isUploadingImage?: boolean
+  imageErrorMessage?: string | null
+  onSelectImage: (file: File) => void
 }
 
 type OpportunityFormState = {
@@ -161,6 +171,11 @@ function OpportunityForm({
   submitError,
   onCancel,
   onSubmit,
+  imageUrl = null,
+  imagePreviewUrl = null,
+  isUploadingImage = false,
+  imageErrorMessage = null,
+  onSelectImage,
 }: OpportunityFormProps) {
   const [form, setForm] = useState<OpportunityFormState>(() => buildFormState(initialValues))
   const [errors, setErrors] = useState<OpportunityFormErrors>({})
@@ -241,11 +256,22 @@ function OpportunityForm({
       </div>
 
       <div className="create-opportunity-field">
+        {/* No htmlFor: the field renders its own label for the file input, and a
+            second association would garble the input's accessible name. */}
         <label>
           Opportunity Image{' '}
           <span className="create-opportunity-optional-tag">(optional)</span>
         </label>
-        <OpportunityImagePlaceholder />
+        <ImageUploadField
+          inputId="opportunity-image"
+          imageUrl={imageUrl}
+          previewUrl={imagePreviewUrl}
+          alt="Opportunity image"
+          isUploading={isUploadingImage}
+          errorMessage={imageErrorMessage}
+          disabled={isSubmitting}
+          onSelectFile={onSelectImage}
+        />
       </div>
 
       <div className="create-opportunity-field">

@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import ProfilePage from './ProfilePage'
 import { useAppAuth } from '../../contexts/AuthContext'
+import { uploadUserProfileImage } from '../../services/api/imageService'
 import {
   getMyRegistrations,
   type Registration,
@@ -18,8 +20,25 @@ vi.mock('../../services/api/registrationService', () => ({
   getMyRegistrations: vi.fn(),
 }))
 
+vi.mock('../../services/api/imageService', () => ({
+  uploadUserProfileImage: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetMyRegistrations = vi.mocked(getMyRegistrations)
+const mockedUploadUserProfileImage = vi.mocked(uploadUserProfileImage)
+
+const volunteerProfile = {
+  userId: 'user1',
+  name: 'Sasha Vershkova',
+  email: 'sasha@example.com',
+  role: 'VOLUNTEER',
+  profileImageUrl: null,
+} as const
+
+function imageFile() {
+  return new File(['image-bytes'], 'photo.jpg', { type: 'image/jpeg' })
+}
 
 function buildRegistration(overrides: Partial<Registration>): Registration {
   return {
@@ -78,6 +97,7 @@ describe('ProfilePage', () => {
     vi.setSystemTime(new Date(MOCKED_TODAY))
     mockedGetMyRegistrations.mockReset()
     mockedGetMyRegistrations.mockResolvedValue([])
+    mockedUploadUserProfileImage.mockReset()
   })
 
   afterEach(() => {
@@ -91,6 +111,7 @@ describe('ProfilePage', () => {
         name: 'Sasha Vershkova',
         email: 'sasha@example.com',
         role: 'VOLUNTEER',
+        profileImageUrl: null,
       },
     })
 
@@ -109,6 +130,7 @@ describe('ProfilePage', () => {
         name: 'Sasha Vershkova',
         email: 'sasha@example.com',
         role: 'VOLUNTEER',
+        profileImageUrl: null,
       },
     })
 
@@ -118,20 +140,91 @@ describe('ProfilePage', () => {
     expect(screen.getByText('SV')).toBeInTheDocument()
   })
 
-  it('disables the upload photo button', () => {
-    mockAuth({
-      userProfile: {
-        userId: 'user1',
-        name: 'Sasha Vershkova',
-        email: 'sasha@example.com',
-        role: 'VOLUNTEER',
-      },
+  describe('profile photo', () => {
+    it('offers a photo picker limited to the accepted image types', () => {
+      mockAuth({ userProfile: { ...volunteerProfile } })
+
+      renderProfilePage()
+
+      expect(screen.getByLabelText('Upload Photo')).toHaveAttribute(
+        'accept',
+        'image/jpeg,image/png,image/webp',
+      )
     })
 
-    renderProfilePage()
+    it('shows the stored photo instead of the initials once one exists', () => {
+      mockAuth({
+        userProfile: {
+          ...volunteerProfile,
+          profileImageUrl: 'https://s3.example.com/signed-get',
+        },
+      })
 
-    expect(screen.getByRole('button', { name: /upload photo/i })).toBeDisabled()
-    expect(screen.getByText(/available soon/i)).toBeInTheDocument()
+      renderProfilePage()
+
+      expect(
+        screen.getByRole('img', { name: 'Sasha Vershkova profile photo' }),
+      ).toHaveAttribute('src', 'https://s3.example.com/signed-get')
+      expect(screen.queryByText('SV')).not.toBeInTheDocument()
+      expect(screen.getByLabelText('Replace Photo')).toBeInTheDocument()
+    })
+
+    it('uploads the chosen photo and stores the refreshed profile', async () => {
+      const updateUserProfile = vi.fn()
+      const updatedProfile = {
+        ...volunteerProfile,
+        profileImageUrl: 'https://s3.example.com/signed-get',
+      }
+      mockAuth({ userProfile: { ...volunteerProfile }, updateUserProfile })
+      mockedUploadUserProfileImage.mockResolvedValue(updatedProfile)
+
+      renderProfilePage()
+
+      const file = imageFile()
+      await userEvent.upload(screen.getByLabelText('Upload Photo'), file)
+
+      await waitFor(() => {
+        expect(mockedUploadUserProfileImage).toHaveBeenCalledWith('token', file)
+      })
+      expect(updateUserProfile).toHaveBeenCalledWith(updatedProfile)
+    })
+
+    it('reports a failed upload and keeps the profile unchanged', async () => {
+      const updateUserProfile = vi.fn()
+      mockAuth({ userProfile: { ...volunteerProfile }, updateUserProfile })
+      mockedUploadUserProfileImage.mockRejectedValue(
+        new Error('The uploaded image is larger than the 5 MB limit.'),
+      )
+
+      renderProfilePage()
+
+      await userEvent.upload(screen.getByLabelText('Upload Photo'), imageFile())
+
+      expect(
+        await screen.findByText('The uploaded image is larger than the 5 MB limit.'),
+      ).toBeInTheDocument()
+      expect(updateUserProfile).not.toHaveBeenCalled()
+    })
+
+    it('rejects an unsupported file without calling the API', async () => {
+      mockAuth({ userProfile: { ...volunteerProfile } })
+
+      renderProfilePage()
+
+      // The accept attribute filters the file dialog, so the guard is exercised
+      // the way a drag-and-drop or a stubborn browser would reach it.
+      const input = screen.getByLabelText('Upload Photo') as HTMLInputElement
+      input.removeAttribute('accept')
+      await userEvent.upload(
+        input,
+        new File(['not-an-image'], 'notes.pdf', { type: 'application/pdf' }),
+      )
+
+      expect(
+        await screen.findByText('Choose a JPEG, PNG, or WebP image.'),
+      ).toBeInTheDocument()
+      expect(mockedUploadUserProfileImage).not.toHaveBeenCalled()
+    })
   })
 
   it('redirects to /organization for an organization profile', () => {
@@ -142,6 +235,7 @@ describe('ProfilePage', () => {
         description: '',
         email: '',
         website: '',
+        profileImageUrl: null,
       },
     })
 
@@ -166,6 +260,7 @@ describe('ProfilePage', () => {
           name: 'Sasha Vershkova',
           email: 'sasha@example.com',
           role: 'VOLUNTEER',
+          profileImageUrl: null,
         },
       })
     }
@@ -260,7 +355,7 @@ describe('ProfilePage', () => {
 
       expect(screen.getByText('Sasha Vershkova')).toBeInTheDocument()
       expect(screen.getByText('sasha@example.com')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /upload photo/i })).toBeDisabled()
+      expect(screen.getByLabelText('Upload Photo')).toBeEnabled()
     })
   })
 })

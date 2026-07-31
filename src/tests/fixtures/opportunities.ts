@@ -31,6 +31,7 @@ export const opp1: Opportunity = {
   endTime: '12:00',
   whatYoullDo: ['Sort and organize food items', 'Pack boxes for distribution'],
   recurring: false,
+  imageUrl: null,
 }
 
 export const opp2: Opportunity = {
@@ -51,6 +52,7 @@ export const opp2: Opportunity = {
   endTime: null,
   whatYoullDo: [],
   recurring: false,
+  imageUrl: null,
 }
 
 export const opp3: Opportunity = {
@@ -71,6 +73,7 @@ export const opp3: Opportunity = {
   endTime: '16:45',
   whatYoullDo: ['Pick up litter', 'Spread mulch in garden beds'],
   recurring: true,
+  imageUrl: null,
 }
 
 export const opp7: Opportunity = {
@@ -91,6 +94,7 @@ export const opp7: Opportunity = {
   endTime: null,
   whatYoullDo: [],
   recurring: false,
+  imageUrl: null,
 }
 
 export const mockOpportunities: Opportunity[] = [opp1, opp2, opp3, opp7]

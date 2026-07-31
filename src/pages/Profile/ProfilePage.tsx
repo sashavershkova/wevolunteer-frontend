@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
-import { UploadPhotoIcon } from '../../components/shared/icons'
+import ImageUploadField from '../../components/shared/ImageUploadField/ImageUploadField'
+import { useImageUpload } from '../../hooks/useImageUpload'
+import { uploadUserProfileImage } from '../../services/api/imageService'
 import {
   getMyRegistrations,
   type Registration,
@@ -33,6 +35,18 @@ function ProfilePage() {
   const [activityErrorMessage, setActivityErrorMessage] = useState<
     string | null
   >(null)
+
+  const imageUpload = useImageUpload({
+    onUpload: async (file) => {
+      if (!auth.accessToken) {
+        throw new Error('Your authentication session is unavailable.')
+      }
+
+      // The response carries a freshly signed URL for the new photo, so the
+      // profile in context is replaced rather than patched locally.
+      auth.updateUserProfile(await uploadUserProfileImage(auth.accessToken, file))
+    },
+  })
 
   useEffect(() => {
     if (!auth.accessToken || auth.organizationProfile) {
@@ -94,7 +108,7 @@ function ProfilePage() {
     return <Navigate to="/" replace />
   }
 
-  const { name, email } = auth.userProfile
+  const { name, email, profileImageUrl } = auth.userProfile
 
   const completedCount = registrations.filter((registration) =>
     isPastOpportunityDate(registration.date),
@@ -108,20 +122,27 @@ function ProfilePage() {
 
       <section className="profile-card">
         <div className="profile-avatar-area">
-          <div
-            className="profile-avatar"
-            role="img"
-            aria-label={`${name} avatar`}
-          >
-            {getInitials(name)}
-          </div>
-          <button type="button" className="profile-upload-button" disabled>
-            <UploadPhotoIcon aria-hidden="true" />
-            Upload Photo
-          </button>
-          <p className="profile-upload-note">
-            Photo upload will be available soon.
-          </p>
+          <ImageUploadField
+            inputId="profile-photo"
+            variant="avatar"
+            imageUrl={profileImageUrl}
+            previewUrl={imageUpload.previewUrl}
+            alt={`${name} profile photo`}
+            uploadLabel="Upload Photo"
+            replaceLabel="Replace Photo"
+            fallback={
+              <span
+                className="profile-avatar-initials"
+                role="img"
+                aria-label={`${name} avatar`}
+              >
+                {getInitials(name)}
+              </span>
+            }
+            isUploading={imageUpload.isUploading}
+            errorMessage={imageUpload.errorMessage}
+            onSelectFile={imageUpload.selectFile}
+          />
         </div>
 
         <dl className="profile-details">

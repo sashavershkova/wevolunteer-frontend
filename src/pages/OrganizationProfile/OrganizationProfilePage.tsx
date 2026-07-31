@@ -8,7 +8,6 @@ import OrganizationProfileCompletionPreview from '../../components/organization/
 import './OrganizationProfilePage.css'
 
 const PLANNED_PROFILE_FEATURES = [
-  'Organization logo uploads',
   'Public organization profile',
   'Organization verification',
   'Service areas and causes',

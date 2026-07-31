@@ -26,6 +26,7 @@ const organizationFixture: OrganizationProfile = {
   description: '',
   email: 'contact@seattlefoodbank.org',
   website: '',
+  profileImageUrl: null,
 }
 
 const volunteerFixture: UserProfile = {
@@ -33,6 +34,7 @@ const volunteerFixture: UserProfile = {
   name: 'Ada Lovelace',
   email: 'ada@example.com',
   role: 'VOLUNTEER',
+  profileImageUrl: null,
 }
 
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {

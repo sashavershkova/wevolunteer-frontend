@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getOpportunity, updateOpportunity } from '../../services/api/opportunityService'
+import {
+  attachOpportunityImage,
+  uploadOpportunityImage,
+} from '../../services/api/imageService'
+import { useImageUpload } from '../../hooks/useImageUpload'
 import OpportunityForm, {
   type OpportunityFormSubmitValues,
 } from '../../components/organization/OpportunityForm/OpportunityForm'
@@ -18,6 +23,22 @@ function ManageOpportunityPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  // The opportunity already exists, so an image is attached as soon as it
+  // uploads - no need to wait for the rest of the form to be saved.
+  const imageUpload = useImageUpload({
+    onUpload: async (file) => {
+      if (!auth.accessToken || !opportunityId) {
+        throw new Error('Your authentication session is unavailable.')
+      }
+
+      const objectKey = await uploadOpportunityImage(auth.accessToken, file)
+
+      setOpportunity(
+        await attachOpportunityImage(auth.accessToken, opportunityId, objectKey),
+      )
+    },
+  })
 
   useEffect(() => {
     let ignore = false
@@ -176,6 +197,11 @@ function ManageOpportunityPage() {
           submitError={submitError}
           onCancel={handleCancel}
           onSubmit={handleSubmit}
+          imageUrl={opportunity.imageUrl}
+          imagePreviewUrl={imageUpload.previewUrl}
+          isUploadingImage={imageUpload.isUploading}
+          imageErrorMessage={imageUpload.errorMessage}
+          onSelectImage={imageUpload.selectFile}
         />
       )}
     </main>

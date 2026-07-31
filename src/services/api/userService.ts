@@ -5,6 +5,8 @@ export type UserProfile = {
   name: string
   email: string
   role: 'VOLUNTEER' | 'ORGANIZATION'
+  /** Temporary pre-signed link, or null when no photo has been uploaded. */
+  profileImageUrl: string | null
 }
 
 export type CreateUserProfileRequest = {

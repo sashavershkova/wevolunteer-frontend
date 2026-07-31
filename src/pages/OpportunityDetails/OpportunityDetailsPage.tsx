@@ -247,7 +247,15 @@ function OpportunityDetailsPage() {
       </Link>
 
       <div className="opportunity-details-top">
-        <div className="opportunity-details-thumb" aria-hidden="true" />
+        {opportunity.imageUrl ? (
+          <img
+            className="opportunity-details-thumb"
+            src={opportunity.imageUrl}
+            alt={`${opportunity.title} image`}
+          />
+        ) : (
+          <div className="opportunity-details-thumb" aria-hidden="true" />
+        )}
 
         <div className="opportunity-details-title-col">
           <div className="opportunity-details-header">

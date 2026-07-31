@@ -22,6 +22,7 @@ function renderForm(props: Partial<Parameters<typeof OpportunityForm>[0]> = {}) 
       submitError={null}
       onCancel={vi.fn()}
       onSubmit={vi.fn()}
+      onSelectImage={vi.fn()}
       {...props}
     />,
   )
@@ -162,12 +163,67 @@ describe('OpportunityForm - start/end time fields', () => {
   })
 })
 
-describe('OpportunityForm - opportunity image placeholder', () => {
-  it('shows the image upload placeholder with a disabled Upload Image button', () => {
+describe('OpportunityForm - opportunity image', () => {
+  const imageFile = () =>
+    new File(['image-bytes'], 'photo.jpg', { type: 'image/jpeg' })
+
+  it('offers a picker limited to the image types the backend accepts', () => {
     renderForm()
 
     expect(screen.getByText('Opportunity Image')).toBeInTheDocument()
     expect(screen.getByText('No image uploaded')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Upload Image' })).toBeDisabled()
+    expect(screen.getByLabelText('Upload Image')).toHaveAttribute(
+      'accept',
+      'image/jpeg,image/png,image/webp',
+    )
+  })
+
+  it('hands the chosen file to onSelectImage', async () => {
+    const onSelectImage = vi.fn()
+    renderForm({ onSelectImage })
+
+    const file = imageFile()
+    await userEvent.upload(screen.getByLabelText('Upload Image'), file)
+
+    expect(onSelectImage).toHaveBeenCalledWith(file)
+  })
+
+  it('shows the saved image and offers to replace it', () => {
+    renderForm({ imageUrl: 'https://s3.example.com/signed-get' })
+
+    expect(screen.getByRole('img', { name: 'Opportunity image' })).toHaveAttribute(
+      'src',
+      'https://s3.example.com/signed-get',
+    )
+    expect(screen.getByLabelText('Replace Image')).toBeInTheDocument()
+  })
+
+  it('shows the picked file before the saved image while it uploads', () => {
+    renderForm({
+      imageUrl: 'https://s3.example.com/old',
+      imagePreviewUrl: 'blob:new',
+      isUploadingImage: true,
+    })
+
+    expect(screen.getByRole('img', { name: 'Opportunity image' })).toHaveAttribute(
+      'src',
+      'blob:new',
+    )
+    expect(screen.getByRole('status')).toHaveTextContent('Uploading...')
+  })
+
+  it('shows an image error without blocking the rest of the form', () => {
+    renderForm({ imageErrorMessage: 'Choose an image smaller than 5 MB.' })
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Choose an image smaller than 5 MB.',
+    )
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
+  })
+
+  it('blocks picking a new image while the form is submitting', () => {
+    renderForm({ isSubmitting: true })
+
+    expect(screen.getByLabelText('Upload Image')).toBeDisabled()
   })
 })

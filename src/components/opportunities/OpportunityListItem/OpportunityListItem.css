@@ -31,12 +31,17 @@
   outline-offset: 2px;
 }
 
-.opportunity-list-item-image-placeholder {
+.opportunity-list-item-image-placeholder,
+.opportunity-list-item-image {
   background: var(--border);
   border-radius: 0.5rem;
   flex-shrink: 0;
   height: 10rem;
   width: 10rem;
+}
+
+.opportunity-list-item-image {
+  object-fit: cover;
 }
 
 .opportunity-list-item-favorite-button {
