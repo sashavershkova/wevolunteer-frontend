@@ -26,6 +26,7 @@ type AuthContextValue = {
   userProfile: UserProfile | null
   organizationProfile: OrganizationProfile | null
   isProfileLoading: boolean
+  isProfileInitialized: boolean
   profileErrorMessage: string | null
   updateUserProfile: (profile: UserProfile | null) => void
   updateOrganizationProfile: (
@@ -50,18 +51,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     null,
   )
 
+  // The auth identity (access token, or null when unauthenticated) that userProfile/
+  // organizationProfile above actually reflect. currentAuthKey below is derived fresh
+  // from auth.isAuthenticated/accessToken on every render, so comparing it against
+  // this state gives an isProfileInitialized value with no one-render lag -- unlike
+  // deriving it from isProfileLoading, which only updates a render *after*
+  // auth.isAuthenticated flips, once the effect below has had a chance to run.
+  // Without that, a page could see a still-null profile before the profile fetch had
+  // even started and treat "no profile" as final, redirecting away.
+  const [resolvedProfileAuthKey, setResolvedProfileAuthKey] = useState<
+    string | null | undefined
+  >(undefined)
+
+  const currentAuthKey = auth.isAuthenticated && accessToken ? accessToken : null
+  const isProfileInitialized = resolvedProfileAuthKey === currentAuthKey
+
   useEffect(() => {
     let ignore = false
 
-    if (!auth.isAuthenticated || !accessToken) {
-      setUserProfile(null)
-      setOrganizationProfile(null)
-      setIsProfileLoading(false)
-      setProfileErrorMessage(null)
-      return
-    }
+    const resolveProfile = async () => {
+      if (!auth.isAuthenticated || !accessToken) {
+        setUserProfile(null)
+        setOrganizationProfile(null)
+        setIsProfileLoading(false)
+        setProfileErrorMessage(null)
+        setResolvedProfileAuthKey(null)
+        return
+      }
 
-    const loadProfile = async () => {
       setIsProfileLoading(true)
       setProfileErrorMessage(null)
 
@@ -101,11 +118,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } finally {
         if (!ignore) {
           setIsProfileLoading(false)
+          setResolvedProfileAuthKey(accessToken)
         }
       }
     }
 
-    void loadProfile()
+    void resolveProfile()
 
     return () => {
       ignore = true
@@ -149,6 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     userProfile,
     organizationProfile,
     isProfileLoading,
+    isProfileInitialized,
     profileErrorMessage,
     updateUserProfile,
     updateOrganizationProfile,

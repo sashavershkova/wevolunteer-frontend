@@ -33,6 +33,7 @@ function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {
       website: '',
     },
     isProfileLoading: false,
+    isProfileInitialized: true,
     profileErrorMessage: null,
     updateUserProfile: vi.fn(),
     updateOrganizationProfile: vi.fn(),
