@@ -1,8 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import OrganizationProfileSection from './OrganizationProfileSection'
 import { useAppAuth } from '../../../contexts/AuthContext'
-import { updateCurrentOrganization } from '../../../services/api/organizationService'
+import {
+  updateCurrentOrganization,
+  type OrganizationProfile,
+} from '../../../services/api/organizationService'
+import { uploadOrganizationProfileImage } from '../../../services/api/imageService'
 
 vi.mock('../../../contexts/AuthContext', () => ({
   useAppAuth: vi.fn(),
@@ -12,15 +17,21 @@ vi.mock('../../../services/api/organizationService', () => ({
   updateCurrentOrganization: vi.fn(),
 }))
 
+vi.mock('../../../services/api/imageService', () => ({
+  uploadOrganizationProfileImage: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedUpdateCurrentOrganization = vi.mocked(updateCurrentOrganization)
+const mockedUploadOrganizationProfileImage = vi.mocked(uploadOrganizationProfileImage)
 
-const organizationFixture = {
+const organizationFixture: OrganizationProfile = {
   organizationId: 'org1',
   name: 'Seattle Food Bank',
   description: 'We distribute food to local families.',
   email: 'contact@seattlefoodbank.org',
   website: '',
+  profileImageUrl: null,
 }
 
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {
@@ -58,6 +69,7 @@ function enterEditMode() {
 describe('OrganizationProfileSection', () => {
   beforeEach(() => {
     mockedUpdateCurrentOrganization.mockReset()
+    mockedUploadOrganizationProfileImage.mockReset()
     mockAuth()
   })
 
@@ -241,5 +253,71 @@ describe('OrganizationProfileSection', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: organizationFixture.name }),
     ).toBeInTheDocument()
+  })
+})
+
+describe('OrganizationProfileSection - logo', () => {
+  beforeEach(() => {
+    mockedUploadOrganizationProfileImage.mockReset()
+    mockAuth()
+  })
+
+  function logoFile() {
+    return new File(['image-bytes'], 'logo.png', { type: 'image/png' })
+  }
+
+  it('offers a logo picker limited to the accepted image types', () => {
+    renderSection()
+
+    expect(screen.getByLabelText('Upload logo')).toHaveAttribute(
+      'accept',
+      'image/jpeg,image/png,image/webp',
+    )
+  })
+
+  it('shows the stored logo and offers to replace it', () => {
+    renderSection({ profileImageUrl: 'https://s3.example.com/signed-get' })
+
+    expect(
+      screen.getByRole('img', { name: `${organizationFixture.name} logo` }),
+    ).toHaveAttribute('src', 'https://s3.example.com/signed-get')
+    expect(screen.getByLabelText('Replace logo')).toBeInTheDocument()
+  })
+
+  it('uploads the chosen logo and stores the refreshed organization', async () => {
+    const updateOrganizationProfile = vi.fn()
+    const updated = {
+      ...organizationFixture,
+      profileImageUrl: 'https://s3.example.com/signed-get',
+    }
+    mockAuth({ updateOrganizationProfile })
+    mockedUploadOrganizationProfileImage.mockResolvedValue(updated)
+
+    renderSection()
+
+    const file = logoFile()
+    await userEvent.upload(screen.getByLabelText('Upload logo'), file)
+
+    await waitFor(() => {
+      expect(mockedUploadOrganizationProfileImage).toHaveBeenCalledWith('token', file)
+    })
+    expect(updateOrganizationProfile).toHaveBeenCalledWith(updated)
+  })
+
+  it('reports a failed logo upload', async () => {
+    const updateOrganizationProfile = vi.fn()
+    mockAuth({ updateOrganizationProfile })
+    mockedUploadOrganizationProfileImage.mockRejectedValue(
+      new Error('The uploaded file is not a supported image.'),
+    )
+
+    renderSection()
+
+    await userEvent.upload(screen.getByLabelText('Upload logo'), logoFile())
+
+    expect(
+      await screen.findByText('The uploaded file is not a supported image.'),
+    ).toBeInTheDocument()
+    expect(updateOrganizationProfile).not.toHaveBeenCalled()
   })
 })

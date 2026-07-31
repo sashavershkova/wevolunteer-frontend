@@ -270,3 +270,20 @@ describe('OpportunityListItem', () => {
     })
   })
 })
+
+describe('OpportunityListItem - image', () => {
+  it('renders the opportunity image when the API returned one', () => {
+    renderItem({ ...opp1, imageUrl: 'https://s3.example.com/signed-get' })
+
+    expect(screen.getByRole('img', { name: `${opp1.title} image` })).toHaveAttribute(
+      'src',
+      'https://s3.example.com/signed-get',
+    )
+  })
+
+  it('falls back to the grey placeholder when there is no image', () => {
+    renderItem({ ...opp1, imageUrl: null })
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  })
+})

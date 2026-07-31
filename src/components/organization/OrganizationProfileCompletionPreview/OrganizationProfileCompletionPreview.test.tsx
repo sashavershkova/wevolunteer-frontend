@@ -8,6 +8,7 @@ const filledOrganization = {
   description: 'We distribute food to local families.',
   email: 'contact@seattlefoodbank.org',
   website: 'https://seattlefoodbank.org',
+  profileImageUrl: null,
 }
 
 describe('OrganizationProfileCompletionPreview', () => {

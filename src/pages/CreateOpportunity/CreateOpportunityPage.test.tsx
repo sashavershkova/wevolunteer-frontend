@@ -5,6 +5,10 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import CreateOpportunityPage from './CreateOpportunityPage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { createOpportunity } from '../../services/api/opportunityService'
+import {
+  attachOpportunityImage,
+  uploadOpportunityImage,
+} from '../../services/api/imageService'
 import { opp1 } from '../../tests/fixtures/opportunities'
 import type { Opportunity } from '../../types/Opportunity'
 
@@ -16,8 +20,17 @@ vi.mock('../../services/api/opportunityService', () => ({
   createOpportunity: vi.fn(),
 }))
 
+vi.mock('../../services/api/imageService', () => ({
+  uploadOpportunityImage: vi.fn(),
+  attachOpportunityImage: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedCreateOpportunity = vi.mocked(createOpportunity)
+const mockedUploadOpportunityImage = vi.mocked(uploadOpportunityImage)
+const mockedAttachOpportunityImage = vi.mocked(attachOpportunityImage)
+
+const OBJECT_KEY = 'organizations/org1/opportunities/1234.jpg'
 
 const GENERATED_UUID = '11111111-1111-1111-1111-111111111111'
 
@@ -78,6 +91,8 @@ async function fillValidForm(user: UserEvent, overrides: Partial<typeof validFor
 describe('CreateOpportunityPage', () => {
   beforeEach(() => {
     mockedCreateOpportunity.mockReset()
+    mockedUploadOpportunityImage.mockReset()
+    mockedAttachOpportunityImage.mockReset()
     mockAuth()
     vi.spyOn(crypto, 'randomUUID').mockReturnValue(GENERATED_UUID)
   })
@@ -371,5 +386,114 @@ describe('CreateOpportunityPage', () => {
 
     expect(await screen.findByText('Organization Dashboard Page')).toBeInTheDocument()
     expect(mockedCreateOpportunity).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('CreateOpportunityPage - opportunity image', () => {
+  beforeEach(() => {
+    mockedCreateOpportunity.mockReset()
+    mockedUploadOpportunityImage.mockReset()
+    mockedAttachOpportunityImage.mockReset()
+    mockAuth()
+    vi.spyOn(crypto, 'randomUUID').mockReturnValue(GENERATED_UUID)
+  })
+
+  function imageFile() {
+    return new File(['image-bytes'], 'photo.jpg', { type: 'image/jpeg' })
+  }
+
+  it('uploads the chosen image before the opportunity is created', async () => {
+    const user = userEvent.setup()
+    mockedUploadOpportunityImage.mockResolvedValue(OBJECT_KEY)
+    renderPage()
+
+    const file = imageFile()
+    await user.upload(screen.getByLabelText('Upload Image'), file)
+
+    await waitFor(() => {
+      expect(mockedUploadOpportunityImage).toHaveBeenCalledWith('test-token', file)
+    })
+    // Nothing is attached yet: the opportunity does not exist.
+    expect(mockedAttachOpportunityImage).not.toHaveBeenCalled()
+    expect(mockedCreateOpportunity).not.toHaveBeenCalled()
+  })
+
+  it('attaches the uploaded image once the opportunity exists', async () => {
+    const user = userEvent.setup()
+    mockedUploadOpportunityImage.mockResolvedValue(OBJECT_KEY)
+    mockedCreateOpportunity.mockResolvedValue({ ...opp1, opportunityId: GENERATED_UUID })
+    mockedAttachOpportunityImage.mockResolvedValue({
+      ...opp1,
+      opportunityId: GENERATED_UUID,
+      imageUrl: 'https://s3.example.com/signed-get',
+    })
+    renderPage()
+
+    await user.upload(screen.getByLabelText('Upload Image'), imageFile())
+    await waitFor(() => expect(mockedUploadOpportunityImage).toHaveBeenCalled())
+
+    await fillValidForm(user)
+    await user.click(screen.getByRole('button', { name: 'Create Opportunity' }))
+
+    await waitFor(() => {
+      expect(mockedAttachOpportunityImage).toHaveBeenCalledWith(
+        'test-token',
+        GENERATED_UUID,
+        OBJECT_KEY,
+      )
+    })
+    expect(await screen.findByText('Organization Dashboard Page')).toBeInTheDocument()
+  })
+
+  it('creates the opportunity without attaching anything when no image is chosen', async () => {
+    const user = userEvent.setup()
+    mockedCreateOpportunity.mockResolvedValue(opp1)
+    renderPage()
+
+    await fillValidForm(user)
+    await user.click(screen.getByRole('button', { name: 'Create Opportunity' }))
+
+    expect(await screen.findByText('Organization Dashboard Page')).toBeInTheDocument()
+    expect(mockedAttachOpportunityImage).not.toHaveBeenCalled()
+  })
+
+  it('says the opportunity was created when only the image fails to attach', async () => {
+    const user = userEvent.setup()
+    mockedUploadOpportunityImage.mockResolvedValue(OBJECT_KEY)
+    mockedCreateOpportunity.mockResolvedValue({ ...opp1, opportunityId: GENERATED_UUID })
+    mockedAttachOpportunityImage.mockRejectedValue(
+      new Error('No uploaded image was found for that key.'),
+    )
+    renderPage()
+
+    await user.upload(screen.getByLabelText('Upload Image'), imageFile())
+    await waitFor(() => expect(mockedUploadOpportunityImage).toHaveBeenCalled())
+
+    await fillValidForm(user)
+    await user.click(screen.getByRole('button', { name: 'Create Opportunity' }))
+
+    expect(
+      await screen.findByText(/This opportunity was created, but its image could not be saved/),
+    ).toBeInTheDocument()
+    // The opportunity exists, so the user is not sent back to create it again.
+    expect(screen.queryByText('Organization Dashboard Page')).not.toBeInTheDocument()
+  })
+
+  it('reports a failed image upload and still allows submitting the form', async () => {
+    const user = userEvent.setup()
+    mockedUploadOpportunityImage.mockRejectedValue(
+      new Error('Unable to upload the image: 403'),
+    )
+    mockedCreateOpportunity.mockResolvedValue(opp1)
+    renderPage()
+
+    await user.upload(screen.getByLabelText('Upload Image'), imageFile())
+    expect(await screen.findByText('Unable to upload the image: 403')).toBeInTheDocument()
+
+    await fillValidForm(user)
+    await user.click(screen.getByRole('button', { name: 'Create Opportunity' }))
+
+    expect(await screen.findByText('Organization Dashboard Page')).toBeInTheDocument()
+    expect(mockedAttachOpportunityImage).not.toHaveBeenCalled()
   })
 })

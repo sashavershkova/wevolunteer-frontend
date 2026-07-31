@@ -18,4 +18,10 @@ export type Opportunity = {
   endTime: string | null
   whatYoullDo: string[]
   recurring: boolean
+  /**
+   * Temporary pre-signed link to the opportunity image, regenerated on every
+   * response, or null when no image has been uploaded. The durable S3 key stays
+   * on the server and is deliberately never sent to the browser.
+   */
+  imageUrl: string | null
 }

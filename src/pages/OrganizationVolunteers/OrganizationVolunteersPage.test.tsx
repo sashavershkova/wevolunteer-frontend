@@ -44,6 +44,7 @@ function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {
       description: '',
       email: 'contact@seattlefoodbank.org',
       website: '',
+      profileImageUrl: null,
     },
     isProfileLoading: false,
     isProfileInitialized: true,

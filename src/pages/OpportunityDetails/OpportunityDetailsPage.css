@@ -42,6 +42,7 @@
   height: 300px;
   border-radius: 0.75rem;
   background: var(--border);
+  object-fit: cover;
 }
 
 @media (max-width: 480px) {

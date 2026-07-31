@@ -71,54 +71,12 @@
   min-width: 0;
 }
 
-.organization-profile-section-logo-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-  width: 8rem;
-  text-align: center;
-}
-
-.organization-profile-section-logo-circle {
-  width: 5.5rem;
-  height: 5.5rem;
-  border-radius: 50%;
-  background: var(--bg-alt, rgba(0, 0, 0, 0.04));
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text);
-  flex-shrink: 0;
-}
-
-.organization-profile-section-logo-circle svg {
+/* The logo frame and its button come from ImageUploadField; only the fallback
+   icon needs sizing here. */
+.organization-profile-section-logo-icon {
   width: 2.25rem;
   height: 2.25rem;
-}
-
-.organization-profile-section-upload-button {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: transparent;
   color: var(--text);
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.4rem 0.75rem;
-}
-
-.organization-profile-section-upload-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.organization-profile-section-logo-note {
-  font-size: 0.75rem;
-  color: var(--text);
-  margin: 0;
 }
 
 .organization-profile-section-description {

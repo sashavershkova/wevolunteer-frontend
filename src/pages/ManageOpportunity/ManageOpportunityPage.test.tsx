@@ -5,6 +5,10 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import ManageOpportunityPage from './ManageOpportunityPage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getOpportunity, updateOpportunity } from '../../services/api/opportunityService'
+import {
+  attachOpportunityImage,
+  uploadOpportunityImage,
+} from '../../services/api/imageService'
 import { opp1, opp7 } from '../../tests/fixtures/opportunities'
 
 vi.mock('../../contexts/AuthContext', () => ({
@@ -16,9 +20,20 @@ vi.mock('../../services/api/opportunityService', () => ({
   updateOpportunity: vi.fn(),
 }))
 
+vi.mock('../../services/api/imageService', () => ({
+  uploadOpportunityImage: vi.fn(),
+  attachOpportunityImage: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetOpportunity = vi.mocked(getOpportunity)
 const mockedUpdateOpportunity = vi.mocked(updateOpportunity)
+const mockedUploadOpportunityImage = vi.mocked(uploadOpportunityImage)
+const mockedAttachOpportunityImage = vi.mocked(attachOpportunityImage)
+
+function imageFile() {
+  return new File(['image-bytes'], 'photo.jpg', { type: 'image/jpeg' })
+}
 
 const organizationFixture = {
   organizationId: 'org1',
@@ -26,6 +41,7 @@ const organizationFixture = {
   description: 'We distribute food to local families.',
   email: 'contact@seattlefoodbank.org',
   website: '',
+  profileImageUrl: null,
 }
 
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {
@@ -76,6 +92,8 @@ describe('ManageOpportunityPage', () => {
   beforeEach(() => {
     mockedGetOpportunity.mockReset()
     mockedUpdateOpportunity.mockReset()
+    mockedUploadOpportunityImage.mockReset()
+    mockedAttachOpportunityImage.mockReset()
     mockAuth()
   })
 
@@ -108,7 +126,7 @@ describe('ManageOpportunityPage', () => {
     expect(mockedGetOpportunity).toHaveBeenCalledWith('test-token', opp1.opportunityId)
   })
 
-  it('shows the image upload placeholder with a disabled Upload Image button', async () => {
+  it('shows the empty image state when the opportunity has no image', async () => {
     mockedGetOpportunity.mockResolvedValue(opp1)
 
     renderPage()
@@ -116,7 +134,65 @@ describe('ManageOpportunityPage', () => {
     await screen.findByLabelText('Title')
 
     expect(screen.getByText('No image uploaded')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Upload Image' })).toBeDisabled()
+    expect(screen.getByLabelText('Upload Image')).toBeEnabled()
+  })
+
+  it('shows the current image when the opportunity already has one', async () => {
+    mockedGetOpportunity.mockResolvedValue({
+      ...opp1,
+      imageUrl: 'https://s3.example.com/signed-get',
+    })
+
+    renderPage()
+
+    await screen.findByLabelText('Title')
+
+    expect(screen.getByRole('img', { name: 'Opportunity image' })).toHaveAttribute(
+      'src',
+      'https://s3.example.com/signed-get',
+    )
+  })
+
+  it('uploads a chosen image and attaches it to the opportunity straight away', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp1)
+    mockedUploadOpportunityImage.mockResolvedValue('organizations/org1/opportunities/1234.jpg')
+    mockedAttachOpportunityImage.mockResolvedValue({
+      ...opp1,
+      imageUrl: 'https://s3.example.com/signed-get',
+    })
+
+    renderPage()
+    await screen.findByLabelText('Title')
+
+    const file = imageFile()
+    await userEvent.upload(screen.getByLabelText('Upload Image'), file)
+
+    await waitFor(() => {
+      expect(mockedUploadOpportunityImage).toHaveBeenCalledWith('test-token', file)
+    })
+    // The opportunity already exists, so nothing waits for Save Changes.
+    expect(mockedAttachOpportunityImage).toHaveBeenCalledWith(
+      'test-token',
+      opp1.opportunityId,
+      'organizations/org1/opportunities/1234.jpg',
+    )
+  })
+
+  it('reports a failed image upload without attaching anything', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp1)
+    mockedUploadOpportunityImage.mockRejectedValue(
+      new Error('Unable to upload the image: 403'),
+    )
+
+    renderPage()
+    await screen.findByLabelText('Title')
+
+    await userEvent.upload(screen.getByLabelText('Upload Image'), imageFile())
+
+    expect(
+      await screen.findByText('Unable to upload the image: 403'),
+    ).toBeInTheDocument()
+    expect(mockedAttachOpportunityImage).not.toHaveBeenCalled()
   })
 
   it('calls updateOpportunity with the correct opportunityId, changed fields, and preserved backend fields', async () => {

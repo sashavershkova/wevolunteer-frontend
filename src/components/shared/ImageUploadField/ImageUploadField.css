@@ -1,0 +1,124 @@
+.image-upload-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.image-upload-field-card {
+  width: 180px;
+}
+
+.image-upload-field-avatar {
+  width: 8rem;
+}
+
+.image-upload-field-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 1rem;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--code-bg);
+}
+
+.image-upload-field-card .image-upload-field-frame {
+  width: 180px;
+  height: 180px;
+}
+
+.image-upload-field-avatar .image-upload-field-frame {
+  width: 5.5rem;
+  height: 5.5rem;
+  padding: 0;
+  border-radius: 50%;
+  border-style: solid;
+}
+
+.image-upload-field-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-upload-field-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--accent);
+}
+
+.image-upload-field-empty-text {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+/* Kept in the accessibility tree - the visible label is its control. */
+.image-upload-field-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.image-upload-field-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+}
+
+.image-upload-field-button.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.image-upload-field-input:focus-visible + .image-upload-field-button {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.image-upload-field-hint,
+.image-upload-field-status {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--text);
+}
+
+.image-upload-field-error {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--error, #b3261e);
+}
+
+@media (max-width: 480px) {
+  .image-upload-field-card,
+  .image-upload-field-card .image-upload-field-frame {
+    width: 140px;
+  }
+
+  .image-upload-field-card .image-upload-field-frame {
+    height: 140px;
+    padding: 0.75rem;
+  }
+}

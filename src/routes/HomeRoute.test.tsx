@@ -63,6 +63,7 @@ describe('HomeRoute', () => {
         description: '',
         email: 'contact@seattlefoodbank.org',
         website: '',
+        profileImageUrl: null,
       },
     })
 

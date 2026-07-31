@@ -7,6 +7,8 @@ export type OrganizationProfile = {
   description: string
   email: string
   website: string
+  /** Temporary pre-signed link, or null when no logo has been uploaded. */
+  profileImageUrl: string | null
 }
 
 export type CreateOrganizationProfileRequest = {

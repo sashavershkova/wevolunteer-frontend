@@ -5,6 +5,9 @@ import {
   type OrganizationProfile,
   type UpdateOrganizationProfileRequest,
 } from '../../../services/api/organizationService'
+import { uploadOrganizationProfileImage } from '../../../services/api/imageService'
+import { useImageUpload } from '../../../hooks/useImageUpload'
+import ImageUploadField from '../../shared/ImageUploadField/ImageUploadField'
 import { OrganizationIcon, EditIcon } from '../../shared/icons'
 import './OrganizationProfileSection.css'
 
@@ -61,6 +64,18 @@ function OrganizationProfileSection({
   const [isSavingOrganization, setIsSavingOrganization] = useState(false)
   const [organizationSaveError, setOrganizationSaveError] =
     useState<string | null>(null)
+
+  const logoUpload = useImageUpload({
+    onUpload: async (file) => {
+      if (!accessToken) {
+        throw new Error('Your authentication session is unavailable.')
+      }
+
+      auth.updateOrganizationProfile(
+        await uploadOrganizationProfileImage(accessToken, file),
+      )
+    },
+  })
 
   function handleStartEditingOrganization() {
     setOrganizationForm(buildOrganizationFormState(organization))
@@ -130,17 +145,24 @@ function OrganizationProfileSection({
   return (
     <section className="organization-profile-section" aria-label="Organization profile">
       <div className="organization-profile-section-profile">
-        <div className="organization-profile-section-logo-placeholder">
-          <div className="organization-profile-section-logo-circle">
-            <OrganizationIcon aria-hidden="true" />
-          </div>
-          <button type="button" className="organization-profile-section-upload-button" disabled>
-            Upload logo
-          </button>
-          <p className="organization-profile-section-logo-note">
-            Logo upload will be available soon.
-          </p>
-        </div>
+        <ImageUploadField
+          inputId="organization-logo"
+          variant="avatar"
+          imageUrl={organization.profileImageUrl}
+          previewUrl={logoUpload.previewUrl}
+          alt={`${organization.name} logo`}
+          uploadLabel="Upload logo"
+          replaceLabel="Replace logo"
+          fallback={
+            <OrganizationIcon
+              aria-hidden="true"
+              className="organization-profile-section-logo-icon"
+            />
+          }
+          isUploading={logoUpload.isUploading}
+          errorMessage={logoUpload.errorMessage}
+          onSelectFile={logoUpload.selectFile}
+        />
 
         <div className="organization-profile-section-details">
           {isEditingOrganization && organizationForm ? (

@@ -11,6 +11,7 @@ describe('updateCurrentOrganization', () => {
     description: 'We distribute food to local families.',
     email: 'contact@seattlefoodbank.org',
     website: 'https://seattlefoodbank.org',
+    profileImageUrl: null,
   }
 
   const updatedOrganization = {

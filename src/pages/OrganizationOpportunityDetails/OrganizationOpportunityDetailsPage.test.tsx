@@ -1,9 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import OrganizationOpportunityDetailsPage from './OrganizationOpportunityDetailsPage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getOpportunity } from '../../services/api/opportunityService'
+import {
+  attachOpportunityImage,
+  uploadOpportunityImage,
+} from '../../services/api/imageService'
 import {
   getOrganizationOpportunityRegistrations,
   type Registration,
@@ -27,11 +32,18 @@ vi.mock('../../services/api/registrationService', () => ({
   getOrganizationOpportunityRegistrations: vi.fn(),
 }))
 
+vi.mock('../../services/api/imageService', () => ({
+  uploadOpportunityImage: vi.fn(),
+  attachOpportunityImage: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetOpportunity = vi.mocked(getOpportunity)
 const mockedGetOrganizationOpportunityRegistrations = vi.mocked(
   getOrganizationOpportunityRegistrations,
 )
+const mockedUploadOpportunityImage = vi.mocked(uploadOpportunityImage)
+const mockedAttachOpportunityImage = vi.mocked(attachOpportunityImage)
 
 const registration1: Registration = {
   userId: 'user-1',
@@ -67,6 +79,7 @@ const organizationFixture = {
   description: 'We distribute food to local families.',
   email: 'contact@seattlefoodbank.org',
   website: '',
+  profileImageUrl: null,
 }
 
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {
@@ -118,6 +131,8 @@ describe('OrganizationOpportunityDetailsPage', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     vi.setSystemTime(new Date(MOCKED_TODAY))
     mockedGetOpportunity.mockReset()
+    mockedUploadOpportunityImage.mockReset()
+    mockedAttachOpportunityImage.mockReset()
     mockedGetOrganizationOpportunityRegistrations.mockReset()
     mockedGetOrganizationOpportunityRegistrations.mockResolvedValue([])
     mockAuth()
@@ -185,7 +200,7 @@ describe('OrganizationOpportunityDetailsPage', () => {
     )
   })
 
-  it('shows the image upload placeholder with a disabled Upload Image button', async () => {
+  it('shows the empty image state with a working picker', async () => {
     mockedGetOpportunity.mockResolvedValue(opp1)
 
     renderPage()
@@ -193,7 +208,48 @@ describe('OrganizationOpportunityDetailsPage', () => {
     await screen.findByRole('heading', { name: opp1.title })
 
     expect(screen.getByText('No image uploaded')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Upload Image' })).toBeDisabled()
+    expect(screen.getByLabelText('Upload Image')).toBeEnabled()
+  })
+
+  it('renders the opportunity image when one has been uploaded', async () => {
+    mockedGetOpportunity.mockResolvedValue({
+      ...opp1,
+      imageUrl: 'https://s3.example.com/signed-get',
+    })
+
+    renderPage()
+
+    expect(
+      await screen.findByRole('img', { name: `${opp1.title} image` }),
+    ).toHaveAttribute('src', 'https://s3.example.com/signed-get')
+  })
+
+  it('uploads and attaches a newly chosen image', async () => {
+    mockedGetOpportunity.mockResolvedValue(opp1)
+    mockedUploadOpportunityImage.mockResolvedValue(
+      'organizations/org1/opportunities/1234.jpg',
+    )
+    mockedAttachOpportunityImage.mockResolvedValue({
+      ...opp1,
+      imageUrl: 'https://s3.example.com/signed-get',
+    })
+
+    renderPage()
+    await screen.findByRole('heading', { name: opp1.title })
+
+    const file = new File(['image-bytes'], 'photo.jpg', { type: 'image/jpeg' })
+    await userEvent.upload(screen.getByLabelText('Upload Image'), file)
+
+    await waitFor(() => {
+      expect(mockedAttachOpportunityImage).toHaveBeenCalledWith(
+        'test-token',
+        opp1.opportunityId,
+        'organizations/org1/opportunities/1234.jpg',
+      )
+    })
+    expect(
+      await screen.findByRole('img', { name: `${opp1.title} image` }),
+    ).toBeInTheDocument()
   })
 
   it('links the Edit control to the edit page with an accessible label', async () => {

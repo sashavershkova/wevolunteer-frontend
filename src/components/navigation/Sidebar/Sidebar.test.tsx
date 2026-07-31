@@ -48,7 +48,13 @@ describe('Sidebar', () => {
 
   it('shows the volunteer nav items for a volunteer profile', () => {
     mockAuth({
-      userProfile: { userId: 'user1', name: 'Sasha Vershkova', email: 'sasha@example.com', role: 'VOLUNTEER' },
+      userProfile: {
+        userId: 'user1',
+        name: 'Sasha Vershkova',
+        email: 'sasha@example.com',
+        role: 'VOLUNTEER',
+        profileImageUrl: null,
+      },
     })
 
     renderSidebar()
@@ -77,6 +83,7 @@ describe('Sidebar', () => {
         description: '',
         email: '',
         website: '',
+        profileImageUrl: null,
       },
     })
 
@@ -109,6 +116,7 @@ describe('Sidebar', () => {
         description: '',
         email: '',
         website: '',
+        profileImageUrl: null,
       },
     })
 
@@ -126,6 +134,7 @@ describe('Sidebar', () => {
         description: '',
         email: '',
         website: '',
+        profileImageUrl: null,
       },
     })
 
@@ -145,7 +154,13 @@ describe('Sidebar', () => {
 
   it('signs out when Log Out is clicked', () => {
     mockAuth({
-      userProfile: { userId: 'user1', name: 'Sasha Vershkova', email: 'sasha@example.com', role: 'VOLUNTEER' },
+      userProfile: {
+        userId: 'user1',
+        name: 'Sasha Vershkova',
+        email: 'sasha@example.com',
+        role: 'VOLUNTEER',
+        profileImageUrl: null,
+      },
     })
 
     renderSidebar()

@@ -136,7 +136,15 @@ function OpportunityListItem({
         aria-label={`View details for ${opportunity.title}`}
       />
 
-      <div className="opportunity-list-item-image-placeholder" aria-hidden="true" />
+      {opportunity.imageUrl ? (
+        <img
+          className="opportunity-list-item-image"
+          src={opportunity.imageUrl}
+          alt={`${opportunity.title} image`}
+        />
+      ) : (
+        <div className="opportunity-list-item-image-placeholder" aria-hidden="true" />
+      )}
 
       {onToggleFavorite && (
         <button

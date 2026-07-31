@@ -14,7 +14,12 @@ import {
   SpotsIcon,
   TimeIcon,
 } from '../../components/shared/icons'
-import OpportunityImagePlaceholder from '../../components/shared/OpportunityImagePlaceholder/OpportunityImagePlaceholder'
+import ImageUploadField from '../../components/shared/ImageUploadField/ImageUploadField'
+import {
+  attachOpportunityImage,
+  uploadOpportunityImage,
+} from '../../services/api/imageService'
+import { useImageUpload } from '../../hooks/useImageUpload'
 import type { Opportunity } from '../../types/Opportunity'
 import { formatOpportunityTimeRange } from '../../utils/formatOpportunityTimeRange'
 import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
@@ -73,6 +78,20 @@ function OrganizationOpportunityDetailsPage() {
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+
+  const imageUpload = useImageUpload({
+    onUpload: async (file) => {
+      if (!auth.accessToken || !opportunityId) {
+        throw new Error('Your authentication session is unavailable.')
+      }
+
+      const objectKey = await uploadOpportunityImage(auth.accessToken, file)
+
+      setOpportunity(
+        await attachOpportunityImage(auth.accessToken, opportunityId, objectKey),
+      )
+    },
+  })
 
   const [registrations, setRegistrations] = useState<Registration[]>([])
   const [isRegistrationsLoading, setIsRegistrationsLoading] = useState(true)
@@ -263,7 +282,15 @@ function OrganizationOpportunityDetailsPage() {
           </header>
 
           <div className="organization-opportunity-details-content-row">
-            <OpportunityImagePlaceholder />
+            <ImageUploadField
+              inputId="organization-opportunity-image"
+              imageUrl={opportunity.imageUrl}
+              previewUrl={imageUpload.previewUrl}
+              alt={`${opportunity.title} image`}
+              isUploading={imageUpload.isUploading}
+              errorMessage={imageUpload.errorMessage}
+              onSelectFile={imageUpload.selectFile}
+            />
 
             <dl className="organization-opportunity-details-meta">
               <div>

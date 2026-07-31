@@ -48,7 +48,13 @@ describe('Header', () => {
 
   it('links the brand to the home route', () => {
     mockAuth({
-      userProfile: { userId: 'user1', name: 'Sasha Vershkova', email: 'sasha@example.com', role: 'VOLUNTEER' },
+      userProfile: {
+        userId: 'user1',
+        name: 'Sasha Vershkova',
+        email: 'sasha@example.com',
+        role: 'VOLUNTEER',
+        profileImageUrl: null,
+      },
     })
 
     renderHeader()
@@ -58,7 +64,13 @@ describe('Header', () => {
 
   it('shows no nav links for a volunteer profile (Sidebar covers volunteer navigation)', () => {
     mockAuth({
-      userProfile: { userId: 'user1', name: 'Sasha Vershkova', email: 'sasha@example.com', role: 'VOLUNTEER' },
+      userProfile: {
+        userId: 'user1',
+        name: 'Sasha Vershkova',
+        email: 'sasha@example.com',
+        role: 'VOLUNTEER',
+        profileImageUrl: null,
+      },
     })
 
     renderHeader()
@@ -79,6 +91,7 @@ describe('Header', () => {
         description: '',
         email: '',
         website: '',
+        profileImageUrl: null,
       },
     })
 
@@ -101,7 +114,13 @@ describe('Header', () => {
 
   it('opens the account menu and signs out when clicked', () => {
     mockAuth({
-      userProfile: { userId: 'user1', name: 'Sasha Vershkova', email: 'sasha@example.com', role: 'VOLUNTEER' },
+      userProfile: {
+        userId: 'user1',
+        name: 'Sasha Vershkova',
+        email: 'sasha@example.com',
+        role: 'VOLUNTEER',
+        profileImageUrl: null,
+      },
     })
 
     renderHeader()
@@ -116,7 +135,13 @@ describe('Header', () => {
 
   it('shows a My Account link to /profile for a volunteer profile', () => {
     mockAuth({
-      userProfile: { userId: 'user1', name: 'Sasha Vershkova', email: 'sasha@example.com', role: 'VOLUNTEER' },
+      userProfile: {
+        userId: 'user1',
+        name: 'Sasha Vershkova',
+        email: 'sasha@example.com',
+        role: 'VOLUNTEER',
+        profileImageUrl: null,
+      },
     })
 
     renderHeader()
@@ -134,6 +159,7 @@ describe('Header', () => {
         description: '',
         email: '',
         website: '',
+        profileImageUrl: null,
       },
     })
 

@@ -21,6 +21,7 @@ const organizationFixture = {
   description: '',
   email: 'contact@seattlefoodbank.org',
   website: '',
+  profileImageUrl: null,
 }
 
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {

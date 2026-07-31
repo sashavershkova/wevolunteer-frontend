@@ -88,6 +88,7 @@ function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {
       name: 'Sasha Vershkova',
       email: 'sasha@example.com',
       role: 'VOLUNTEER',
+      profileImageUrl: null,
     },
     organizationProfile: null,
     isProfileLoading: false,

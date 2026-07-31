@@ -70,6 +70,7 @@ const volunteerFixture: UserProfile = {
   name: 'Ada Lovelace',
   email: 'ada@example.com',
   role: 'VOLUNTEER',
+  profileImageUrl: null,
 }
 
 describe('AuthContext profile initialization', () => {
@@ -127,6 +128,7 @@ describe('AuthContext profile initialization', () => {
       description: '',
       email: 'contact@seattlefoodbank.org',
       website: '',
+      profileImageUrl: null,
     })
     mockedUseAuth.mockReturnValue(
       buildOidcAuth({

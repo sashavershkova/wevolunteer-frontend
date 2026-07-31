@@ -30,48 +30,22 @@
   text-align: center;
 }
 
-.profile-avatar {
-  width: 5.5rem;
-  height: 5.5rem;
-  border-radius: 50%;
+/* The avatar frame, its button, and their spacing come from ImageUploadField;
+   only the initials fallback needs page-specific styling. */
+.profile-avatar-area .image-upload-field-frame {
   background: var(--accent-bg);
-  color: var(--accent);
+  border-color: var(--accent-bg);
+}
+
+.profile-avatar-initials {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--accent);
   font-size: 1.5rem;
   font-weight: 700;
-  flex-shrink: 0;
-}
-
-.profile-upload-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.4rem 0.75rem;
-}
-
-.profile-upload-button svg {
-  width: 0.9rem;
-  height: 0.9rem;
-}
-
-.profile-upload-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.profile-upload-note {
-  font-size: 0.75rem;
-  color: var(--text);
-  margin: 0;
 }
 
 .profile-details {
