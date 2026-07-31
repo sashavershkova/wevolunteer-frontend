@@ -95,4 +95,32 @@ describe('OpportunitiesListView', () => {
 
     expect(onToggleFavorite).toHaveBeenCalledWith(opp1.opportunityId)
   })
+
+  it('shows the Registered state when its id is in registeredOpportunityIds', () => {
+    renderView({
+      opportunities: [opp1],
+      registeredOpportunityIds: new Set([opp1.opportunityId]),
+      onCancelRegistration: vi.fn(),
+    })
+
+    expect(screen.getByText('Registered')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Cancel Registration' }),
+    ).toBeInTheDocument()
+  })
+
+  it('calls onCancelRegistration with the opportunity id when Cancel Registration is clicked', async () => {
+    const user = userEvent.setup()
+    const onCancelRegistration = vi.fn().mockResolvedValue(undefined)
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    renderView({
+      opportunities: [opp1],
+      registeredOpportunityIds: new Set([opp1.opportunityId]),
+      onCancelRegistration,
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Cancel Registration' }))
+
+    expect(onCancelRegistration).toHaveBeenCalledWith(opp1.opportunityId)
+  })
 })

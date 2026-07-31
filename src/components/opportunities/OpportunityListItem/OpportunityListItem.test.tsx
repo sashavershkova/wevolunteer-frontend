@@ -32,6 +32,21 @@ function renderItemWithFavorite(
   )
 }
 
+function renderRegisteredItem(
+  opportunity: typeof opp1,
+  onCancelRegistration?: (opportunityId: string) => Promise<void>,
+) {
+  return render(
+    <MemoryRouter>
+      <OpportunityListItem
+        opportunity={opportunity}
+        isRegistered
+        onCancelRegistration={onCancelRegistration}
+      />
+    </MemoryRouter>,
+  )
+}
+
 describe('OpportunityListItem', () => {
   it('renders the core opportunity fields', () => {
     renderItem(opp1)
@@ -197,6 +212,61 @@ describe('OpportunityListItem', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Unable to save.')
+    })
+  })
+
+  it('shows a Registered badge and Cancel Registration button instead of Register when registered', () => {
+    renderRegisteredItem(opp1, vi.fn())
+
+    expect(screen.getByText('Registered')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Cancel Registration' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
+  })
+
+  it('does not show a Waitlist button for a full, registered opportunity', () => {
+    renderRegisteredItem(opp2, vi.fn())
+
+    expect(screen.queryByRole('button', { name: 'Waitlist' })).not.toBeInTheDocument()
+    expect(screen.getByText('Registered')).toBeInTheDocument()
+  })
+
+  it('asks for confirmation and calls onCancelRegistration when confirmed', async () => {
+    const user = userEvent.setup()
+    const onCancelRegistration = vi.fn().mockResolvedValue(undefined)
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    renderRegisteredItem(opp1, onCancelRegistration)
+
+    await user.click(screen.getByRole('button', { name: 'Cancel Registration' }))
+
+    expect(window.confirm).toHaveBeenCalledWith(
+      'Are you sure you want to cancel this registration?',
+    )
+    expect(onCancelRegistration).toHaveBeenCalledWith('opp1')
+  })
+
+  it('does not call onCancelRegistration when the confirmation is dismissed', async () => {
+    const user = userEvent.setup()
+    const onCancelRegistration = vi.fn().mockResolvedValue(undefined)
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+    renderRegisteredItem(opp1, onCancelRegistration)
+
+    await user.click(screen.getByRole('button', { name: 'Cancel Registration' }))
+
+    expect(onCancelRegistration).not.toHaveBeenCalled()
+  })
+
+  it('shows an error message if cancelling the registration fails', async () => {
+    const user = userEvent.setup()
+    const onCancelRegistration = vi.fn().mockRejectedValue(new Error('Unable to cancel.'))
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    renderRegisteredItem(opp1, onCancelRegistration)
+
+    await user.click(screen.getByRole('button', { name: 'Cancel Registration' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Unable to cancel.')
     })
   })
 })
