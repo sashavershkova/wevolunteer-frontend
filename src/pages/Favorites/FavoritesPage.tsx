@@ -1,131 +1,114 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppAuth } from '../../contexts/AuthContext'
-import { getMyFavorites, removeFavorite, type Favorite } from '../../services/api/favoriteService'
-import FavoriteCard from '../../components/favorites/FavoriteCard'
+import OpportunitiesListView from '../../components/opportunities/OpportunitiesListView/OpportunitiesListView'
+import OpportunityFilters from '../../components/opportunities/OpportunityFilters/OpportunityFilters'
+import { getOpportunities, registerForOpportunity } from '../../services/api/opportunityService'
+import { getMyFavorites, removeFavorite } from '../../services/api/favoriteService'
+import {
+  EMPTY_FILTERS,
+  filterOpportunities,
+  type OpportunityFiltersValue,
+} from '../../utils/opportunityFilters'
+import type { Opportunity } from '../../types/Opportunity'
 import './FavoritesPage.css'
 
 function FavoritesPage() {
   const auth = useAppAuth()
 
-  const [favorites, setFavorites] = useState<Favorite[]>([])
-  const [isLoading, setIsLoading] = useState(Boolean(auth.accessToken))
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [removingOpportunityId, setRemovingOpportunityId] = useState<string | null>(null)
-  const [removalErrorMessage, setRemovalErrorMessage] = useState<string | null>(null)
+  const [favoritedOpportunities, setFavoritedOpportunities] = useState<Opportunity[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [filters, setFilters] = useState<OpportunityFiltersValue>(EMPTY_FILTERS)
 
   useEffect(() => {
     if (!auth.accessToken) {
       return
     }
 
-    let ignore = false
-
-    const loadFavorites = async () => {
-      setIsLoading(true)
-      setErrorMessage(null)
-
+    async function loadFavorites() {
       try {
-        const result = await getMyFavorites(auth.accessToken)
+        setIsLoading(true)
+        setError(null)
 
-        if (!ignore) {
-          setFavorites(result)
-        }
-      } catch (error) {
-        if (!ignore) {
-          setErrorMessage(
-            error instanceof Error ? error.message : 'Unable to load favorites',
-          )
-        }
+        const [allOpportunities, myFavorites] = await Promise.all([
+          getOpportunities(auth.accessToken),
+          getMyFavorites(auth.accessToken),
+        ])
+
+        const favoritedIds = new Set(
+          myFavorites.map((favorite) => favorite.opportunityId),
+        )
+
+        setFavoritedOpportunities(
+          allOpportunities.filter((opportunity) =>
+            favoritedIds.has(opportunity.opportunityId),
+          ),
+        )
+      } catch {
+        setError('Unable to load favorites. Please try again later.')
       } finally {
-        if (!ignore) {
-          setIsLoading(false)
-        }
+        setIsLoading(false)
       }
     }
 
     void loadFavorites()
-
-    return () => {
-      ignore = true
-    }
   }, [auth.accessToken])
 
-  const handleRemoveFavorite = async (opportunityId: string) => {
-    if (!auth.accessToken) {
-      return
-    }
-
-    setRemovalErrorMessage(null)
-    setRemovingOpportunityId(opportunityId)
-
-    try {
-      await removeFavorite(auth.accessToken, opportunityId)
-
-      setFavorites((current) =>
-        current.filter((favorite) => favorite.opportunityId !== opportunityId),
-      )
-    } catch (error) {
-      setRemovalErrorMessage(
-        error instanceof Error ? error.message : 'Unable to remove favorite',
-      )
-    } finally {
-      setRemovingOpportunityId(null)
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <main className="favorites-page">
-        <h1>Favorites</h1>
-        <p>Loading favorites...</p>
-      </main>
-    )
-  }
-
-  if (errorMessage) {
-    return (
-      <main className="favorites-page">
-        <h1>Favorites</h1>
-        <p>{errorMessage}</p>
-      </main>
-    )
-  }
-
-  if (favorites.length === 0) {
-    return (
-      <main className="favorites-page">
-        <h1>Favorites</h1>
-        <p>You have no saved opportunities yet.</p>
-      </main>
-    )
-  }
-
-  const sortedFavorites = [...favorites].sort((a, b) =>
-    b.favoritedAt.localeCompare(a.favoritedAt),
+  const filteredFavorites = useMemo(
+    () => filterOpportunities(favoritedOpportunities, filters),
+    [favoritedOpportunities, filters],
   )
+
+  const favoritedOpportunityIds = useMemo(
+    () => new Set(favoritedOpportunities.map((opportunity) => opportunity.opportunityId)),
+    [favoritedOpportunities],
+  )
+
+  async function handleRegister(opportunityId: string) {
+    await registerForOpportunity(auth.accessToken, auth.userId, opportunityId)
+
+    setFavoritedOpportunities((previous) =>
+      previous.map((opportunity) =>
+        opportunity.opportunityId === opportunityId
+          ? {
+              ...opportunity,
+              registeredCount: opportunity.registeredCount + 1,
+              availableSpots: opportunity.availableSpots - 1,
+            }
+          : opportunity,
+      ),
+    )
+  }
+
+  async function handleToggleFavorite(opportunityId: string) {
+    await removeFavorite(auth.accessToken, opportunityId)
+
+    setFavoritedOpportunities((previous) =>
+      previous.filter((opportunity) => opportunity.opportunityId !== opportunityId),
+    )
+  }
 
   return (
     <main className="favorites-page">
       <h1>Favorites</h1>
-      <p className="favorites-subtitle">Opportunities you&apos;ve saved for later.</p>
 
-      {removalErrorMessage && (
-        <p role="alert" className="favorites-error">
-          {removalErrorMessage}
-        </p>
-      )}
+      <p className="favorites-page-subtitle">Opportunities you&apos;ve saved for later.</p>
 
-      <ul className="favorites-list">
-        {sortedFavorites.map((favorite) => (
-          <li key={favorite.opportunityId}>
-            <FavoriteCard
-              favorite={favorite}
-              onRemove={handleRemoveFavorite}
-              isRemoving={removingOpportunityId === favorite.opportunityId}
-            />
-          </li>
-        ))}
-      </ul>
+      <OpportunityFilters
+        opportunities={favoritedOpportunities}
+        value={filters}
+        onChange={setFilters}
+      />
+
+      <OpportunitiesListView
+        opportunities={filteredFavorites}
+        isLoading={isLoading}
+        error={error}
+        emptyMessage="You have no saved opportunities yet."
+        onRegister={handleRegister}
+        favoritedOpportunityIds={favoritedOpportunityIds}
+        onToggleFavorite={handleToggleFavorite}
+      />
     </main>
   )
 }
