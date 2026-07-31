@@ -4,6 +4,7 @@
 export {
   MapPin as LocationIcon,
   Calendar as DateIcon,
+  CircleCheck as CompletedIcon,
   Clock as TimeIcon,
   User as SpotsIcon,
   Bell as NotificationsIcon,

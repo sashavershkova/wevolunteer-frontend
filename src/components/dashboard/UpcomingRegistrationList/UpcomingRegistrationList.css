@@ -1,0 +1,14 @@
+.upcoming-registration-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.upcoming-registration-list-message {
+  color: var(--text);
+  padding: 1rem 0;
+  text-align: left;
+}
