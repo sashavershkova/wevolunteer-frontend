@@ -141,7 +141,7 @@ function DashboardPage() {
   return (
     <main className="dashboard-page">
       <header className="dashboard-header">
-        <h1>Welcome back, {auth.userProfile.name}!</h1>
+        <h1>Welcome back, {auth.userProfile.name}</h1>
         <p className="dashboard-subtitle">
           Here&rsquo;s an overview of your volunteer journey.
         </p>
@@ -154,25 +154,25 @@ function DashboardPage() {
       >
         <MetricCard
           icon={DateIcon}
-          label="Upcoming opportunities"
+          label="Upcoming Opportunities"
           value={formatMetric(upcomingCount)}
           hint="Registered and coming up"
         />
         <MetricCard
           icon={CompletedIcon}
-          label="Completed opportunities"
+          label="Completed Opportunities"
           value={formatMetric(completedCount)}
           hint="Opportunity date has passed"
         />
         <MetricCard
           icon={TimeIcon}
-          label="Hours contributed"
+          label="Hours Contributed"
           value={formatMetric(hoursContributed)}
           hint="From completed opportunities"
         />
       </section>
 
-      <section className="dashboard-upcoming" aria-label="Upcoming opportunities">
+      <section className="dashboard-upcoming" aria-label="Upcoming Opportunities">
         <div className="dashboard-section-header">
           <h2>Upcoming Opportunities</h2>
           <Link to="/my-registrations" className="dashboard-view-all-link">

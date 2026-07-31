@@ -28,15 +28,15 @@ function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>>) {
     isLoading: false,
     isAuthenticated: true,
     errorMessage: null,
-    email: 'sasha@example.com',
+    email: 'coco@example.com',
     userId: 'user1',
     accessToken: 'token',
     userProfile: {
-    userId: 'user1',
-    name: 'Sasha Vershkova',
-    email: 'sasha@example.com',
-    role: 'VOLUNTEER',
-    profileImageUrl: null,
+      userId: 'user1',
+      name: 'Coco Chocolate',
+      email: 'coco@example.com',
+      role: 'VOLUNTEER',
+      profileImageUrl: null,
     },
     organizationProfile: null,
     isProfileLoading: false,
@@ -61,8 +61,8 @@ function makeRegistration(overrides: Partial<Registration>): Registration {
     organizationId: 'org1',
     organizationName: 'Org',
     registrationStatus: 'ACTIVE',
-    volunteerName: 'Sasha',
-    email: 'sasha@example.com',
+    volunteerName: 'Coco Chocolate',
+    email: 'coco@example.com',
     registeredAt: '2026-07-01T00:00:00Z',
     ...overrides,
   }
@@ -125,14 +125,14 @@ describe('DashboardPage', () => {
 
     renderPage()
 
-    await screen.findByText('Welcome back, Sasha Vershkova')
+    await screen.findByText('Welcome back, Coco Chocolate')
 
     expect(
-      screen.getByRole('heading', { name: 'Upcoming opportunities' }),
+      screen.getByRole('heading', { name: 'Upcoming Opportunities' }),
     ).toBeInTheDocument()
-    expect(screen.getAllByText('Upcoming opportunities')).toHaveLength(2)
-    expect(screen.getByText('Completed opportunities')).toBeInTheDocument()
-    expect(screen.getByText('Hours contributed')).toBeInTheDocument()
+    expect(screen.getAllByText('Upcoming Opportunities')).toHaveLength(2)
+    expect(screen.getByText('Completed Opportunities')).toBeInTheDocument()
+    expect(screen.getByText('Hours Contributed')).toBeInTheDocument()
     expect(screen.getByText('4')).toBeInTheDocument()
     expect(screen.getAllByText('1')).toHaveLength(2)
   })
