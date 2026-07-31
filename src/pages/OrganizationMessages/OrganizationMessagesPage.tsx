@@ -38,7 +38,6 @@ const MOCK_CONVERSATIONS: MockConversation[] = [
 const PLANNED_FEATURES = [
   'Direct volunteer messaging',
   'Opportunity-specific conversations',
-  'Read receipts',
   'Notifications',
   'File attachments',
 ]
@@ -58,6 +57,24 @@ function OrganizationMessagesPage() {
       </header>
 
       <section className="organization-messages-layout" aria-label="Messaging preview">
+        <div className="organization-messages-empty-state">
+          <MessagesIcon className="organization-messages-empty-icon" aria-hidden="true" />
+          <h2>Messaging is coming soon</h2>
+          <p>
+            Organizations will be able to communicate directly with volunteers before and after
+            opportunities.
+          </p>
+
+          <div className="organization-messages-planned-features">
+            <h3>Planned features</h3>
+            <ul>
+              {PLANNED_FEATURES.map((feature) => (
+                <li key={feature}>{feature}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
         <div className="organization-messages-conversations">
           <input
             type="search"
@@ -89,24 +106,6 @@ function OrganizationMessagesPage() {
               </li>
             ))}
           </ul>
-        </div>
-
-        <div className="organization-messages-empty-state">
-          <MessagesIcon className="organization-messages-empty-icon" aria-hidden="true" />
-          <h2>Messaging is coming soon</h2>
-          <p>
-            Organizations will be able to communicate directly with volunteers before and after
-            opportunities.
-          </p>
-
-          <div className="organization-messages-planned-features">
-            <h3>Planned features</h3>
-            <ul>
-              {PLANNED_FEATURES.map((feature) => (
-                <li key={feature}>{feature}</li>
-              ))}
-            </ul>
-          </div>
         </div>
       </section>
     </main>

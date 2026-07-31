@@ -30,7 +30,6 @@ describe('OrganizationMessagesPage', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Direct volunteer messaging')).toBeInTheDocument()
     expect(screen.getByText('Opportunity-specific conversations')).toBeInTheDocument()
-    expect(screen.getByText('Read receipts')).toBeInTheDocument()
     expect(screen.getByText('Notifications')).toBeInTheDocument()
     expect(screen.getByText('File attachments')).toBeInTheDocument()
   })

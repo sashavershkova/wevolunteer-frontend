@@ -34,9 +34,8 @@
 
 .organization-messages-layout {
   display: grid;
-  grid-template-columns: minmax(260px, 22rem) 1fr;
+  grid-template-columns: 1fr;
   gap: 1.5rem;
-  align-items: start;
 }
 
 .organization-messages-conversations,
@@ -210,12 +209,6 @@
   position: absolute;
   left: 0;
   color: var(--accent);
-}
-
-@media (max-width: 860px) {
-  .organization-messages-layout {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 640px) {
