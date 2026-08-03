@@ -107,8 +107,9 @@ describe('DashboardPage', () => {
     renderPage()
 
     expect(
-      screen.queryByText(/Welcome back/),
-    ).not.toBeInTheDocument()
+      screen.getByRole('heading', { name: 'Complete your profile' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Welcome back/)).not.toBeInTheDocument()
   })
 
   it('computes and displays upcoming, completed, and hours contributed metrics', async () => {

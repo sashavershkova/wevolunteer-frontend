@@ -38,7 +38,7 @@ function renderHomeRoute() {
       <Routes>
         <Route path="/" element={<HomeRoute />} />
         <Route path="/organization" element={<p>Organization dashboard</p>} />
-        <Route path="/opportunities" element={<p>Browse opportunities</p>} />
+        <Route path="/dashboard" element={<p>Volunteer dashboard</p>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -72,11 +72,11 @@ describe('HomeRoute', () => {
     expect(screen.getByText('Organization dashboard')).toBeInTheDocument()
   })
 
-  it('redirects a volunteer to /opportunities', () => {
+  it('redirects a volunteer to /dashboard', () => {
     mockAuth({ organizationProfile: null })
 
     renderHomeRoute()
 
-    expect(screen.getByText('Browse opportunities')).toBeInTheDocument()
+    expect(screen.getByText('Volunteer dashboard')).toBeInTheDocument()
   })
 })

@@ -16,7 +16,7 @@ function HomeRoute() {
     return <Navigate to="/organization" replace />
   }
 
-  return <Navigate to="/opportunities" replace />
+  return <Navigate to="/dashboard" replace />
 }
 
 export default HomeRoute
