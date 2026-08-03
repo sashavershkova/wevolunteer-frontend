@@ -1,0 +1,51 @@
+.about-me-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem 1.75rem;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+.about-me-card h2 {
+  margin: 0 0 0.75rem;
+}
+
+.about-me-card-bio {
+  margin: 0 0 1rem;
+  color: var(--text-h);
+}
+
+.about-me-card-interests {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.about-me-card-interest-tag {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.about-me-card-future-note {
+  margin: 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .about-me-card {
+    padding: 1.25rem;
+  }
+}
