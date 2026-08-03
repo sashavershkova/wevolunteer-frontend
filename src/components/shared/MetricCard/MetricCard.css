@@ -35,6 +35,7 @@
   height: 22px;
   width: 22px;
 }
+
 .metric-card-value {
   color: var(--text-h);
   font-size: 2rem;

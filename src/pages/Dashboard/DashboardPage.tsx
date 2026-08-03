@@ -141,7 +141,7 @@ function DashboardPage() {
   return (
     <main className="dashboard-page">
       <header className="dashboard-header">
-        <h1>Welcome back, {auth.userProfile.name}</h1>
+        <h1>Welcome back, {auth.userProfile.name}!</h1>
         <p className="dashboard-subtitle">
           Here&rsquo;s an overview of your volunteer journey.
         </p>

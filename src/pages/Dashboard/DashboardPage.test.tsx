@@ -125,7 +125,7 @@ describe('DashboardPage', () => {
 
     renderPage()
 
-    await screen.findByText('Welcome back, Coco Chocolate')
+    await screen.findByText('Welcome back, Coco Chocolate!')
 
     expect(
       screen.getByRole('heading', { name: 'Upcoming Opportunities' }),

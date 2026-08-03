@@ -78,17 +78,28 @@
 
 .upcoming-registration-card-cancel-button {
   align-self: flex-end;
-  background: none;
-  border: 1px solid #a32d2d;
-  border-radius: 0.4rem;
-  color: #a32d2d;
+  background: var(--accent);
+  border: none;
+  border-radius: 0.5rem;
+  color: #fff;
   cursor: pointer;
   flex-shrink: 0;
+  font: inherit;
   font-size: 0.75rem;
+  font-weight: 600;
   padding: 0.4rem 0.7rem;
   position: relative;
   white-space: nowrap;
   z-index: 2;
+}
+
+.upcoming-registration-card-cancel-button:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.upcoming-registration-card-cancel-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .upcoming-registration-card-cancel-button:disabled {

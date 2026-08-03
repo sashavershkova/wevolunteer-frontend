@@ -14,8 +14,8 @@ function makeRegistration(overrides: Partial<Registration>): Registration {
     organizationId: 'org1',
     organizationName: 'Org',
     registrationStatus: 'ACTIVE',
-    volunteerName: 'Sasha',
-    email: 'sasha@example.com',
+    volunteerName: 'Harry Potter',
+    email: 'harry@example.com',
     registeredAt: '2026-07-01T00:00:00Z',
     ...overrides,
   }

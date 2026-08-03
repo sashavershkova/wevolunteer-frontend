@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
@@ -24,6 +24,19 @@ function StatefulHarness({ onChange }: { onChange: (start: string, end: string) 
 }
 
 describe('DateRangeFilter', () => {
+  beforeEach(() => {
+    // Pins "today" inside July 2026 so the calendar's defaultMonth (which
+    // falls back to the real current month when no date is selected) stays
+    // predictable — without this, the test breaks every time the real
+    // calendar month moves past July.
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date('2026-07-15T12:00:00'))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('shows "Any Date" when no range is selected', () => {
     render(<DateRangeFilter startDate="" endDate="" onChange={vi.fn()} />)
 
