@@ -81,7 +81,6 @@ describe('ProfilePage', () => {
 
     renderProfilePage()
 
-    expect(screen.getByRole('heading', { name: 'My Profile' })).toBeInTheDocument()
     expect(screen.getByText('Coco Chocolate')).toBeInTheDocument()
     expect(screen.getByText('coco@example.com')).toBeInTheDocument()
     expect(screen.getByText('Volunteer')).toBeInTheDocument()
@@ -225,6 +224,14 @@ describe('ProfilePage', () => {
     expect(
       screen.getByText(/I love volunteering at local pet shelters/),
     ).toBeInTheDocument()
+  })
+
+  it('shows the Complete Your Profile checklist', () => {
+    mockAuth({ userProfile: { ...volunteerProfile } })
+
+    renderProfilePage()
+
+    expect(screen.getByRole('heading', { name: 'Complete Your Profile' })).toBeInTheDocument()
   })
 
   it('no longer shows the removed Volunteer Activity metrics', () => {

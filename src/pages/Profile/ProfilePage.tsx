@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
 import ImageUploadField from '../../components/shared/ImageUploadField/ImageUploadField'
 import AboutMeCard from '../../components/volunteer/VolunteerAboutMeCard/AboutMeCard'
+import VolunteerProfileCompletionPreview from '../../components/volunteer/VolunteerProfileCompletionPreview/VolunteerProfileCompletionPreview'
 import { useImageUpload } from '../../hooks/useImageUpload'
 import { uploadUserProfileImage } from '../../services/api/imageService'
 import './ProfilePage.css'
@@ -64,8 +65,6 @@ function ProfilePage() {
 
   return (
     <main className="profile-page">
-      <h1>My Profile</h1>
-
       <section className="profile-card">
         <div className="profile-avatar-area">
           <ImageUploadField
@@ -107,7 +106,10 @@ function ProfilePage() {
         </dl>
       </section>
 
-      <AboutMeCard />
+      <div className="profile-page-row">
+        <VolunteerProfileCompletionPreview userProfile={auth.userProfile} />
+        <AboutMeCard />
+      </div>
     </main>
   )
 }
