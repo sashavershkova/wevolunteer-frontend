@@ -12,6 +12,9 @@ type OpportunitiesListViewProps = {
   onToggleFavorite?: (opportunityId: string) => Promise<void>
   registeredOpportunityIds?: Set<string>
   onCancelRegistration?: (opportunityId: string) => Promise<void>
+  waitlistedOpportunityIds?: Set<string>
+  onJoinWaitlist?: (opportunityId: string) => Promise<void>
+  onLeaveWaitlist?: (opportunityId: string) => Promise<void>
 }
 
 function OpportunitiesListView({
@@ -24,6 +27,9 @@ function OpportunitiesListView({
   onToggleFavorite,
   registeredOpportunityIds,
   onCancelRegistration,
+  waitlistedOpportunityIds,
+  onJoinWaitlist,
+  onLeaveWaitlist,
 }: OpportunitiesListViewProps) {
   if (isLoading) {
     return (
@@ -60,6 +66,9 @@ function OpportunitiesListView({
             onToggleFavorite={onToggleFavorite}
             isRegistered={registeredOpportunityIds?.has(opportunity.opportunityId)}
             onCancelRegistration={onCancelRegistration}
+            isWaitlisted={waitlistedOpportunityIds?.has(opportunity.opportunityId)}
+            onJoinWaitlist={onJoinWaitlist}
+            onLeaveWaitlist={onLeaveWaitlist}
           />
         </li>
       ))}

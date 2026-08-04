@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import OpportunitiesListView from './OpportunitiesListView'
-import { mockOpportunities, opp1 } from '../../../tests/fixtures/opportunities'
+import { mockOpportunities, opp1, opp2 } from '../../../tests/fixtures/opportunities'
 
 function renderView(props: Parameters<typeof OpportunitiesListView>[0]) {
   return render(
@@ -122,5 +122,32 @@ describe('OpportunitiesListView', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel Registration' }))
 
     expect(onCancelRegistration).toHaveBeenCalledWith(opp1.opportunityId)
+  })
+
+  it('shows the Waitlisted state for a full opportunity when its id is in waitlistedOpportunityIds', () => {
+    renderView({
+      opportunities: [opp2],
+      waitlistedOpportunityIds: new Set([opp2.opportunityId]),
+      onLeaveWaitlist: vi.fn(),
+    })
+
+    expect(screen.getByText('Waitlisted')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Leave Waitlist' }),
+    ).toBeInTheDocument()
+  })
+
+  it('calls onJoinWaitlist with the opportunity id when Join Waitlist is clicked', async () => {
+    const user = userEvent.setup()
+    const onJoinWaitlist = vi.fn().mockResolvedValue(undefined)
+    renderView({
+      opportunities: [opp2],
+      waitlistedOpportunityIds: new Set(),
+      onJoinWaitlist,
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Join Waitlist' }))
+
+    expect(onJoinWaitlist).toHaveBeenCalledWith(opp2.opportunityId)
   })
 })

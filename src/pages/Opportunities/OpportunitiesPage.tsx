@@ -7,6 +7,7 @@ import OpportunityFilters from '../../components/opportunities/OpportunityFilter
 import { getOpportunities, registerForOpportunity } from '../../services/api/opportunityService'
 import { getMyRegistrations } from '../../services/api/registrationService'
 import { getMyFavorites, removeFavorite, saveFavorite } from '../../services/api/favoriteService'
+import { getMyWaitlist, joinWaitlist, leaveWaitlist } from '../../services/api/waitlistService'
 import {
   EMPTY_FILTERS,
   filterOpportunities,
@@ -25,6 +26,9 @@ function OpportunitiesPage() {
   const [favoritedOpportunityIds, setFavoritedOpportunityIds] = useState<Set<string>>(
     new Set(),
   )
+  const [waitlistedOpportunityIds, setWaitlistedOpportunityIds] = useState<Set<string>>(
+    new Set(),
+  )
 
   useEffect(() => {
     if (!auth.accessToken) {
@@ -36,10 +40,11 @@ function OpportunitiesPage() {
         setIsLoading(true)
         setError(null)
 
-        const [allOpportunities, myRegistrations, myFavorites] = await Promise.all([
+        const [allOpportunities, myRegistrations, myFavorites, myWaitlist] = await Promise.all([
           getOpportunities(auth.accessToken),
           getMyRegistrations(auth.accessToken),
           getMyFavorites(auth.accessToken),
+          getMyWaitlist(auth.accessToken),
         ])
 
         const registeredIds = new Set(
@@ -53,6 +58,9 @@ function OpportunitiesPage() {
         )
         setFavoritedOpportunityIds(
           new Set(myFavorites.map((favorite) => favorite.opportunityId)),
+        )
+        setWaitlistedOpportunityIds(
+          new Set(myWaitlist.map((entry) => entry.opportunityId)),
         )
       } catch {
         setError('Unable to load opportunities. Please try again later.')
@@ -95,6 +103,22 @@ function OpportunitiesPage() {
         next.add(opportunityId)
       }
 
+      return next
+    })
+  }
+
+  async function handleJoinWaitlist(opportunityId: string) {
+    await joinWaitlist(auth.accessToken, opportunityId)
+
+    setWaitlistedOpportunityIds((previous) => new Set(previous).add(opportunityId))
+  }
+
+  async function handleLeaveWaitlist(opportunityId: string) {
+    await leaveWaitlist(auth.accessToken, opportunityId)
+
+    setWaitlistedOpportunityIds((previous) => {
+      const next = new Set(previous)
+      next.delete(opportunityId)
       return next
     })
   }
@@ -145,6 +169,9 @@ function OpportunitiesPage() {
         onRegister={handleRegister}
         favoritedOpportunityIds={favoritedOpportunityIds}
         onToggleFavorite={handleToggleFavorite}
+        waitlistedOpportunityIds={waitlistedOpportunityIds}
+        onJoinWaitlist={handleJoinWaitlist}
+        onLeaveWaitlist={handleLeaveWaitlist}
       />
     </main>
   )

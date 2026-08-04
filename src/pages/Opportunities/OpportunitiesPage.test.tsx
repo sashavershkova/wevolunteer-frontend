@@ -12,6 +12,12 @@ import {
   saveFavorite,
   type Favorite,
 } from '../../services/api/favoriteService'
+import {
+  getMyWaitlist,
+  joinWaitlist,
+  leaveWaitlist,
+  type Waitlist,
+} from '../../services/api/waitlistService'
 import { opp1, opp2, opp3 } from '../../tests/fixtures/opportunities'
 
 vi.mock('../../contexts/AuthContext', () => ({
@@ -33,6 +39,12 @@ vi.mock('../../services/api/favoriteService', () => ({
   removeFavorite: vi.fn(),
 }))
 
+vi.mock('../../services/api/waitlistService', () => ({
+  getMyWaitlist: vi.fn(),
+  joinWaitlist: vi.fn(),
+  leaveWaitlist: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetOpportunities = vi.mocked(getOpportunities)
 const mockedRegisterForOpportunity = vi.mocked(registerForOpportunity)
@@ -40,6 +52,9 @@ const mockedGetMyRegistrations = vi.mocked(getMyRegistrations)
 const mockedGetMyFavorites = vi.mocked(getMyFavorites)
 const mockedSaveFavorite = vi.mocked(saveFavorite)
 const mockedRemoveFavorite = vi.mocked(removeFavorite)
+const mockedGetMyWaitlist = vi.mocked(getMyWaitlist)
+const mockedJoinWaitlist = vi.mocked(joinWaitlist)
+const mockedLeaveWaitlist = vi.mocked(leaveWaitlist)
 
 function buildFavorite(overrides: Partial<Favorite>): Favorite {
   return {
@@ -51,6 +66,22 @@ function buildFavorite(overrides: Partial<Favorite>): Favorite {
     organizationId: opp1.organizationId,
     organizationName: opp1.organizationName,
     favoritedAt: '2026-07-01T00:00:00Z',
+    ...overrides,
+  }
+}
+
+function buildWaitlistEntry(overrides: Partial<Waitlist>): Waitlist {
+  return {
+    userId: 'user1',
+    opportunityId: 'opp2',
+    title: opp2.title,
+    date: opp2.date,
+    location: opp2.location,
+    organizationId: opp2.organizationId,
+    organizationName: opp2.organizationName,
+    volunteerName: 'Sasha Vershkova',
+    email: 'sasha@example.com',
+    joinedAt: '2026-07-01T00:00:00Z',
     ...overrides,
   }
 }
@@ -96,6 +127,9 @@ describe('OpportunitiesPage', () => {
     mockedGetMyFavorites.mockReset().mockResolvedValue([])
     mockedSaveFavorite.mockReset()
     mockedRemoveFavorite.mockReset()
+    mockedGetMyWaitlist.mockReset().mockResolvedValue([])
+    mockedJoinWaitlist.mockReset()
+    mockedLeaveWaitlist.mockReset()
   })
 
   it('shows a loading message while the profile is loading', () => {
@@ -299,5 +333,60 @@ describe('OpportunitiesPage', () => {
     expect(
       screen.getByRole('button', { name: 'Remove from favorites' }),
     ).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('shows a Waitlisted badge for a full opportunity that is already waitlisted', async () => {
+    mockAuth({})
+    mockedGetOpportunities.mockResolvedValue([opp2])
+    mockedGetMyRegistrations.mockResolvedValue([])
+    mockedGetMyWaitlist.mockResolvedValue([buildWaitlistEntry({})])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: 'Community Meal Prep' })
+
+    expect(screen.getByText('Waitlisted')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Leave Waitlist' }),
+    ).toBeInTheDocument()
+  })
+
+  it('joins the waitlist for a full opportunity when Join Waitlist is clicked', async () => {
+    const user = userEvent.setup()
+    mockAuth({})
+    mockedGetOpportunities.mockResolvedValue([opp2])
+    mockedGetMyRegistrations.mockResolvedValue([])
+    mockedJoinWaitlist.mockResolvedValue(buildWaitlistEntry({}))
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: 'Community Meal Prep' })
+
+    await user.click(screen.getByRole('button', { name: 'Join Waitlist' }))
+
+    expect(mockedJoinWaitlist).toHaveBeenCalledWith('token', 'opp2')
+    expect(
+      await screen.findByRole('button', { name: 'Leave Waitlist' }),
+    ).toBeInTheDocument()
+  })
+
+  it('leaves the waitlist when Leave Waitlist is clicked', async () => {
+    const user = userEvent.setup()
+    mockAuth({})
+    mockedGetOpportunities.mockResolvedValue([opp2])
+    mockedGetMyRegistrations.mockResolvedValue([])
+    mockedGetMyWaitlist.mockResolvedValue([buildWaitlistEntry({})])
+    mockedLeaveWaitlist.mockResolvedValue(undefined)
+
+    renderPage()
+
+    await screen.findByRole('button', { name: 'Leave Waitlist' })
+
+    await user.click(screen.getByRole('button', { name: 'Leave Waitlist' }))
+
+    expect(mockedLeaveWaitlist).toHaveBeenCalledWith('token', 'opp2')
+    expect(
+      await screen.findByRole('button', { name: 'Join Waitlist' }),
+    ).toBeInTheDocument()
   })
 })

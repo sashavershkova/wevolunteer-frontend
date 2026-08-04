@@ -12,6 +12,9 @@ type OpportunityListItemProps = {
   onToggleFavorite?: (opportunityId: string) => Promise<void>
   isRegistered?: boolean
   onCancelRegistration?: (opportunityId: string) => Promise<void>
+  isWaitlisted?: boolean
+  onJoinWaitlist?: (opportunityId: string) => Promise<void>
+  onLeaveWaitlist?: (opportunityId: string) => Promise<void>
 }
 
 function formatDate(dateString: string): string {
@@ -35,6 +38,9 @@ function OpportunityListItem({
   onToggleFavorite,
   isRegistered = false,
   onCancelRegistration,
+  isWaitlisted = false,
+  onJoinWaitlist,
+  onLeaveWaitlist,
 }: OpportunityListItemProps) {
     const [isRegistering, setIsRegistering] = useState(false)
     const [registerError, setRegisterError] = useState<string | null>(null)
@@ -42,11 +48,12 @@ function OpportunityListItem({
     const [favoriteError, setFavoriteError] = useState<string | null>(null)
     const [isCancelling, setIsCancelling] = useState(false)
     const [cancelError, setCancelError] = useState<string | null>(null)
+    const [isJoiningWaitlist, setIsJoiningWaitlist] = useState(false)
+    const [waitlistError, setWaitlistError] = useState<string | null>(null)
+    const [isLeavingWaitlist, setIsLeavingWaitlist] = useState(false)
 
     const isFull = opportunity.availableSpots <= 0
     const canRegister = !isFull && Boolean(onRegister) && !isRegistered
-    // Waitlist is a placeholder for now (not wired to a real backend flow yet) -
-    // shown whenever an opportunity is full, but genuinely non-functional.
     const isWaitlist = isFull && !isRegistered
     const spotsStatusClass = isFull
     ? 'opportunity-list-item-spots-full'
@@ -101,6 +108,44 @@ function OpportunityListItem({
         )
         } finally {
         setIsCancelling(false)
+        }
+    }
+
+    async function handleJoinWaitlistClick() {
+        if (!onJoinWaitlist) {
+        return
+        }
+
+        setIsJoiningWaitlist(true)
+        setWaitlistError(null)
+
+        try {
+        await onJoinWaitlist(opportunity.opportunityId)
+        } catch (err) {
+        setWaitlistError(
+            err instanceof Error ? err.message : 'Unable to join the waitlist.',
+        )
+        } finally {
+        setIsJoiningWaitlist(false)
+        }
+    }
+
+    async function handleLeaveWaitlistClick() {
+        if (!onLeaveWaitlist) {
+        return
+        }
+
+        setIsLeavingWaitlist(true)
+        setWaitlistError(null)
+
+        try {
+        await onLeaveWaitlist(opportunity.opportunityId)
+        } catch (err) {
+        setWaitlistError(
+            err instanceof Error ? err.message : 'Unable to leave the waitlist.',
+        )
+        } finally {
+        setIsLeavingWaitlist(false)
         }
     }
 
@@ -238,15 +283,41 @@ function OpportunityListItem({
               )}
             </div>
           )}
-          {isWaitlist && (
+          {isWaitlist && isWaitlisted && (
             <div className="opportunity-list-item-actions">
+              <span className="opportunity-list-item-waitlisted-badge">Waitlisted</span>
+              {onLeaveWaitlist && (
                 <button
+                  type="button"
+                  className="opportunity-list-item-leave-waitlist-button"
+                  onClick={handleLeaveWaitlistClick}
+                  disabled={isLeavingWaitlist}
+                >
+                  {isLeavingWaitlist ? 'Leaving...' : 'Leave Waitlist'}
+                </button>
+              )}
+              {waitlistError && (
+                <p role="alert" className="opportunity-list-item-register-error">
+                  {waitlistError}
+                </p>
+              )}
+            </div>
+          )}
+          {isWaitlist && !isWaitlisted && (
+            <div className="opportunity-list-item-actions">
+              <button
                 type="button"
                 className="opportunity-list-item-waitlist-button"
-                disabled
-                >
-                Waitlist
-                </button>
+                onClick={handleJoinWaitlistClick}
+                disabled={!onJoinWaitlist || isJoiningWaitlist}
+              >
+                {isJoiningWaitlist ? 'Joining...' : 'Join Waitlist'}
+              </button>
+              {waitlistError && (
+                <p role="alert" className="opportunity-list-item-register-error">
+                  {waitlistError}
+                </p>
+              )}
             </div>
           )}
         </div>

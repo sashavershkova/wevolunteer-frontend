@@ -15,6 +15,12 @@ import {
   removeFavorite,
   type Favorite,
 } from '../../services/api/favoriteService'
+import {
+  getMyWaitlist,
+  joinWaitlist,
+  leaveWaitlist,
+  type Waitlist,
+} from '../../services/api/waitlistService'
 import { opp1, opp2, opp3 } from '../../tests/fixtures/opportunities'
 
 vi.mock('../../contexts/AuthContext', () => ({
@@ -36,6 +42,12 @@ vi.mock('../../services/api/favoriteService', () => ({
   removeFavorite: vi.fn(),
 }))
 
+vi.mock('../../services/api/waitlistService', () => ({
+  getMyWaitlist: vi.fn(),
+  joinWaitlist: vi.fn(),
+  leaveWaitlist: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetOpportunities = vi.mocked(getOpportunities)
 const mockedRegisterForOpportunity = vi.mocked(registerForOpportunity)
@@ -43,6 +55,9 @@ const mockedGetMyRegistrations = vi.mocked(getMyRegistrations)
 const mockedCancelMyRegistration = vi.mocked(cancelMyRegistration)
 const mockedGetMyFavorites = vi.mocked(getMyFavorites)
 const mockedRemoveFavorite = vi.mocked(removeFavorite)
+const mockedGetMyWaitlist = vi.mocked(getMyWaitlist)
+const mockedJoinWaitlist = vi.mocked(joinWaitlist)
+const mockedLeaveWaitlist = vi.mocked(leaveWaitlist)
 
 function buildRegistration(overrides: Partial<Registration>): Registration {
   return {
@@ -71,6 +86,22 @@ function buildFavorite(overrides: Partial<Favorite>): Favorite {
     organizationId: opp1.organizationId,
     organizationName: opp1.organizationName,
     favoritedAt: '2026-07-01T00:00:00Z',
+    ...overrides,
+  }
+}
+
+function buildWaitlistEntry(overrides: Partial<Waitlist>): Waitlist {
+  return {
+    userId: 'user1',
+    opportunityId: 'opp2',
+    title: opp2.title,
+    date: opp2.date,
+    location: opp2.location,
+    organizationId: opp2.organizationId,
+    organizationName: opp2.organizationName,
+    volunteerName: 'Sasha Vershkova',
+    email: 'sasha@example.com',
+    joinedAt: '2026-07-01T00:00:00Z',
     ...overrides,
   }
 }
@@ -119,6 +150,9 @@ describe('FavoritesPage', () => {
     mockedCancelMyRegistration.mockReset()
     mockedGetMyFavorites.mockReset()
     mockedRemoveFavorite.mockReset()
+    mockedGetMyWaitlist.mockReset().mockResolvedValue([])
+    mockedJoinWaitlist.mockReset()
+    mockedLeaveWaitlist.mockReset()
     mockAuth()
   })
 
@@ -262,6 +296,39 @@ describe('FavoritesPage', () => {
     expect(mockedRemoveFavorite).toHaveBeenCalledWith('token', 'opp1')
     expect(
       await screen.findByText('You have no saved opportunities yet.'),
+    ).toBeInTheDocument()
+  })
+
+  it('shows a Waitlisted badge for a favorited, full opportunity that is already waitlisted', async () => {
+    mockedGetOpportunities.mockResolvedValue([opp2])
+    mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp2' })])
+    mockedGetMyWaitlist.mockResolvedValue([buildWaitlistEntry({})])
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: 'Community Meal Prep' })
+
+    expect(screen.getByText('Waitlisted')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Leave Waitlist' }),
+    ).toBeInTheDocument()
+  })
+
+  it('joins the waitlist for a favorited, full opportunity when Join Waitlist is clicked', async () => {
+    const user = userEvent.setup()
+    mockedGetOpportunities.mockResolvedValue([opp2])
+    mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp2' })])
+    mockedJoinWaitlist.mockResolvedValue(buildWaitlistEntry({}))
+
+    renderPage()
+
+    await screen.findByRole('heading', { name: 'Community Meal Prep' })
+
+    await user.click(screen.getByRole('button', { name: 'Join Waitlist' }))
+
+    expect(mockedJoinWaitlist).toHaveBeenCalledWith('token', 'opp2')
+    expect(
+      await screen.findByRole('button', { name: 'Leave Waitlist' }),
     ).toBeInTheDocument()
   })
 })

@@ -266,11 +266,70 @@
   background: var(--border);
   border: none;
   border-radius: 0.4rem;
-  color: var(--text);
-  cursor: not-allowed;
-  font-size: 1rem;
-  font-weight: 550;
+  color: var(--text-h);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
   padding: 0.5rem 1.1rem;
-    position: relative;
+  position: relative;
   z-index: 2;
+}
+
+.opportunity-list-item-waitlist-button:hover:not(:disabled) {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.opportunity-list-item-waitlist-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.opportunity-list-item-waitlist-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.opportunity-list-item-waitlisted-badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: #fdf3e0;
+  color: #b7791f;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+:root[data-theme='dark'] .opportunity-list-item-waitlisted-badge {
+  background: rgba(240, 198, 116, 0.15);
+  color: #f0c674;
+}
+
+.opportunity-list-item-leave-waitlist-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.opportunity-list-item-leave-waitlist-button:hover:not(:disabled) {
+  background: var(--accent-bg);
+}
+
+.opportunity-list-item-leave-waitlist-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.opportunity-list-item-leave-waitlist-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

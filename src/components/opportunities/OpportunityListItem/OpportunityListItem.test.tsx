@@ -47,6 +47,26 @@ function renderRegisteredItem(
   )
 }
 
+function renderWaitlistItem(
+  opportunity: typeof opp1,
+  options: {
+    isWaitlisted?: boolean
+    onJoinWaitlist?: (opportunityId: string) => Promise<void>
+    onLeaveWaitlist?: (opportunityId: string) => Promise<void>
+  } = {},
+) {
+  return render(
+    <MemoryRouter>
+      <OpportunityListItem
+        opportunity={opportunity}
+        isWaitlisted={options.isWaitlisted}
+        onJoinWaitlist={options.onJoinWaitlist}
+        onLeaveWaitlist={options.onLeaveWaitlist}
+      />
+    </MemoryRouter>,
+  )
+}
+
 describe('OpportunityListItem', () => {
   it('renders the core opportunity fields', () => {
     renderItem(opp1)
@@ -147,16 +167,76 @@ describe('OpportunityListItem', () => {
     expect(screen.getByRole('button', { name: 'Register' })).not.toBeDisabled()
   })
 
-  it('shows a disabled Waitlist button for a full opportunity', () => {
+  it('shows a disabled Join Waitlist button for a full opportunity when no handler is provided', () => {
     renderItem(opp2, vi.fn())
 
-    expect(screen.getByRole('button', { name: 'Waitlist' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Join Waitlist' })).toBeDisabled()
   })
 
-  it('does not show a Waitlist button for an open opportunity with room', () => {
-    renderItem(opp1, vi.fn())
+  it('does not show a waitlist button for an open opportunity with room', () => {
+    renderWaitlistItem(opp1, { onJoinWaitlist: vi.fn() })
 
-    expect(screen.queryByRole('button', { name: 'Waitlist' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Join Waitlist' })).not.toBeInTheDocument()
+  })
+
+  it('shows an enabled Join Waitlist button for a full opportunity when onJoinWaitlist is provided', () => {
+    renderWaitlistItem(opp2, { onJoinWaitlist: vi.fn() })
+
+    expect(screen.getByRole('button', { name: 'Join Waitlist' })).toBeEnabled()
+  })
+
+  it('calls onJoinWaitlist with the opportunity id when Join Waitlist is clicked', async () => {
+    const user = userEvent.setup()
+    const onJoinWaitlist = vi.fn().mockResolvedValue(undefined)
+    renderWaitlistItem(opp2, { onJoinWaitlist })
+
+    await user.click(screen.getByRole('button', { name: 'Join Waitlist' }))
+
+    expect(onJoinWaitlist).toHaveBeenCalledWith('opp2')
+  })
+
+  it('shows an error message if joining the waitlist fails', async () => {
+    const user = userEvent.setup()
+    const onJoinWaitlist = vi.fn().mockRejectedValue(new Error('Opportunity still has room.'))
+    renderWaitlistItem(opp2, { onJoinWaitlist })
+
+    await user.click(screen.getByRole('button', { name: 'Join Waitlist' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Opportunity still has room.')
+    })
+  })
+
+  it('shows a Waitlisted badge and Leave Waitlist button when already on the waitlist', () => {
+    renderWaitlistItem(opp2, { isWaitlisted: true, onLeaveWaitlist: vi.fn() })
+
+    expect(screen.getByText('Waitlisted')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Leave Waitlist' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Join Waitlist' })).not.toBeInTheDocument()
+  })
+
+  it('calls onLeaveWaitlist with the opportunity id when Leave Waitlist is clicked', async () => {
+    const user = userEvent.setup()
+    const onLeaveWaitlist = vi.fn().mockResolvedValue(undefined)
+    renderWaitlistItem(opp2, { isWaitlisted: true, onLeaveWaitlist })
+
+    await user.click(screen.getByRole('button', { name: 'Leave Waitlist' }))
+
+    expect(onLeaveWaitlist).toHaveBeenCalledWith('opp2')
+  })
+
+  it('shows an error message if leaving the waitlist fails', async () => {
+    const user = userEvent.setup()
+    const onLeaveWaitlist = vi.fn().mockRejectedValue(new Error('Unable to leave.'))
+    renderWaitlistItem(opp2, { isWaitlisted: true, onLeaveWaitlist })
+
+    await user.click(screen.getByRole('button', { name: 'Leave Waitlist' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Unable to leave.')
+    })
   })
 
   it('does not show a favorite heart when onToggleFavorite is not provided', () => {
@@ -225,10 +305,10 @@ describe('OpportunityListItem', () => {
     expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
   })
 
-  it('does not show a Waitlist button for a full, registered opportunity', () => {
+  it('does not show a waitlist button for a full, registered opportunity', () => {
     renderRegisteredItem(opp2, vi.fn())
 
-    expect(screen.queryByRole('button', { name: 'Waitlist' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Join Waitlist' })).not.toBeInTheDocument()
     expect(screen.getByText('Registered')).toBeInTheDocument()
   })
 
