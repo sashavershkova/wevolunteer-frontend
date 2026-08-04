@@ -33,10 +33,16 @@ function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>>) {
   })
 }
 
-function renderSidebar(initialPath = '/') {
+function renderSidebar(
+  initialPath = '/',
+  {
+    isMobileOpen = false,
+    onMobileClose = vi.fn(),
+  }: Partial<{ isMobileOpen: boolean; onMobileClose: () => void }> = {},
+) {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
-      <Sidebar />
+      <Sidebar isMobileOpen={isMobileOpen} onMobileClose={onMobileClose} />
     </MemoryRouter>,
   )
 }
@@ -167,5 +173,63 @@ describe('Sidebar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Log Out' }))
 
     expect(signOut).toHaveBeenCalledTimes(1)
+  })
+
+  describe('mobile drawer', () => {
+    it('does not render a backdrop when closed', () => {
+      mockAuth({
+        userProfile: {
+          userId: 'user1',
+          name: 'Sasha Vershkova',
+          email: 'sasha@example.com',
+          role: 'VOLUNTEER',
+          profileImageUrl: null,
+        },
+      })
+
+      const { container } = renderSidebar('/', { isMobileOpen: false })
+
+      expect(container.querySelector('.app-sidebar-backdrop')).not.toBeInTheDocument()
+    })
+
+    it('renders a backdrop that closes the menu when clicked', () => {
+      mockAuth({
+        userProfile: {
+          userId: 'user1',
+          name: 'Sasha Vershkova',
+          email: 'sasha@example.com',
+          role: 'VOLUNTEER',
+          profileImageUrl: null,
+        },
+      })
+      const onMobileClose = vi.fn()
+
+      const { container } = renderSidebar('/', { isMobileOpen: true, onMobileClose })
+
+      const backdrop = container.querySelector('.app-sidebar-backdrop')
+      expect(backdrop).toBeInTheDocument()
+
+      fireEvent.click(backdrop as Element)
+
+      expect(onMobileClose).toHaveBeenCalledTimes(1)
+    })
+
+    it('closes the menu when a nav link is clicked', () => {
+      mockAuth({
+        userProfile: {
+          userId: 'user1',
+          name: 'Sasha Vershkova',
+          email: 'sasha@example.com',
+          role: 'VOLUNTEER',
+          profileImageUrl: null,
+        },
+      })
+      const onMobileClose = vi.fn()
+
+      renderSidebar('/', { isMobileOpen: true, onMobileClose })
+      fireEvent.click(screen.getByRole('link', { name: 'Dashboard' }))
+
+      expect(onMobileClose).toHaveBeenCalledTimes(1)
+    })
   })
 })

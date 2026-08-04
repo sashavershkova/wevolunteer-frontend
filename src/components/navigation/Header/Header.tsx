@@ -2,9 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppAuth } from '../../../contexts/AuthContext'
 import { useTheme } from '../../../hooks/useTheme'
-import { NotificationsIcon, SunIcon, MoonIcon } from '../../shared/icons'
+import { CloseIcon, MenuIcon, NotificationsIcon, SunIcon, MoonIcon } from '../../shared/icons'
 import BrandMark from '../../shared/BrandMark/BrandMark'
 import './Header.css'
+
+type HeaderProps = {
+  isMobileSidebarOpen: boolean
+  onMobileSidebarToggle: () => void
+}
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -20,7 +25,7 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
-function Header() {
+function Header({ isMobileSidebarOpen, onMobileSidebarToggle }: HeaderProps) {
   const auth = useAppAuth()
   const { theme, toggleTheme } = useTheme()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -49,9 +54,26 @@ function Header() {
   }
 
   const themeToggleLabel = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+  const hasSidebar = Boolean(auth.userProfile || auth.organizationProfile)
 
   return (
     <header className="app-header">
+      {hasSidebar && (
+        <button
+          type="button"
+          className="app-header-menu-toggle"
+          onClick={onMobileSidebarToggle}
+          aria-expanded={isMobileSidebarOpen}
+          aria-label={isMobileSidebarOpen ? 'Close menu' : 'Open menu'}
+        >
+          {isMobileSidebarOpen ? (
+            <CloseIcon aria-hidden="true" />
+          ) : (
+            <MenuIcon aria-hidden="true" />
+          )}
+        </button>
+      )}
+
       <Link to="/" className="app-header-brand">
         <BrandMark />
         <span className="app-header-wordmark">WeVolunteer</span>

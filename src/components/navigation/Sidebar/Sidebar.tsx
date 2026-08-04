@@ -45,7 +45,12 @@ function navLinkClassName({ isActive }: { isActive: boolean }): string | undefin
   return isActive ? 'is-active' : undefined
 }
 
-function Sidebar() {
+type SidebarProps = {
+  isMobileOpen: boolean
+  onMobileClose: () => void
+}
+
+function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
   const auth = useAppAuth()
 
   const items = auth.userProfile
@@ -59,21 +64,40 @@ function Sidebar() {
   }
 
   return (
-    <nav className="app-sidebar" aria-label="Sidebar">
-      <div className="app-sidebar-links">
-        {items.map((item) => (
-          <NavLink key={item.label} to={item.to} end={item.end} className={navLinkClassName}>
-            <item.Icon aria-hidden="true" />
-            {item.label}
-          </NavLink>
-        ))}
+    <>
+      {isMobileOpen && (
+        <div
+          className="app-sidebar-backdrop"
+          onClick={onMobileClose}
+          aria-hidden="true"
+        />
+      )}
 
-        <button type="button" className="app-sidebar-logout" onClick={() => auth.signOut()}>
-          <LogOutIcon aria-hidden="true" />
-          Log Out
-        </button>
-      </div>
-    </nav>
+      <nav
+        className={isMobileOpen ? 'app-sidebar is-mobile-open' : 'app-sidebar'}
+        aria-label="Sidebar"
+      >
+        <div className="app-sidebar-links">
+          {items.map((item) => (
+            <NavLink
+              key={item.label}
+              to={item.to}
+              end={item.end}
+              className={navLinkClassName}
+              onClick={onMobileClose}
+            >
+              <item.Icon aria-hidden="true" />
+              {item.label}
+            </NavLink>
+          ))}
+
+          <button type="button" className="app-sidebar-logout" onClick={() => auth.signOut()}>
+            <LogOutIcon aria-hidden="true" />
+            Log Out
+          </button>
+        </div>
+      </nav>
+    </>
   )
 }
 

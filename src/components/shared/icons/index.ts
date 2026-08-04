@@ -37,4 +37,5 @@ export {
   Trash2 as DeleteAccountIcon,
   Sun as SunIcon,
   Moon as MoonIcon,
+  X as CloseIcon,
 } from 'lucide-react'

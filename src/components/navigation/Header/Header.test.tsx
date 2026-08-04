@@ -48,10 +48,19 @@ function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>>) {
   })
 }
 
-function renderHeader() {
+function renderHeader({
+  isMobileSidebarOpen = false,
+  onMobileSidebarToggle = vi.fn(),
+}: Partial<{
+  isMobileSidebarOpen: boolean
+  onMobileSidebarToggle: () => void
+}> = {}) {
   return render(
     <MemoryRouter>
-      <Header />
+      <Header
+        isMobileSidebarOpen={isMobileSidebarOpen}
+        onMobileSidebarToggle={onMobileSidebarToggle}
+      />
     </MemoryRouter>,
   )
 }
@@ -266,6 +275,82 @@ describe('Header', () => {
 
       expect(screen.getByRole('button', { name: 'Switch to light mode' })).toBeInTheDocument()
       expect(document.documentElement.dataset.theme).toBe('dark')
+    })
+  })
+
+  describe('mobile sidebar toggle', () => {
+    // The toggle button is only visually shown under a max-width media query
+    // (real mobile viewports), which jsdom's default desktop-width test
+    // viewport never matches - it's legitimately display:none there, so it's
+    // excluded from the accessible-roles tree. Query it directly by class
+    // instead of by role to test its markup/behavior independent of that.
+    it('shows an "Open menu" button for a volunteer profile', () => {
+      mockAuth({
+        userProfile: {
+          userId: 'user1',
+          name: 'Sasha Vershkova',
+          email: 'sasha@example.com',
+          role: 'VOLUNTEER',
+          profileImageUrl: null,
+        },
+      })
+
+      const { container } = renderHeader()
+      const toggle = container.querySelector('.app-header-menu-toggle')
+
+      expect(toggle).toHaveAttribute('aria-label', 'Open menu')
+    })
+
+    it('shows an "Open menu" button for an organization profile', () => {
+      mockAuth({
+        organizationProfile: {
+          organizationId: 'org1',
+          name: 'Seattle Food Bank',
+          description: '',
+          email: '',
+          website: '',
+          profileImageUrl: null,
+        },
+      })
+
+      const { container } = renderHeader()
+      const toggle = container.querySelector('.app-header-menu-toggle')
+
+      expect(toggle).toHaveAttribute('aria-label', 'Open menu')
+    })
+
+    it('does not show a menu toggle while onboarding (no profile yet)', () => {
+      mockAuth({})
+
+      const { container } = renderHeader()
+
+      expect(container.querySelector('.app-header-menu-toggle')).not.toBeInTheDocument()
+    })
+
+    it('shows "Close menu" and calls onMobileSidebarToggle when clicked', () => {
+      mockAuth({
+        userProfile: {
+          userId: 'user1',
+          name: 'Sasha Vershkova',
+          email: 'sasha@example.com',
+          role: 'VOLUNTEER',
+          profileImageUrl: null,
+        },
+      })
+      const onMobileSidebarToggle = vi.fn()
+
+      const { container } = renderHeader({
+        isMobileSidebarOpen: true,
+        onMobileSidebarToggle,
+      })
+      const toggle = container.querySelector('.app-header-menu-toggle') as Element
+
+      expect(toggle).toHaveAttribute('aria-label', 'Close menu')
+      expect(toggle).toHaveAttribute('aria-expanded', 'true')
+
+      fireEvent.click(toggle)
+
+      expect(onMobileSidebarToggle).toHaveBeenCalledTimes(1)
     })
   })
 })
