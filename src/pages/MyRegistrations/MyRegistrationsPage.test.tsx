@@ -267,4 +267,56 @@ describe('MyRegistrationsPage', () => {
       await screen.findByText('Unable to cancel registration: 500'),
     ).toBeInTheDocument()
   })
+
+  it('filters the visible registrations by organization', async () => {
+    vi.useRealTimers()
+    const user = userEvent.setup()
+    mockedGetMyRegistrations.mockResolvedValue([
+      buildRegistration({ opportunityId: 'opp-a', title: 'Beach Cleanup' }),
+      buildRegistration({
+        opportunityId: 'opp-b',
+        title: 'Food Drive',
+        organizationName: 'Helping Hands',
+      }),
+    ])
+
+    render(<MyRegistrationsPage />)
+
+    await screen.findByText('Beach Cleanup')
+    expect(screen.getByText('Food Drive')).toBeInTheDocument()
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Filter by organization' }),
+      'Green Earth',
+    )
+
+    expect(screen.getByText('Beach Cleanup')).toBeInTheDocument()
+    expect(screen.queryByText('Food Drive')).not.toBeInTheDocument()
+  })
+
+  it('shows a filtered-empty message when a filter matches nothing, without showing the initial empty state', async () => {
+    vi.useRealTimers()
+    const user = userEvent.setup()
+    mockedGetMyRegistrations.mockResolvedValue([
+      buildRegistration({ opportunityId: 'opp-a', title: 'Beach Cleanup' }),
+    ])
+
+    render(<MyRegistrationsPage />)
+
+    await screen.findByText('Beach Cleanup')
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search registrations' }),
+      'nonexistent',
+    )
+
+    expect(
+      screen.getByText(
+        'No registrations match your search yet. Try adjusting your filters.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('You have no registrations yet.'),
+    ).not.toBeInTheDocument()
+  })
 })

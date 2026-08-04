@@ -1,0 +1,71 @@
+.volunteer-registration-filters {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.volunteer-registration-filters-search {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: var(--text-h);
+  flex: 1 1 10rem;
+  font: inherit;
+  font-size: 0.9rem;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+}
+
+.volunteer-registration-filters-select-wrapper {
+  flex-shrink: 0;
+  position: relative;
+  width: 9.5rem;
+}
+
+.volunteer-registration-filters-select {
+  appearance: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.9rem;
+  height: 2.8rem;
+  overflow: hidden;
+  padding: 0.6rem 1.35rem 0.6rem 0.6rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.volunteer-registration-filters-select-icon {
+  color: var(--text);
+  height: 0.75rem;
+  pointer-events: none;
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.75rem;
+}
+
+.volunteer-registration-filters-search:focus,
+.volunteer-registration-filters-select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.volunteer-registration-filters-clear-button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem;
+  text-decoration: underline;
+  white-space: nowrap;
+}

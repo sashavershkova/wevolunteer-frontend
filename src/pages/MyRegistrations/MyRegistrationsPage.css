@@ -30,6 +30,12 @@
   padding: 0;
 }
 
+.my-registrations-empty-filtered {
+  color: var(--text);
+  padding: 1.5rem 0;
+  text-align: left;
+}
+
 @media (max-width: 640px) {
   .my-registrations-page {
     padding: 1.5rem 1rem;

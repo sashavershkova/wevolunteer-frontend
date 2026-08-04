@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppAuth } from '../../contexts/AuthContext'
 import {
   cancelMyRegistration,
@@ -6,6 +6,12 @@ import {
   type Registration,
 } from '../../services/api/registrationService'
 import RegistrationCard from '../../components/registrations/RegistrationCard'
+import VolunteerRegistrationFilters from '../../components/registrations/VolunteerRegistrationFilters/VolunteerRegistrationFilters'
+import {
+  EMPTY_VOLUNTEER_REGISTRATION_FILTERS,
+  filterVolunteerRegistrations,
+  type VolunteerRegistrationFiltersValue,
+} from '../../utils/volunteerRegistrationFilters'
 import './MyRegistrationsPage.css'
 
 function MyRegistrationsPage() {
@@ -18,6 +24,9 @@ function MyRegistrationsPage() {
     useState<string | null>(null)
   const [cancellationErrorMessage, setCancellationErrorMessage] =
     useState<string | null>(null)
+  const [filters, setFilters] = useState<VolunteerRegistrationFiltersValue>(
+    EMPTY_VOLUNTEER_REGISTRATION_FILTERS,
+  )
 
   useEffect(() => {
     if (!auth.accessToken) {
@@ -93,6 +102,11 @@ function MyRegistrationsPage() {
     }
   }
 
+  const filteredRegistrations = useMemo(
+    () => filterVolunteerRegistrations(registrations, filters),
+    [registrations, filters],
+  )
+
   if (isLoading) {
     return (
       <main className="my-registrations-page">
@@ -120,7 +134,7 @@ function MyRegistrationsPage() {
     )
   }
 
-  const sortedRegistrations = [...registrations].sort((a, b) =>
+  const sortedRegistrations = [...filteredRegistrations].sort((a, b) =>
     b.date.localeCompare(a.date),
   )
 
@@ -137,19 +151,31 @@ function MyRegistrationsPage() {
         </p>
       )}
 
-      <ul className="my-registrations-list">
-        {sortedRegistrations.map((registration) => (
-          <li key={registration.opportunityId}>
-            <RegistrationCard
-              registration={registration}
-              onCancel={handleCancelRegistration}
-              isCancelling={
-                cancellingOpportunityId === registration.opportunityId
-              }
-            />
-          </li>
-        ))}
-      </ul>
+      <VolunteerRegistrationFilters
+        registrations={registrations}
+        value={filters}
+        onChange={setFilters}
+      />
+
+      {sortedRegistrations.length === 0 ? (
+        <p className="my-registrations-empty-filtered">
+          No registrations match your search yet. Try adjusting your filters.
+        </p>
+      ) : (
+        <ul className="my-registrations-list">
+          {sortedRegistrations.map((registration) => (
+            <li key={registration.opportunityId}>
+              <RegistrationCard
+                registration={registration}
+                onCancel={handleCancelRegistration}
+                isCancelling={
+                  cancellingOpportunityId === registration.opportunityId
+                }
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </main>
   )
 }
