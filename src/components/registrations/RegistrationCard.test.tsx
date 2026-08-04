@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import RegistrationCard from './RegistrationCard'
 import type { Registration } from '../../services/api/registrationService'
 
@@ -29,11 +30,13 @@ function renderCard(
   return {
     onCancel,
     ...render(
-      <RegistrationCard
-        registration={registration}
-        onCancel={onCancel}
-        isCancelling={isCancelling}
-      />,
+      <MemoryRouter>
+        <RegistrationCard
+          registration={registration}
+          onCancel={onCancel}
+          isCancelling={isCancelling}
+        />
+      </MemoryRouter>,
     ),
   }
 }
@@ -82,6 +85,15 @@ describe('RegistrationCard', () => {
     )
 
     expect(onCancel).toHaveBeenCalledWith('opp-1')
+  })
+
+  it('links the card to the opportunity detail route via a stretched link', () => {
+    renderCard()
+
+    const link = screen.getByRole('link', {
+      name: 'View details for Beach Cleanup',
+    })
+    expect(link).toHaveAttribute('href', '/opportunities/opp-1')
   })
 
   it('shows a disabled, cancelling state when isCancelling is true', () => {

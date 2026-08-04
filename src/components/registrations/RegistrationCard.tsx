@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Registration } from '../../services/api/registrationService'
 import { formatOpportunityTimeRange } from '../../utils/formatOpportunityTimeRange'
 import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
@@ -46,6 +47,12 @@ function RegistrationCard({
 
   return (
     <article className="registration-card">
+      <Link
+        to={`/opportunities/${registration.opportunityId}`}
+        className="registration-card-stretched-link"
+        aria-label={`View details for ${registration.title}`}
+      />
+
       <div className="registration-card-main">
         <h2 className="registration-card-title">{registration.title}</h2>
         <p className="registration-card-organization">

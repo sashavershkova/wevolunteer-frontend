@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import MyRegistrationsPage from './MyRegistrationsPage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import {
@@ -41,6 +42,14 @@ function buildRegistration(overrides: Partial<Registration>): Registration {
   }
 }
 
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <MyRegistrationsPage />
+    </MemoryRouter>,
+  )
+}
+
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {
   mockedUseAppAuth.mockReturnValue({
     isLoading: false,
@@ -79,7 +88,7 @@ describe('MyRegistrationsPage', () => {
   it('shows a loading state while registrations are being fetched', () => {
     mockedGetMyRegistrations.mockReturnValue(new Promise(() => {}))
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     expect(screen.getByText('Loading registrations...')).toBeInTheDocument()
   })
@@ -87,7 +96,7 @@ describe('MyRegistrationsPage', () => {
   it('shows an empty state when there are no registrations', async () => {
     mockedGetMyRegistrations.mockResolvedValue([])
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     expect(
       await screen.findByText('You have no registrations yet.'),
@@ -99,7 +108,7 @@ describe('MyRegistrationsPage', () => {
       new Error('Unable to load registrations: 500'),
     )
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     expect(
       await screen.findByText('Unable to load registrations: 500'),
@@ -111,7 +120,7 @@ describe('MyRegistrationsPage', () => {
       buildRegistration({ opportunityId: 'opp-past', date: '2026-07-19' }),
     ])
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     await screen.findByText('Beach Cleanup')
 
@@ -127,7 +136,7 @@ describe('MyRegistrationsPage', () => {
       buildRegistration({ opportunityId: 'opp-today', date: '2026-07-29' }),
     ])
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     await screen.findByText('Beach Cleanup')
 
@@ -142,7 +151,7 @@ describe('MyRegistrationsPage', () => {
       buildRegistration({ opportunityId: 'opp-future', date: '2026-08-01' }),
     ])
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     await screen.findByText('Beach Cleanup')
 
@@ -171,7 +180,7 @@ describe('MyRegistrationsPage', () => {
       }),
     ])
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     await screen.findByText('Newest Event')
 
@@ -197,7 +206,7 @@ describe('MyRegistrationsPage', () => {
     ]
     mockedGetMyRegistrations.mockResolvedValue(registrations)
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     await screen.findByText('Newer Event')
 
@@ -215,7 +224,7 @@ describe('MyRegistrationsPage', () => {
       }),
     ])
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     expect(await screen.findByText('9:00 AM – 1:00 PM')).toBeInTheDocument()
   })
@@ -229,7 +238,7 @@ describe('MyRegistrationsPage', () => {
     mockedCancelMyRegistration.mockResolvedValue(undefined)
     vi.spyOn(window, 'confirm').mockReturnValue(true)
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     await screen.findByText('Beach Cleanup')
 
@@ -255,7 +264,7 @@ describe('MyRegistrationsPage', () => {
     )
     vi.spyOn(window, 'confirm').mockReturnValue(true)
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     await screen.findByText('Beach Cleanup')
 
@@ -280,7 +289,7 @@ describe('MyRegistrationsPage', () => {
       }),
     ])
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     await screen.findByText('Beach Cleanup')
     expect(screen.getByText('Food Drive')).toBeInTheDocument()
@@ -301,7 +310,7 @@ describe('MyRegistrationsPage', () => {
       buildRegistration({ opportunityId: 'opp-a', title: 'Beach Cleanup' }),
     ])
 
-    render(<MyRegistrationsPage />)
+    renderPage()
 
     await screen.findByText('Beach Cleanup')
 
@@ -318,5 +327,19 @@ describe('MyRegistrationsPage', () => {
     expect(
       screen.queryByText('You have no registrations yet.'),
     ).not.toBeInTheDocument()
+  })
+
+  it('links each registration card to its opportunity detail route', async () => {
+    mockedGetMyRegistrations.mockResolvedValue([
+      buildRegistration({ opportunityId: 'opp-future', date: '2999-08-01' }),
+    ])
+
+    renderPage()
+
+    await screen.findByText('Beach Cleanup')
+
+    expect(
+      screen.getByRole('link', { name: 'View details for Beach Cleanup' }),
+    ).toHaveAttribute('href', '/opportunities/opp-future')
   })
 })
