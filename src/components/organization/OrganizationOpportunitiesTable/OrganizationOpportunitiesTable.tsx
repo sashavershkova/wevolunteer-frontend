@@ -62,7 +62,9 @@ function OrganizationOpportunitiesTable({
             <th scope="col">Time</th>
             <th scope="col">Registrations</th>
             <th scope="col">Status</th>
-            <th scope="col">Actions</th>
+            <th scope="col" className="organization-opportunities-actions-header">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -118,7 +120,7 @@ function OrganizationOpportunitiesTable({
                     {statusLabel}
                   </span>
                 </td>
-                <td data-label="Actions">
+                <td data-label="Actions" className="organization-opportunities-actions-cell">
                   {displayStatus === 'COMPLETED' ? (
                     <Link
                       to={`/organization/opportunities/${opportunity.opportunityId}`}

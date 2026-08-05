@@ -172,10 +172,18 @@
   cursor: not-allowed;
 }
 
+.organization-opportunities-actions-header,
+.organization-opportunities-actions-cell {
+  min-width: 14rem;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
 .organization-opportunities-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  flex-wrap: nowrap;
+  gap: 10px;
 }
 
 .organization-opportunities-reopen-button {
