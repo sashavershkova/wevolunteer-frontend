@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import ProfilePage from './ProfilePage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { uploadUserProfileImage } from '../../services/api/imageService'
+import { updateCurrentUser } from '../../services/api/userService'
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAppAuth: vi.fn(),
@@ -14,8 +15,13 @@ vi.mock('../../services/api/imageService', () => ({
   uploadUserProfileImage: vi.fn(),
 }))
 
+vi.mock('../../services/api/userService', () => ({
+  updateCurrentUser: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedUploadUserProfileImage = vi.mocked(uploadUserProfileImage)
+const mockedUpdateCurrentUser = vi.mocked(updateCurrentUser)
 
 const volunteerProfile = {
   userId: 'user1',
@@ -66,6 +72,7 @@ function renderProfilePage() {
 describe('ProfilePage', () => {
   beforeEach(() => {
     mockedUploadUserProfileImage.mockReset()
+    mockedUpdateCurrentUser.mockReset()
   })
 
   it('displays the volunteer name, email, and role', () => {
@@ -243,5 +250,48 @@ describe('ProfilePage', () => {
     expect(screen.queryByText('Upcoming Opportunities')).not.toBeInTheDocument()
     expect(screen.queryByText('Completed Opportunities')).not.toBeInTheDocument()
     expect(screen.queryByText('Total Registrations')).not.toBeInTheDocument()
+  })
+
+  describe('profile editing', () => {
+    it('offers an Edit Profile control', () => {
+      mockAuth({ userProfile: { ...volunteerProfile } })
+
+      renderProfilePage()
+
+      expect(
+        screen.getByRole('button', { name: /edit profile/i }),
+      ).toBeInTheDocument()
+    })
+
+    it('shows editable name and email fields once Edit Profile is clicked', async () => {
+      const user = userEvent.setup()
+      mockAuth({ userProfile: { ...volunteerProfile } })
+
+      renderProfilePage()
+
+      await user.click(screen.getByRole('button', { name: /edit profile/i }))
+
+      expect(screen.getByLabelText('Name')).toHaveValue('Coco Chocolate')
+      expect(screen.getByLabelText('Email')).toHaveValue('coco@example.com')
+    })
+
+    it('updates the auth context profile once a save succeeds', async () => {
+      const user = userEvent.setup()
+      const updateUserProfile = vi.fn()
+      const updated = { ...volunteerProfile, name: 'New Name' }
+      mockAuth({ userProfile: { ...volunteerProfile }, updateUserProfile })
+      mockedUpdateCurrentUser.mockResolvedValue(updated)
+
+      renderProfilePage()
+
+      await user.click(screen.getByRole('button', { name: /edit profile/i }))
+      await user.clear(screen.getByLabelText('Name'))
+      await user.type(screen.getByLabelText('Name'), 'New Name')
+      await user.click(screen.getByRole('button', { name: 'Save' }))
+
+      await waitFor(() => {
+        expect(updateUserProfile).toHaveBeenCalledWith(updated)
+      })
+    })
   })
 })

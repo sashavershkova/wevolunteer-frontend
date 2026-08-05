@@ -5,6 +5,7 @@ import AboutMeCard from '../../components/volunteer/VolunteerAboutMeCard/AboutMe
 import VolunteerProfileCompletionPreview from '../../components/volunteer/VolunteerProfileCompletionPreview/VolunteerProfileCompletionPreview'
 import { useImageUpload } from '../../hooks/useImageUpload'
 import { uploadUserProfileImage } from '../../services/api/imageService'
+import VolunteerProfileEditForm from '../../components/volunteer/VolunteerProfileEditForm/VolunteerProfileEditForm'
 import './ProfilePage.css'
 
 function getInitials(name: string): string {
@@ -61,7 +62,7 @@ function ProfilePage() {
     return <Navigate to="/" replace />
   }
 
-  const { name, email, profileImageUrl } = auth.userProfile
+  const { name, profileImageUrl } = auth.userProfile
 
   return (
     <main className="profile-page">
@@ -90,20 +91,11 @@ function ProfilePage() {
           />
         </div>
 
-        <dl className="profile-details">
-          <div className="profile-detail-row">
-            <dt>Name</dt>
-            <dd>{name}</dd>
-          </div>
-          <div className="profile-detail-row">
-            <dt>Email</dt>
-            <dd>{email}</dd>
-          </div>
-          <div className="profile-detail-row">
-            <dt>Role</dt>
-            <dd>Volunteer</dd>
-          </div>
-        </dl>
+        <VolunteerProfileEditForm
+          userProfile={auth.userProfile}
+          accessToken={auth.accessToken}
+          onSaved={auth.updateUserProfile}
+        />
       </section>
 
       <div className="profile-page-row">

@@ -126,7 +126,11 @@ describe('DashboardPage', () => {
 
     renderPage()
 
-    await screen.findByText('Welcome back, Coco Chocolate!')
+    // The welcome heading renders immediately from auth.userProfile alone,
+    // independent of whether getMyRegistrations has resolved yet - waiting on
+    // it here is a race condition. Waiting on the computed hours value instead
+    // only succeeds once the async fetch has genuinely finished and rendered.
+    await screen.findByText('4')
 
     expect(
       screen.getByRole('heading', { name: 'Upcoming Opportunities' }),
@@ -134,7 +138,6 @@ describe('DashboardPage', () => {
     expect(screen.getAllByText('Upcoming Opportunities')).toHaveLength(2)
     expect(screen.getByText('Completed Opportunities')).toBeInTheDocument()
     expect(screen.getByText('Hours Contributed')).toBeInTheDocument()
-    expect(screen.getByText('4')).toBeInTheDocument()
     expect(screen.getAllByText('1')).toHaveLength(2)
   })
 

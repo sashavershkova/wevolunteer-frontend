@@ -22,6 +22,7 @@ describe('AboutMeCard', () => {
 
     expect(screen.getByText('Animals')).toBeInTheDocument()
     expect(screen.getByText('Environment')).toBeInTheDocument()
+    expect(screen.getByText('Food & Hunger Relief')).toBeInTheDocument()
     expect(screen.getByText('Community Outreach')).toBeInTheDocument()
   })
 

@@ -3,7 +3,7 @@ import './AboutMeCard.css'
 // Volunteers don't have a bio or interests field yet, so this shows sample
 // content to preview what the real feature will look like once it exists -
 // clearly framed as a preview rather than the volunteer's actual saved data.
-const SAMPLE_INTERESTS = ['Animals', 'Environment', 'Community Outreach']
+const SAMPLE_INTERESTS = ['Animals', 'Environment', 'Food & Hunger Relief', 'Community Outreach']
 
 function AboutMeCard() {
   return (
