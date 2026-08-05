@@ -15,6 +15,18 @@ export type CreateUserProfileRequest = {
   role: 'VOLUNTEER' | 'ORGANIZATION'
 }
 
+export type UpdateUserProfileRequest = {
+  name: string
+  email: string
+  /**
+   * Required by the backend request shape, but the backend always ignores
+   * whatever value is sent here and preserves the user's existing role - a
+   * self-service profile edit can never change VOLUNTEER/ORGANIZATION role.
+   * Always send the user's current, unchanged role here.
+   */
+  role: 'VOLUNTEER' | 'ORGANIZATION'
+}
+
 export async function getCurrentUser(
   accessToken: string,
 ): Promise<UserProfile | null> {
@@ -50,6 +62,26 @@ export async function createCurrentUser(
 
   if (!response.ok) {
     throw new Error(`Unable to create user profile: ${response.status}`)
+  }
+
+  return response.json() as Promise<UserProfile>
+}
+
+export async function updateCurrentUser(
+  accessToken: string,
+  request: UpdateUserProfileRequest,
+): Promise<UserProfile> {
+  const response = await fetch(`${env.apiUrl}/users/me`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Unable to update user profile: ${response.status}`)
   }
 
   return response.json() as Promise<UserProfile>
