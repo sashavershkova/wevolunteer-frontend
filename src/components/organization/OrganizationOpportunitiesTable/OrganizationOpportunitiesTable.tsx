@@ -55,13 +55,23 @@ function OrganizationOpportunitiesTable({
   return (
     <div className="organization-opportunities-table-container">
       <table className="organization-opportunities-table">
+        <colgroup>
+          <col className="organization-opportunities-col-opportunity" />
+          <col className="organization-opportunities-col-date" />
+          <col className="organization-opportunities-col-time" />
+          <col className="organization-opportunities-col-registrations" />
+          <col className="organization-opportunities-col-status" />
+          <col className="organization-opportunities-col-actions" />
+        </colgroup>
         <thead>
           <tr>
             <th scope="col">Opportunity</th>
             <th scope="col">Date</th>
             <th scope="col">Time</th>
             <th scope="col">Registrations</th>
-            <th scope="col">Status</th>
+            <th scope="col" className="organization-opportunities-status-header">
+              Status
+            </th>
             <th scope="col" className="organization-opportunities-actions-header">
               Actions
             </th>
@@ -113,7 +123,7 @@ function OrganizationOpportunitiesTable({
                 <td data-label="Registrations">
                   {opportunity.registeredCount} / {opportunity.capacity}
                 </td>
-                <td data-label="Status">
+                <td data-label="Status" className="organization-opportunities-status-cell">
                   <span
                     className={`organization-opportunities-status-badge organization-opportunities-status-badge-${statusModifier}`}
                   >
@@ -124,14 +134,14 @@ function OrganizationOpportunitiesTable({
                   {displayStatus === 'COMPLETED' ? (
                     <Link
                       to={`/organization/opportunities/${opportunity.opportunityId}`}
-                      className="organization-opportunities-view-link"
+                      className="organization-opportunities-action-button"
                     >
                       View
                     </Link>
                   ) : displayStatus === 'OPEN' ? (
                     <button
                       type="button"
-                      className="organization-opportunities-close-button"
+                      className="organization-opportunities-action-button"
                       disabled={isClosing}
                       onClick={() => onCloseOpportunity(opportunity.opportunityId)}
                     >
@@ -141,7 +151,7 @@ function OrganizationOpportunitiesTable({
                     <div className="organization-opportunities-actions">
                       <button
                         type="button"
-                        className="organization-opportunities-reopen-button"
+                        className="organization-opportunities-action-button organization-opportunities-reopen-button"
                         disabled={isReopening}
                         onClick={() => onReopenOpportunity(opportunity.opportunityId)}
                       >
@@ -150,7 +160,7 @@ function OrganizationOpportunitiesTable({
                       {opportunity.registeredCount === 0 && (
                         <button
                           type="button"
-                          className="organization-opportunities-delete-button"
+                          className="organization-opportunities-action-button organization-opportunities-delete-button"
                           disabled={isDeleting}
                           onClick={() => onDeleteOpportunity(opportunity.opportunityId)}
                         >
@@ -161,7 +171,7 @@ function OrganizationOpportunitiesTable({
                   ) : opportunity.registeredCount === 0 ? (
                     <button
                       type="button"
-                      className="organization-opportunities-delete-button"
+                      className="organization-opportunities-action-button organization-opportunities-delete-button"
                       disabled={isDeleting}
                       onClick={() => onDeleteOpportunity(opportunity.opportunityId)}
                     >

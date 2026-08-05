@@ -7,7 +7,7 @@
 .organization-opportunities-table-container {
   border: 1px solid var(--border);
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
   background: var(--bg);
   box-shadow: var(--shadow);
 }
@@ -15,13 +15,61 @@
 .organization-opportunities-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   text-align: left;
+}
+
+/*
+ * Intentional column shares so the table fits inside the page's fixed
+ * max-width instead of auto-layout expanding past it. Actions gets a small
+ * fixed budget (not an open-ended min-width) sized for Reopen + Delete side
+ * by side; the remaining columns share the rest by percentage.
+ */
+.organization-opportunities-col-opportunity {
+  width: 20%;
+}
+
+.organization-opportunities-col-date {
+  width: 11%;
+}
+
+.organization-opportunities-col-time {
+  width: 12%;
+}
+
+.organization-opportunities-col-registrations {
+  width: 17%;
+}
+
+.organization-opportunities-col-status {
+  width: 14%;
+}
+
+.organization-opportunities-col-actions {
+  /* Fixed budget sized to fit Reopen + Delete side by side, plus the
+     24px left padding added below for a clear gap from Status. */
+  width: 210px;
 }
 
 .organization-opportunities-table th,
 .organization-opportunities-table td {
   padding: 0.9rem 1.25rem;
   border-bottom: 1px solid var(--border);
+}
+
+/* Desktop-only: give the Status/Actions boundary more breathing room than
+   the default 1.25rem/1.25rem split. Scoped to the table's own desktop
+   breakpoint so the mobile card layout's padding reset is unaffected. */
+@media (min-width: 641px) {
+  .organization-opportunities-table th.organization-opportunities-status-header,
+  .organization-opportunities-table td.organization-opportunities-status-cell {
+    padding-right: 24px;
+  }
+
+  .organization-opportunities-table th.organization-opportunities-actions-header,
+  .organization-opportunities-table td.organization-opportunities-actions-cell {
+    padding-left: 24px;
+  }
 }
 
 .organization-opportunities-table tbody tr:last-child td {
@@ -116,7 +164,17 @@
   color: #86efac;
 }
 
-.organization-opportunities-close-button {
+/*
+ * Shared visual base for every action in the Actions column (Close, View,
+ * Reopen, Delete) so they line up consistently regardless of whether the
+ * underlying element is a <button> or a <Link>. Color/border modifiers live
+ * in the per-action classes below; layout, type, and interaction states
+ * live here once.
+ */
+.organization-opportunities-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
@@ -127,34 +185,26 @@
   padding: 0.4rem 0.9rem;
   cursor: pointer;
   white-space: nowrap;
+  text-decoration: none;
 }
 
-.organization-opportunities-close-button:hover:not(:disabled) {
+.organization-opportunities-action-button:hover:not(:disabled) {
   border-color: var(--accent-border);
   background: var(--accent-bg);
 }
 
-.organization-opportunities-close-button:focus-visible {
+.organization-opportunities-action-button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.organization-opportunities-close-button:disabled {
+.organization-opportunities-action-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
 .organization-opportunities-delete-button {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
   color: #d64545;
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.4rem 0.9rem;
-  cursor: pointer;
-  white-space: nowrap;
 }
 
 .organization-opportunities-delete-button:hover:not(:disabled) {
@@ -167,14 +217,8 @@
   outline-offset: 2px;
 }
 
-.organization-opportunities-delete-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .organization-opportunities-actions-header,
 .organization-opportunities-actions-cell {
-  min-width: 14rem;
   white-space: nowrap;
   vertical-align: middle;
 }
@@ -187,48 +231,13 @@
 }
 
 .organization-opportunities-reopen-button {
-  border: 1px solid var(--accent-border);
-  border-radius: 8px;
+  border-color: var(--accent-border);
   background: var(--accent-bg);
   color: var(--accent);
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.4rem 0.9rem;
-  cursor: pointer;
-  white-space: nowrap;
 }
 
 .organization-opportunities-reopen-button:hover:not(:disabled) {
   border-color: var(--accent);
-}
-
-.organization-opportunities-reopen-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.organization-opportunities-reopen-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.organization-opportunities-view-link {
-  color: var(--text-h);
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-decoration: none;
-}
-
-.organization-opportunities-view-link:hover {
-  color: var(--accent);
-  text-decoration: underline;
-}
-
-.organization-opportunities-view-link:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 2px;
 }
 
 .organization-opportunities-no-action {
