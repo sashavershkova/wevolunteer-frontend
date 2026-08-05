@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
-import { getOpportunity } from '../../services/api/opportunityService'
+import { closeOpportunity, getOpportunity } from '../../services/api/opportunityService'
 import {
   getOrganizationOpportunityRegistrations,
   type Registration,
@@ -78,6 +78,8 @@ function OrganizationOpportunityDetailsPage() {
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [isClosing, setIsClosing] = useState(false)
+  const [closeErrorMessage, setCloseErrorMessage] = useState<string | null>(null)
 
   const imageUpload = useImageUpload({
     onUpload: async (file) => {
@@ -96,6 +98,38 @@ function OrganizationOpportunityDetailsPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([])
   const [isRegistrationsLoading, setIsRegistrationsLoading] = useState(true)
   const [registrationsError, setRegistrationsError] = useState<string | null>(null)
+
+  async function handleCloseOpportunity() {
+    if (!auth.accessToken || !opportunity || isClosing) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      'Closing this opportunity will cancel all active registrations and notify registered volunteers. This action cannot be undone.',
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setCloseErrorMessage(null)
+    setIsClosing(true)
+
+    try {
+      const updatedOpportunity = await closeOpportunity(
+        auth.accessToken,
+        opportunity.opportunityId,
+      )
+
+      setOpportunity(updatedOpportunity)
+    } catch (error) {
+      setCloseErrorMessage(
+        error instanceof Error ? error.message : 'Unable to close this opportunity.',
+      )
+    } finally {
+      setIsClosing(false)
+    }
+  }
 
   useEffect(() => {
     let ignore = false
@@ -219,6 +253,7 @@ function OrganizationOpportunityDetailsPage() {
   const isOwner =
     opportunity !== null && opportunity.organizationId === organization.organizationId
   const isPast = opportunity !== null && isPastOpportunityDate(opportunity.date)
+  const canClose = opportunity !== null && opportunity.status === 'OPEN' && !isPast
   const displayTime = formatOpportunityTimeRange(
     opportunity?.startTime,
     opportunity?.endTime,
@@ -227,8 +262,11 @@ function OrganizationOpportunityDetailsPage() {
 
   return (
     <main className="organization-opportunity-details-page">
-      <Link to="/organization" className="organization-opportunity-details-back-link">
-        &larr; Back to Dashboard
+      <Link
+        to="/organization/opportunities"
+        className="organization-opportunity-details-back-link"
+      >
+        &larr; Back to My Opportunities
       </Link>
 
       {isLoading && (
@@ -267,7 +305,23 @@ function OrganizationOpportunityDetailsPage() {
                   Edit
                 </Link>
               )}
+              {canClose && (
+                <button
+                  type="button"
+                  className="organization-opportunity-details-close-button"
+                  disabled={isClosing}
+                  onClick={handleCloseOpportunity}
+                >
+                  {isClosing ? 'Closing...' : 'Close Opportunity'}
+                </button>
+              )}
             </div>
+
+            {closeErrorMessage && (
+              <p role="alert" className="organization-opportunity-details-error">
+                {closeErrorMessage}
+              </p>
+            )}
 
             <div className="organization-opportunity-details-badges">
               <span
