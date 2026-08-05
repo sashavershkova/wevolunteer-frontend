@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -148,8 +148,15 @@ function renderPage() {
   )
 }
 
+// Before every existing fixture date (opp1/opp2/opp3 are all in July 2026) so
+// adding expiration handling doesn't change the outcome of tests that don't
+// care about it, regardless of when this suite actually runs.
+const MOCKED_TODAY = '2026-07-01T12:00:00'
+
 describe('FavoritesPage', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(MOCKED_TODAY))
     mockedGetOpportunities.mockReset()
     mockedRegisterForOpportunity.mockReset()
     mockedGetMyRegistrations.mockReset().mockResolvedValue([])
@@ -161,6 +168,10 @@ describe('FavoritesPage', () => {
     mockedLeaveWaitlist.mockReset()
     mockedGetOpportunity.mockReset()
     mockAuth()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('shows only opportunities that are favorited', async () => {
@@ -381,5 +392,135 @@ describe('FavoritesPage', () => {
     expect(await screen.findByRole('button', { name: 'Register' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Join Waitlist' })).not.toBeInTheDocument()
     expect(screen.queryByText('Waitlisted')).not.toBeInTheDocument()
+  })
+
+  describe('expired favorites', () => {
+    const expiredOpen = { ...opp1, date: '2026-06-30' }
+    const expiredFull = { ...opp2, date: '2026-06-30' }
+
+    it('keeps an expired favorite visible in the list', async () => {
+      mockedGetOpportunities.mockResolvedValue([expiredOpen])
+      mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp1' })])
+
+      renderPage()
+
+      expect(
+        await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' }),
+      ).toBeInTheDocument()
+    })
+
+    it('shows a Completed status for an expired favorite', async () => {
+      mockedGetOpportunities.mockResolvedValue([expiredOpen])
+      mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp1' })])
+
+      renderPage()
+
+      expect(await screen.findByText('Completed')).toBeInTheDocument()
+    })
+
+    it('does not show a Register button for an expired favorite', async () => {
+      mockedGetOpportunities.mockResolvedValue([expiredOpen])
+      mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp1' })])
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+      expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
+    })
+
+    it('does not show a Join Waitlist button for an expired, full favorite', async () => {
+      mockedGetOpportunities.mockResolvedValue([expiredFull])
+      mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp2' })])
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Community Meal Prep' })
+
+      expect(screen.queryByRole('button', { name: 'Join Waitlist' })).not.toBeInTheDocument()
+    })
+
+    it('does not call registerForOpportunity for an expired favorite', async () => {
+      mockedGetOpportunities.mockResolvedValue([expiredOpen])
+      mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp1' })])
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+      expect(mockedRegisterForOpportunity).not.toHaveBeenCalled()
+    })
+
+    it('does not call joinWaitlist for an expired, full favorite', async () => {
+      mockedGetOpportunities.mockResolvedValue([expiredFull])
+      mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp2' })])
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Community Meal Prep' })
+
+      expect(mockedJoinWaitlist).not.toHaveBeenCalled()
+    })
+
+    it('still removes an expired favorite when its heart is clicked', async () => {
+      const user = userEvent.setup()
+      mockedGetOpportunities.mockResolvedValue([expiredOpen])
+      mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp1' })])
+      mockedRemoveFavorite.mockResolvedValue(undefined)
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+      await user.click(screen.getByRole('button', { name: 'Remove from favorites' }))
+
+      expect(mockedRemoveFavorite).toHaveBeenCalledWith('token', 'opp1')
+      expect(
+        await screen.findByText('You have no saved opportunities yet.'),
+      ).toBeInTheDocument()
+    })
+
+    it('preserves the Registered state for an already-registered expired favorite', async () => {
+      mockedGetOpportunities.mockResolvedValue([expiredOpen])
+      mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp1' })])
+      mockedGetMyRegistrations.mockResolvedValue([
+        buildRegistration({ opportunityId: 'opp1' }),
+      ])
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+      expect(screen.getByText('Registered')).toBeInTheDocument()
+      expect(screen.queryByText('Completed')).not.toBeInTheDocument()
+    })
+
+    it('preserves normal Register behavior for a favorite dated today', async () => {
+      const user = userEvent.setup()
+      const todayOpen = { ...opp1, date: '2026-07-01' }
+      mockedGetOpportunities.mockResolvedValue([todayOpen])
+      mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp1' })])
+      mockedRegisterForOpportunity.mockResolvedValue(undefined)
+
+      renderPage()
+
+      await user.click(await screen.findByRole('button', { name: 'Register' }))
+
+      expect(mockedRegisterForOpportunity).toHaveBeenCalledWith('token', 'user1', 'opp1')
+    })
+
+    it('preserves normal Join Waitlist behavior for a future, full favorite', async () => {
+      const user = userEvent.setup()
+      const futureFull = { ...opp2, date: '2026-07-02' }
+      mockedGetOpportunities.mockResolvedValue([futureFull])
+      mockedGetMyFavorites.mockResolvedValue([buildFavorite({ opportunityId: 'opp2' })])
+      mockedJoinWaitlist.mockResolvedValue(buildWaitlistEntry({}))
+
+      renderPage()
+
+      await user.click(await screen.findByRole('button', { name: 'Join Waitlist' }))
+
+      expect(mockedJoinWaitlist).toHaveBeenCalledWith('token', 'opp2')
+    })
   })
 })

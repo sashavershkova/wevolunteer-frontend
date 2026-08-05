@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import type { Opportunity } from '../../../types/Opportunity'
 import { LocationIcon, DateIcon, TimeIcon, SpotsIcon, SaveIcon } from '../../shared/icons'
 import { formatOpportunityTimeRange } from '../../../utils/formatOpportunityTimeRange'
+import { isPastOpportunityDate } from '../../../utils/isPastOpportunityDate'
 import './OpportunityListItem.css'
 
 type OpportunityListItemProps = {
@@ -52,9 +53,11 @@ function OpportunityListItem({
     const [waitlistError, setWaitlistError] = useState<string | null>(null)
     const [isLeavingWaitlist, setIsLeavingWaitlist] = useState(false)
 
+    const isExpired = isPastOpportunityDate(opportunity.date)
     const isFull = opportunity.availableSpots <= 0
-    const canRegister = !isFull && Boolean(onRegister) && !isRegistered
+    const canRegister = !isExpired && !isFull && Boolean(onRegister) && !isRegistered
     const isWaitlist = isFull && !isRegistered
+    const showExpiredStatus = isExpired && !isRegistered && !(isWaitlist && isWaitlisted)
     const spotsStatusClass = isFull
     ? 'opportunity-list-item-spots-full'
     : 'opportunity-list-item-spots-open'
@@ -303,7 +306,7 @@ function OpportunityListItem({
               )}
             </div>
           )}
-          {isWaitlist && !isWaitlisted && (
+          {isWaitlist && !isWaitlisted && !isExpired && (
             <div className="opportunity-list-item-actions">
               <button
                 type="button"
@@ -318,6 +321,11 @@ function OpportunityListItem({
                   {waitlistError}
                 </p>
               )}
+            </div>
+          )}
+          {showExpiredStatus && (
+            <div className="opportunity-list-item-actions">
+              <span className="opportunity-list-item-completed-badge">Completed</span>
             </div>
           )}
         </div>

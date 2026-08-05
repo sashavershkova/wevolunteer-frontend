@@ -1,9 +1,14 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import OpportunityListItem from './OpportunityListItem'
 import { opp1, opp2, opp7 } from '../../../tests/fixtures/opportunities'
+
+// Before every existing fixture date (opp1/opp2/opp3 are all in July 2026) so
+// adding expiration handling doesn't change the outcome of tests that don't
+// care about it, regardless of when this suite actually runs.
+const MOCKED_TODAY = '2026-07-01T12:00:00'
 
 function renderItem(
   opportunity: typeof opp1,
@@ -68,6 +73,15 @@ function renderWaitlistItem(
 }
 
 describe('OpportunityListItem', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(MOCKED_TODAY))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders the core opportunity fields', () => {
     renderItem(opp1)
 
@@ -352,6 +366,15 @@ describe('OpportunityListItem', () => {
 })
 
 describe('OpportunityListItem - image', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(MOCKED_TODAY))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders the opportunity image when the API returned one', () => {
     renderItem({ ...opp1, imageUrl: 'https://s3.example.com/signed-get' })
 
@@ -365,5 +388,87 @@ describe('OpportunityListItem - image', () => {
     renderItem({ ...opp1, imageUrl: null })
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  })
+})
+
+describe('OpportunityListItem - expired opportunities', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(MOCKED_TODAY))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  const expiredOpen = { ...opp1, date: '2026-06-30' }
+  const expiredFull = { ...opp2, date: '2026-06-30' }
+  const todayOpen = { ...opp1, date: '2026-07-01' }
+  const futureOpen = { ...opp1, date: '2026-07-02' }
+
+  it('shows a non-interactive Completed status for an expired opportunity with open spots', () => {
+    renderItem(expiredOpen, vi.fn())
+
+    expect(screen.getByText('Completed')).toBeInTheDocument()
+  })
+
+  it('does not show a Register button for an expired opportunity', () => {
+    renderItem(expiredOpen, vi.fn())
+
+    expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
+  })
+
+  it('shows a non-interactive Completed status for an expired, full opportunity', () => {
+    renderWaitlistItem(expiredFull, { onJoinWaitlist: vi.fn() })
+
+    expect(screen.getByText('Completed')).toBeInTheDocument()
+  })
+
+  it('does not show a Join Waitlist button for an expired, full opportunity', () => {
+    renderWaitlistItem(expiredFull, { onJoinWaitlist: vi.fn() })
+
+    expect(screen.queryByRole('button', { name: 'Join Waitlist' })).not.toBeInTheDocument()
+  })
+
+  it('does not call onRegister when clicking is not possible for an expired opportunity', async () => {
+    const onRegister = vi.fn()
+    renderItem(expiredOpen, onRegister)
+
+    expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
+    expect(onRegister).not.toHaveBeenCalled()
+  })
+
+  it('preserves the Registered badge and Cancel Registration for an already-registered expired opportunity', () => {
+    renderRegisteredItem(expiredOpen, vi.fn())
+
+    expect(screen.getByText('Registered')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Cancel Registration' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Completed')).not.toBeInTheDocument()
+  })
+
+  it('preserves the Waitlisted badge and Leave Waitlist for an already-waitlisted expired opportunity', () => {
+    renderWaitlistItem(expiredFull, { isWaitlisted: true, onLeaveWaitlist: vi.fn() })
+
+    expect(screen.getByText('Waitlisted')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Leave Waitlist' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Completed')).not.toBeInTheDocument()
+  })
+
+  it('shows a Register button for an opportunity dated today', () => {
+    renderItem(todayOpen, vi.fn())
+
+    expect(screen.getByRole('button', { name: 'Register' })).toBeInTheDocument()
+    expect(screen.queryByText('Completed')).not.toBeInTheDocument()
+  })
+
+  it('shows a Register button for a future opportunity', () => {
+    renderItem(futureOpen, vi.fn())
+
+    expect(screen.getByRole('button', { name: 'Register' })).toBeInTheDocument()
+    expect(screen.queryByText('Completed')).not.toBeInTheDocument()
   })
 })

@@ -24,6 +24,7 @@ import {
   TimeIcon,
 } from '../../components/shared/icons'
 import { formatOpportunityTimeRange } from '../../utils/formatOpportunityTimeRange'
+import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
 import './OpportunityDetailsPage.css'
 
 function formatDate(dateString: string): string {
@@ -129,7 +130,7 @@ function OpportunityDetailsPage() {
   }, [auth.accessToken, auth.userProfile, opportunityId])
 
   async function handleRegister() {
-    if (!auth.userProfile || !opportunity) {
+    if (!auth.userProfile || !opportunity || isPastOpportunityDate(opportunity.date)) {
       return
     }
 
@@ -234,6 +235,7 @@ function OpportunityDetailsPage() {
 
   const isClosed = opportunity.status === 'CLOSED'
   const isFull = opportunity.availableSpots <= 0
+  const isExpired = isPastOpportunityDate(opportunity.date)
   const displayTime = formatOpportunityTimeRange(
     opportunity.startTime,
     opportunity.endTime,
@@ -361,6 +363,10 @@ function OpportunityDetailsPage() {
                     {isActionPending ? 'Cancelling...' : 'Cancel registration'}
                   </button>
                 </>
+              ) : isExpired ? (
+                <button type="button" className="opportunity-details-cancel-button" disabled>
+                  Completed
+                </button>
               ) : isClosed || isFull ? (
                 <button type="button" className="opportunity-details-cancel-button" disabled>
                   {isClosed ? 'Registration closed' : 'This opportunity is full'}

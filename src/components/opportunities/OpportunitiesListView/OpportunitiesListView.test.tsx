@@ -1,9 +1,14 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import OpportunitiesListView from './OpportunitiesListView'
 import { mockOpportunities, opp1, opp2 } from '../../../tests/fixtures/opportunities'
+
+// Before every existing fixture date (opp1/opp2/opp3 are all in July 2026) so
+// expiration handling in OpportunityListItem doesn't change the outcome of
+// tests that don't care about it, regardless of when this suite actually runs.
+const MOCKED_TODAY = '2026-07-01T12:00:00'
 
 function renderView(props: Parameters<typeof OpportunitiesListView>[0]) {
   return render(
@@ -14,6 +19,15 @@ function renderView(props: Parameters<typeof OpportunitiesListView>[0]) {
 }
 
 describe('OpportunitiesListView', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(MOCKED_TODAY))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders one card per opportunity', () => {
     renderView({ opportunities: mockOpportunities })
 

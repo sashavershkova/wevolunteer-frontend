@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import OpportunityDetailsPage from './OpportunityDetailsPage'
@@ -90,8 +90,15 @@ function renderPage() {
   )
 }
 
+// Before every existing fixture date (opp1/opp2/opp3 are all in July 2026) so
+// adding expiration handling doesn't change the outcome of tests that don't
+// care about it, regardless of when this suite actually runs.
+const MOCKED_TODAY = '2026-07-01T12:00:00'
+
 describe('OpportunityDetailsPage', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(MOCKED_TODAY))
     mockedGetOpportunity.mockReset()
     mockedRegisterForOpportunity.mockReset()
     mockedGetOrganization.mockReset()
@@ -104,6 +111,10 @@ describe('OpportunityDetailsPage', () => {
     // renderPage() when they need to exercise the "already saved" state.
     mockedGetMyFavorites.mockResolvedValue([])
     mockAuth({})
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('renders the opportunity image when the API returned one', async () => {
@@ -469,5 +480,140 @@ describe('OpportunityDetailsPage', () => {
       'aria-pressed',
       'false',
     )
+  })
+
+  describe('expired opportunity', () => {
+    const expiredOpportunity = { ...opp1, date: '2026-06-30' }
+
+    it('still renders the opportunity details', async () => {
+      mockedGetOpportunity.mockResolvedValue(expiredOpportunity)
+      mockedGetOrganization.mockResolvedValue(organizationFixture)
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      expect(
+        await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' }),
+      ).toBeInTheDocument()
+      expect(screen.getByText('Seattle Food Bank')).toBeInTheDocument()
+      expect(screen.getByText('We distribute food to local families.')).toBeInTheDocument()
+    })
+
+    it('shows a Completed status instead of Register', async () => {
+      mockedGetOpportunity.mockResolvedValue(expiredOpportunity)
+      mockedGetOrganization.mockResolvedValue(organizationFixture)
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+      expect(screen.getByRole('button', { name: 'Completed' })).toBeDisabled()
+      expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
+    })
+
+    it('does not show a Join Waitlist control', async () => {
+      mockedGetOpportunity.mockResolvedValue(expiredOpportunity)
+      mockedGetOrganization.mockResolvedValue(organizationFixture)
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+      expect(screen.queryByRole('button', { name: 'Join Waitlist' })).not.toBeInTheDocument()
+    })
+
+    it('does not call registerForOpportunity for an expired opportunity', async () => {
+      mockedGetOpportunity.mockResolvedValue(expiredOpportunity)
+      mockedGetOrganization.mockResolvedValue(organizationFixture)
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+      expect(mockedRegisterForOpportunity).not.toHaveBeenCalled()
+    })
+
+    it('preserves the favorite/unfavorite control on an expired opportunity', async () => {
+      mockedGetOpportunity.mockResolvedValue(expiredOpportunity)
+      mockedGetOrganization.mockResolvedValue(organizationFixture)
+      mockedGetMyRegistrations.mockResolvedValue([])
+      mockedSaveFavorite.mockResolvedValue({
+        userId: 'user1',
+        opportunityId: 'opp1',
+        title: expiredOpportunity.title,
+        date: expiredOpportunity.date,
+        location: expiredOpportunity.location,
+        organizationId: expiredOpportunity.organizationId,
+        organizationName: expiredOpportunity.organizationName,
+        favoritedAt: '2026-07-01T00:00:00',
+      })
+
+      renderPage()
+
+      const saveButton = await screen.findByRole('button', { name: 'Save' })
+      fireEvent.click(saveButton)
+
+      await waitFor(() => {
+        expect(mockedSaveFavorite).toHaveBeenCalledWith('token', 'opp1')
+      })
+      expect(await screen.findByRole('button', { name: 'Saved' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      )
+    })
+
+    it('preserves normal Register behavior for an opportunity dated today', async () => {
+      const todayOpportunity = { ...opp1, date: '2026-07-01' }
+      mockedGetOpportunity.mockResolvedValue(todayOpportunity)
+      mockedGetOrganization.mockResolvedValue(organizationFixture)
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      expect(await screen.findByRole('button', { name: 'Register' })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Completed' })).not.toBeInTheDocument()
+    })
+
+    it('preserves normal Register behavior for a future opportunity', async () => {
+      const futureOpportunity = { ...opp1, date: '2026-07-02' }
+      mockedGetOpportunity.mockResolvedValue(futureOpportunity)
+      mockedGetOrganization.mockResolvedValue(organizationFixture)
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      expect(await screen.findByRole('button', { name: 'Register' })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Completed' })).not.toBeInTheDocument()
+    })
+
+    it('does not offer duplicate registration when already registered for an expired opportunity', async () => {
+      mockedGetOpportunity.mockResolvedValue(expiredOpportunity)
+      mockedGetOrganization.mockResolvedValue(organizationFixture)
+      mockedGetMyRegistrations.mockResolvedValue([
+        {
+          userId: 'user1',
+          opportunityId: 'opp1',
+          title: expiredOpportunity.title,
+          date: expiredOpportunity.date,
+          location: expiredOpportunity.location,
+          organizationId: expiredOpportunity.organizationId,
+          organizationName: expiredOpportunity.organizationName,
+          registrationStatus: 'ACTIVE',
+          volunteerName: 'Sasha Vershkova',
+          email: 'sasha@example.com',
+          registeredAt: '2026-06-01T00:00:00',
+        },
+      ])
+
+      renderPage()
+
+      expect(await screen.findByRole('button', { name: 'Cancel registration' })).toBeInTheDocument()
+      expect(screen.getByText("You're registered")).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Completed' })).not.toBeInTheDocument()
+    })
   })
 })
