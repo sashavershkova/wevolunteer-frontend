@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -61,6 +61,10 @@ const mockedRemoveFavorite = vi.mocked(removeFavorite)
 const mockedGetMyWaitlist = vi.mocked(getMyWaitlist)
 const mockedJoinWaitlist = vi.mocked(joinWaitlist)
 const mockedLeaveWaitlist = vi.mocked(leaveWaitlist)
+
+function buildOpportunity(overrides: Partial<typeof opp1>): typeof opp1 {
+  return { ...opp1, ...overrides }
+}
 
 function buildFavorite(overrides: Partial<Favorite>): Favorite {
   return {
@@ -128,8 +132,15 @@ function renderPage() {
   )
 }
 
+// Before every existing fixture date (opp1/opp2/opp3 are all in July 2026) so
+// adding expiration filtering doesn't change the outcome of tests that don't
+// care about it, regardless of when this suite actually runs.
+const MOCKED_TODAY = '2026-07-01T12:00:00'
+
 describe('OpportunitiesPage', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.setSystemTime(new Date(MOCKED_TODAY))
     mockedGetMyFavorites.mockReset().mockResolvedValue([])
     mockedSaveFavorite.mockReset()
     mockedRemoveFavorite.mockReset()
@@ -137,6 +148,10 @@ describe('OpportunitiesPage', () => {
     mockedJoinWaitlist.mockReset()
     mockedLeaveWaitlist.mockReset()
     mockedGetOpportunity.mockReset()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('shows a loading message while the profile is loading', () => {
@@ -421,5 +436,133 @@ describe('OpportunitiesPage', () => {
     expect(await screen.findByRole('button', { name: 'Register' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Join Waitlist' })).not.toBeInTheDocument()
     expect(screen.queryByText('Waitlisted')).not.toBeInTheDocument()
+  })
+
+  describe('expired opportunities', () => {
+    const yesterday = buildOpportunity({
+      opportunityId: 'expired-opp',
+      title: 'Expired Opportunity',
+      date: '2026-06-30',
+    })
+    const today = buildOpportunity({
+      opportunityId: 'today-opp',
+      title: 'Today Opportunity',
+      date: '2026-07-01',
+    })
+    const future = buildOpportunity({
+      opportunityId: 'future-opp',
+      title: 'Future Opportunity',
+      date: '2026-07-02',
+    })
+
+    it('excludes an opportunity dated yesterday from the list', async () => {
+      mockAuth({})
+      mockedGetOpportunities.mockResolvedValue([yesterday, future])
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Future Opportunity' })
+
+      expect(
+        screen.queryByRole('heading', { name: 'Expired Opportunity' }),
+      ).not.toBeInTheDocument()
+    })
+
+    it('keeps an opportunity dated today visible', async () => {
+      mockAuth({})
+      mockedGetOpportunities.mockResolvedValue([today])
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      expect(
+        await screen.findByRole('heading', { name: 'Today Opportunity' }),
+      ).toBeInTheDocument()
+    })
+
+    it('keeps a future opportunity visible', async () => {
+      mockAuth({})
+      mockedGetOpportunities.mockResolvedValue([future])
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      expect(
+        await screen.findByRole('heading', { name: 'Future Opportunity' }),
+      ).toBeInTheDocument()
+    })
+
+    it('does not render a Register or Join Waitlist button for an expired opportunity', async () => {
+      mockAuth({})
+      mockedGetOpportunities.mockResolvedValue([yesterday])
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      await waitFor(() => {
+        expect(screen.queryByRole('status')).not.toBeInTheDocument()
+      })
+
+      expect(
+        screen.queryByRole('heading', { name: 'Expired Opportunity' }),
+      ).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: 'Join Waitlist' }),
+      ).not.toBeInTheDocument()
+    })
+
+    it('combines expiration filtering with the category filter', async () => {
+      const user = userEvent.setup()
+      mockAuth({})
+      const expiredEnv = buildOpportunity({
+        opportunityId: 'expired-env',
+        title: 'Expired Cleanup',
+        date: '2026-06-30',
+        category: 'Environment',
+      })
+      const futureEnv = buildOpportunity({
+        opportunityId: 'future-env',
+        title: 'Future Cleanup',
+        date: '2026-07-02',
+        category: 'Environment',
+      })
+      mockedGetOpportunities.mockResolvedValue([expiredEnv, futureEnv, opp1])
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Food Bank Volunteer Shift' })
+
+      await user.selectOptions(
+        screen.getByRole('combobox', { name: 'Filter by category' }),
+        'Environment',
+      )
+
+      expect(
+        await screen.findByRole('heading', { name: 'Future Cleanup' }),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('heading', { name: 'Expired Cleanup' }),
+      ).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('heading', { name: 'Food Bank Volunteer Shift' }),
+      ).not.toBeInTheDocument()
+    })
+
+    it('shows the existing empty-state message when every opportunity is expired', async () => {
+      mockAuth({})
+      mockedGetOpportunities.mockResolvedValue([yesterday])
+      mockedGetMyRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      expect(
+        await screen.findByText(
+          'No opportunities match your search yet. Try adjusting your filters.',
+        ),
+      ).toBeInTheDocument()
+    })
   })
 })

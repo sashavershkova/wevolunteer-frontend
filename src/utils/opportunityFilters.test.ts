@@ -1,12 +1,17 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   EMPTY_FILTERS,
   filterOpportunities,
   getUniqueSortedValues,
 } from './opportunityFilters'
 import { opp1, opp2, opp3 } from '../tests/fixtures/opportunities'
+import type { Opportunity } from '../types/Opportunity'
 
 const allOpportunities = [opp1, opp2, opp3]
+
+function makeOpportunity(overrides: Partial<Opportunity>): Opportunity {
+  return { ...opp1, ...overrides }
+}
 
 describe('filterOpportunities', () => {
   it('returns everything when no filters are set', () => {
@@ -103,6 +108,68 @@ describe('filterOpportunities', () => {
       ...EMPTY_FILTERS,
       category: 'Education',
     })
+
+    expect(result).toEqual([])
+  })
+})
+
+describe('filterOpportunities - excludeExpired', () => {
+  const MOCKED_TODAY = '2026-07-15T12:00:00'
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(MOCKED_TODAY))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  const yesterday = makeOpportunity({ opportunityId: 'yesterday', date: '2026-07-14' })
+  const today = makeOpportunity({ opportunityId: 'today', date: '2026-07-15' })
+  const future = makeOpportunity({ opportunityId: 'future', date: '2026-07-16' })
+  const all = [yesterday, today, future]
+
+  it('leaves everything in place when the option is not passed', () => {
+    const result = filterOpportunities(all, EMPTY_FILTERS)
+
+    expect(result.map((o) => o.opportunityId)).toEqual(['yesterday', 'today', 'future'])
+  })
+
+  it('excludes a past-dated opportunity when excludeExpired is true', () => {
+    const result = filterOpportunities(all, EMPTY_FILTERS, { excludeExpired: true })
+
+    expect(result.map((o) => o.opportunityId)).toEqual(['today', 'future'])
+  })
+
+  it('combines excludeExpired with other filters', () => {
+    const pastFood = makeOpportunity({
+      opportunityId: 'past-food',
+      date: '2026-07-14',
+      category: 'Food',
+    })
+    const futureFood = makeOpportunity({
+      opportunityId: 'future-food',
+      date: '2026-07-16',
+      category: 'Food',
+    })
+    const futureEnv = makeOpportunity({
+      opportunityId: 'future-env',
+      date: '2026-07-16',
+      category: 'Environment',
+    })
+
+    const result = filterOpportunities(
+      [pastFood, futureFood, futureEnv],
+      { ...EMPTY_FILTERS, category: 'Food' },
+      { excludeExpired: true },
+    )
+
+    expect(result.map((o) => o.opportunityId)).toEqual(['future-food'])
+  })
+
+  it('returns an empty array when every opportunity is expired', () => {
+    const result = filterOpportunities([yesterday], EMPTY_FILTERS, { excludeExpired: true })
 
     expect(result).toEqual([])
   })

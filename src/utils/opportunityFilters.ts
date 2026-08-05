@@ -1,4 +1,5 @@
 import type { Opportunity } from '../types/Opportunity'
+import { isPastOpportunityDate } from './isPastOpportunityDate'
 
 export type OpportunityFiltersValue = {
   search: string
@@ -7,6 +8,12 @@ export type OpportunityFiltersValue = {
   organizationName: string
   startDate: string
   endDate: string
+}
+
+export type FilterOpportunitiesOptions = {
+  // Opt-in so pages that haven't been verified against expiration filtering
+  // yet (e.g. Favorites) keep their current behavior unchanged.
+  excludeExpired?: boolean
 }
 
 export const EMPTY_FILTERS: OpportunityFiltersValue = {
@@ -21,8 +28,13 @@ export const EMPTY_FILTERS: OpportunityFiltersValue = {
 export function filterOpportunities(
   opportunities: Opportunity[],
   filters: OpportunityFiltersValue,
+  options: FilterOpportunitiesOptions = {},
 ): Opportunity[] {
   return opportunities.filter((opportunity) => {
+    if (options.excludeExpired && isPastOpportunityDate(opportunity.date)) {
+      return false
+    }
+
     if (filters.category && opportunity.category !== filters.category) {
       return false
     }

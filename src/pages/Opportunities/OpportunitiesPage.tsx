@@ -77,7 +77,7 @@ function OpportunitiesPage() {
   }, [auth.accessToken])
 
   const filteredOpportunities = useMemo(
-    () => filterOpportunities(opportunities, filters),
+    () => filterOpportunities(opportunities, filters, { excludeExpired: true }),
     [opportunities, filters],
   )
 
