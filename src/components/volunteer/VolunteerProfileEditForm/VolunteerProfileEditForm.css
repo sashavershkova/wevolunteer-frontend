@@ -14,6 +14,17 @@
   padding: 0.5rem 0.9rem;
 }
 
+.profile-edit-button:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.profile-edit-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .profile-edit-button svg {
   height: 0.9rem;
   width: 0.9rem;
@@ -53,6 +64,14 @@
 .profile-edit-form-role-label {
   color: var(--text);
   font-size: 0.8rem;
+  margin: 0 0 0.15rem;
+}
+
+.profile-edit-form-role-value {
+  color: var(--text-h);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
 }
 
 .profile-edit-form-error {
@@ -97,6 +116,17 @@
   font-size: 0.85rem;
   font-weight: 600;
   padding: 0.55rem 1.1rem;
+}
+
+.profile-edit-form-cancel-button:hover:not(:disabled) {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.profile-edit-form-cancel-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .profile-edit-form-cancel-button:disabled {

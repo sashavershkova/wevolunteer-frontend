@@ -98,16 +98,16 @@ function VolunteerProfileEditForm({
         return (
         <dl className="profile-details">
             <div className="profile-detail-row">
-            <dt>Name</dt>
-            <dd>{userProfile.name}</dd>
+                <dt>Name</dt>
+                <dd>{userProfile.name}</dd>
             </div>
             <div className="profile-detail-row">
-            <dt>Email</dt>
-            <dd>{userProfile.email}</dd>
+                <dt>Email</dt>
+                <dd>{userProfile.email}</dd>
             </div>
             <div className="profile-detail-row">
-            <dt>Role</dt>
-            <dd>Volunteer</dd>
+                <p className="profile-edit-form-role-label">Role</p>
+                <p className="profile-edit-form-role-value">Volunteer</p>
             </div>
 
             <button
@@ -116,7 +116,7 @@ function VolunteerProfileEditForm({
             onClick={startEditing}
             >
             <EditIcon aria-hidden="true" />
-            Edit Profile
+                Edit Profile
             </button>
         </dl>
         )
@@ -161,8 +161,8 @@ function VolunteerProfileEditForm({
         </div>
 
         <div className="profile-detail-row">
-            <span className="profile-edit-form-role-label">Role</span>
-            <span>Volunteer</span>
+            <p className="profile-edit-form-role-label">Role</p>
+            <p className="profile-edit-form-role-value">Volunteer</p>
         </div>
 
         {saveErrorMessage && (
@@ -181,7 +181,7 @@ function VolunteerProfileEditForm({
             disabled={isSaving}
             onClick={cancelEditing}
             >
-            Cancel
+                Cancel
             </button>
         </div>
         </form>
