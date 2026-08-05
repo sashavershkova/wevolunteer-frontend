@@ -5,10 +5,17 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import OrganizationOpportunitiesSection from './OrganizationOpportunitiesSection'
 import { useAppAuth } from '../../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../../services/api/organizationService'
-import { closeOpportunity, deleteOpportunity } from '../../../services/api/opportunityService'
+import {
+  closeOpportunity,
+  deleteOpportunity,
+  reopenOpportunity,
+} from '../../../services/api/opportunityService'
 import { opp1 } from '../../../tests/fixtures/opportunities'
 import type { Opportunity } from '../../../types/Opportunity'
-import { CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE } from '../../../constants/opportunityMessages'
+import {
+  CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE,
+  REOPEN_OPPORTUNITY_CONFIRMATION_MESSAGE,
+} from '../../../constants/opportunityMessages'
 
 const MOCKED_TODAY = '2026-01-01T00:00:00'
 
@@ -23,12 +30,14 @@ vi.mock('../../../services/api/organizationService', () => ({
 vi.mock('../../../services/api/opportunityService', () => ({
   closeOpportunity: vi.fn(),
   deleteOpportunity: vi.fn(),
+  reopenOpportunity: vi.fn(),
 }))
 
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetMyOrganizationOpportunities = vi.mocked(getMyOrganizationOpportunities)
 const mockedCloseOpportunity = vi.mocked(closeOpportunity)
 const mockedDeleteOpportunity = vi.mocked(deleteOpportunity)
+const mockedReopenOpportunity = vi.mocked(reopenOpportunity)
 
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {
   mockedUseAppAuth.mockReturnValue({
@@ -83,6 +92,7 @@ describe('OrganizationOpportunitiesSection', () => {
     mockedGetMyOrganizationOpportunities.mockReset()
     mockedCloseOpportunity.mockReset()
     mockedDeleteOpportunity.mockReset()
+    mockedReopenOpportunity.mockReset()
     mockAuth()
   })
 
@@ -223,6 +233,157 @@ describe('OrganizationOpportunitiesSection', () => {
     )
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
     expect(within(screen.getByRole('table')).getByText('Open')).toBeInTheDocument()
+  })
+
+  describe('reopening an opportunity', () => {
+    const futureClosedOpportunity: Opportunity = {
+      ...opp1,
+      status: 'CLOSED',
+      date: '2026-06-01',
+    }
+    const todayClosedOpportunity: Opportunity = {
+      ...opp1,
+      status: 'CLOSED',
+      date: '2026-01-01',
+    }
+    const pastClosedOpportunity: Opportunity = {
+      ...opp1,
+      status: 'CLOSED',
+      date: '2025-06-01',
+    }
+
+    it('shows a Reopen button for a future CLOSED opportunity', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureClosedOpportunity])
+
+      renderSection()
+
+      expect(await screen.findByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+    })
+
+    it('shows a Reopen button for a CLOSED opportunity dated today', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([todayClosedOpportunity])
+
+      renderSection()
+
+      expect(await screen.findByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+    })
+
+    it('does not show a Reopen button for a past CLOSED opportunity', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([pastClosedOpportunity])
+
+      renderSection()
+
+      await screen.findByText(opp1.title)
+      expect(screen.queryByRole('button', { name: 'Reopen' })).not.toBeInTheDocument()
+    })
+
+    it('does not show a Reopen button for an OPEN opportunity', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+
+      renderSection()
+
+      await screen.findByText(opp1.title)
+      expect(screen.queryByRole('button', { name: 'Reopen' })).not.toBeInTheDocument()
+    })
+
+    it('opens a confirmation prompt with the shared message and does not call the API before confirmation', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureClosedOpportunity])
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+      renderSection()
+
+      const reopenButton = await screen.findByRole('button', { name: 'Reopen' })
+      fireEvent.click(reopenButton)
+
+      expect(confirmSpy).toHaveBeenCalledWith(REOPEN_OPPORTUNITY_CONFIRMATION_MESSAGE)
+      expect(mockedReopenOpportunity).not.toHaveBeenCalled()
+    })
+
+    it('calls reopenOpportunity with the correct token and opportunityId when confirmed', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureClosedOpportunity])
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      mockedReopenOpportunity.mockResolvedValue({ ...futureClosedOpportunity, status: 'OPEN' })
+
+      renderSection()
+
+      const reopenButton = await screen.findByRole('button', { name: 'Reopen' })
+      fireEvent.click(reopenButton)
+
+      await waitFor(() => {
+        expect(mockedReopenOpportunity).toHaveBeenCalledWith('token', opp1.opportunityId)
+      })
+    })
+
+    it('shows a pending state on the reopening row while the request is in flight and prevents a duplicate submission', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureClosedOpportunity])
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      let resolveReopen: (value: Opportunity) => void = () => {}
+      mockedReopenOpportunity.mockReturnValue(
+        new Promise((resolve) => {
+          resolveReopen = resolve
+        }),
+      )
+
+      renderSection()
+
+      const reopenButton = await screen.findByRole('button', { name: 'Reopen' })
+      fireEvent.click(reopenButton)
+
+      const pendingButton = await screen.findByRole('button', { name: 'Reopening...' })
+      expect(pendingButton).toBeDisabled()
+
+      fireEvent.click(pendingButton)
+      expect(mockedReopenOpportunity).toHaveBeenCalledTimes(1)
+
+      resolveReopen({ ...futureClosedOpportunity, status: 'OPEN' })
+
+      await waitFor(() => {
+        expect(screen.queryByRole('button', { name: 'Reopening...' })).not.toBeInTheDocument()
+      })
+    })
+
+    it('updates the row to Open, restores Close, and resets registeredCount after a successful reopen', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureClosedOpportunity])
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      const reopenedOpportunity: Opportunity = {
+        ...futureClosedOpportunity,
+        status: 'OPEN',
+        registeredCount: 0,
+        availableSpots: futureClosedOpportunity.capacity,
+      }
+      mockedReopenOpportunity.mockResolvedValue(reopenedOpportunity)
+
+      renderSection()
+
+      const reopenButton = await screen.findByRole('button', { name: 'Reopen' })
+      fireEvent.click(reopenButton)
+
+      const table = await screen.findByRole('table')
+      expect(await within(table).findByText('Open')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Reopen' })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+      expect(screen.getByText(`0 / ${futureClosedOpportunity.capacity}`)).toBeInTheDocument()
+      expect(mockedGetMyOrganizationOpportunities).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows an action-specific error and keeps the opportunity Closed when reopening fails', async () => {
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([futureClosedOpportunity])
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      mockedReopenOpportunity.mockRejectedValue(
+        new Error('Unable to reopen this opportunity: 409'),
+      )
+
+      renderSection()
+
+      const reopenButton = await screen.findByRole('button', { name: 'Reopen' })
+      fireEvent.click(reopenButton)
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Unable to reopen this opportunity: 409',
+      )
+      expect(within(screen.getByRole('table')).getByText('Closed')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+    })
   })
 
   describe('deleting an opportunity', () => {

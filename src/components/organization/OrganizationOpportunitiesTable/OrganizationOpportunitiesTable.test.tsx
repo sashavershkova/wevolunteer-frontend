@@ -261,6 +261,127 @@ describe('OrganizationOpportunitiesTable', () => {
     expect(handleClose).toHaveBeenCalledTimes(1)
   })
 
+  describe('reopening an opportunity', () => {
+    const todayClosedOpportunity = {
+      ...opp1,
+      opportunityId: 'opp-today-closed',
+      date: '2026-01-01',
+      status: 'CLOSED' as const,
+    }
+
+    it('shows a Reopen button for a future CLOSED opportunity', () => {
+      renderTable(
+        <OrganizationOpportunitiesTable
+          opportunities={[closedOpportunity]}
+          onCloseOpportunity={vi.fn()}
+          onDeleteOpportunity={vi.fn()}
+          onReopenOpportunity={vi.fn()}
+        />,
+      )
+
+      expect(screen.getByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+    })
+
+    it('shows a Reopen button for a CLOSED opportunity dated today', () => {
+      renderTable(
+        <OrganizationOpportunitiesTable
+          opportunities={[todayClosedOpportunity]}
+          onCloseOpportunity={vi.fn()}
+          onDeleteOpportunity={vi.fn()}
+          onReopenOpportunity={vi.fn()}
+        />,
+      )
+
+      expect(screen.getByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+    })
+
+    it('does not show a Reopen button for a past CLOSED opportunity', () => {
+      renderTable(
+        <OrganizationOpportunitiesTable
+          opportunities={[pastClosedOpportunity]}
+          onCloseOpportunity={vi.fn()}
+          onDeleteOpportunity={vi.fn()}
+          onReopenOpportunity={vi.fn()}
+        />,
+      )
+
+      expect(screen.queryByRole('button', { name: 'Reopen' })).not.toBeInTheDocument()
+    })
+
+    it('does not show a Reopen button for an OPEN opportunity', () => {
+      renderTable(
+        <OrganizationOpportunitiesTable
+          opportunities={[openOpportunity]}
+          onCloseOpportunity={vi.fn()}
+          onDeleteOpportunity={vi.fn()}
+          onReopenOpportunity={vi.fn()}
+        />,
+      )
+
+      expect(screen.queryByRole('button', { name: 'Reopen' })).not.toBeInTheDocument()
+    })
+
+    it('shows both Reopen and Delete for a future CLOSED opportunity with zero registrations', () => {
+      renderTable(
+        <OrganizationOpportunitiesTable
+          opportunities={[closedOpportunity]}
+          onCloseOpportunity={vi.fn()}
+          onDeleteOpportunity={vi.fn()}
+          onReopenOpportunity={vi.fn()}
+        />,
+      )
+
+      expect(screen.getByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+    })
+
+    it('shows only Reopen, not Delete, for a future CLOSED opportunity that still has registrations', () => {
+      renderTable(
+        <OrganizationOpportunitiesTable
+          opportunities={[closedOpportunityWithRegistrations]}
+          onCloseOpportunity={vi.fn()}
+          onDeleteOpportunity={vi.fn()}
+          onReopenOpportunity={vi.fn()}
+        />,
+      )
+
+      expect(screen.getByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    })
+
+    it('calls onReopenOpportunity with the correct opportunityId when Reopen is clicked', () => {
+      const handleReopen = vi.fn()
+
+      renderTable(
+        <OrganizationOpportunitiesTable
+          opportunities={[closedOpportunity]}
+          onCloseOpportunity={vi.fn()}
+          onDeleteOpportunity={vi.fn()}
+          onReopenOpportunity={handleReopen}
+        />,
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: 'Reopen' }))
+
+      expect(handleReopen).toHaveBeenCalledWith(closedOpportunity.opportunityId)
+    })
+
+    it('disables and relabels the button for the row that is reopening', () => {
+      renderTable(
+        <OrganizationOpportunitiesTable
+          opportunities={[closedOpportunity]}
+          onCloseOpportunity={vi.fn()}
+          onDeleteOpportunity={vi.fn()}
+          onReopenOpportunity={vi.fn()}
+          reopeningOpportunityId={closedOpportunity.opportunityId}
+        />,
+      )
+
+      const button = screen.getByRole('button', { name: 'Reopening...' })
+      expect(button).toBeDisabled()
+    })
+  })
+
   describe('past opportunities', () => {
     it('shows Completed as the status regardless of the stored OPEN status', () => {
       renderTable(

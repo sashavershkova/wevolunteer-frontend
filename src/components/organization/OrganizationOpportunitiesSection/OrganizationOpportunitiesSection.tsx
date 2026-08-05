@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppAuth } from '../../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../../services/api/organizationService'
-import { closeOpportunity, deleteOpportunity } from '../../../services/api/opportunityService'
+import {
+  closeOpportunity,
+  deleteOpportunity,
+  reopenOpportunity,
+} from '../../../services/api/opportunityService'
 import OrganizationOpportunitiesTable from '../OrganizationOpportunitiesTable/OrganizationOpportunitiesTable'
 import OrganizationOpportunityFilters from '../OrganizationOpportunityFilters/OrganizationOpportunityFilters'
 import type { Opportunity } from '../../../types/Opportunity'
@@ -12,7 +16,10 @@ import {
   type OrganizationOpportunityFiltersValue,
 } from '../../../utils/organizationOpportunityFilters'
 import { sortOrganizationOpportunities } from '../../../utils/sortOrganizationOpportunities'
-import { CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE } from '../../../constants/opportunityMessages'
+import {
+  CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE,
+  REOPEN_OPPORTUNITY_CONFIRMATION_MESSAGE,
+} from '../../../constants/opportunityMessages'
 import './OrganizationOpportunitiesSection.css'
 
 type OrganizationOpportunitiesSectionProps = {
@@ -32,6 +39,7 @@ function OrganizationOpportunitiesSection({
   const [opportunitiesError, setOpportunitiesError] = useState<string | null>(null)
   const [closingOpportunityId, setClosingOpportunityId] = useState<string | null>(null)
   const [deletingOpportunityId, setDeletingOpportunityId] = useState<string | null>(null)
+  const [reopeningOpportunityId, setReopeningOpportunityId] = useState<string | null>(null)
   const [opportunityActionErrorMessage, setOpportunityActionErrorMessage] =
     useState<string | null>(null)
   const [filters, setFilters] = useState<OrganizationOpportunityFiltersValue>(
@@ -155,6 +163,44 @@ function OrganizationOpportunitiesSection({
     }
   }
 
+  async function handleReopenOpportunity(opportunityId: string) {
+    if (!accessToken) {
+      setOpportunityActionErrorMessage('Your authentication session is unavailable.')
+      return
+    }
+
+    if (reopeningOpportunityId) {
+      return
+    }
+
+    const confirmed = window.confirm(REOPEN_OPPORTUNITY_CONFIRMATION_MESSAGE)
+
+    if (!confirmed) {
+      return
+    }
+
+    setOpportunityActionErrorMessage(null)
+    setReopeningOpportunityId(opportunityId)
+
+    try {
+      const updatedOpportunity = await reopenOpportunity(accessToken, opportunityId)
+
+      setOpportunities((current) =>
+        current.map((opportunity) =>
+          opportunity.opportunityId === updatedOpportunity.opportunityId
+            ? updatedOpportunity
+            : opportunity,
+        ),
+      )
+    } catch (error) {
+      setOpportunityActionErrorMessage(
+        error instanceof Error ? error.message : 'Unable to reopen this opportunity.',
+      )
+    } finally {
+      setReopeningOpportunityId(null)
+    }
+  }
+
   return (
     <div className="organization-opportunities-section">
       <div className="organization-opportunities-section-header">
@@ -191,6 +237,8 @@ function OrganizationOpportunitiesSection({
         closingOpportunityId={closingOpportunityId}
         onDeleteOpportunity={handleDeleteOpportunity}
         deletingOpportunityId={deletingOpportunityId}
+        onReopenOpportunity={handleReopenOpportunity}
+        reopeningOpportunityId={reopeningOpportunityId}
         emptyMessage={emptyMessage}
       />
     </div>

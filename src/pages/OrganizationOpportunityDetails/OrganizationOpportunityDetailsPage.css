@@ -109,6 +109,33 @@
   cursor: not-allowed;
 }
 
+.organization-opportunity-details-reopen-button {
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.organization-opportunity-details-reopen-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.organization-opportunity-details-reopen-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.organization-opportunity-details-reopen-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .organization-opportunity-details-badges {
   display: flex;
   flex-wrap: wrap;

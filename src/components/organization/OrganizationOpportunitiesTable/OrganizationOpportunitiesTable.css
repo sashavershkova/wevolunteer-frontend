@@ -172,6 +172,39 @@
   cursor: not-allowed;
 }
 
+.organization-opportunities-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.organization-opportunities-reopen-button {
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.organization-opportunities-reopen-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.organization-opportunities-reopen-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.organization-opportunities-reopen-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .organization-opportunities-view-link {
   color: var(--text-h);
   font-weight: 600;

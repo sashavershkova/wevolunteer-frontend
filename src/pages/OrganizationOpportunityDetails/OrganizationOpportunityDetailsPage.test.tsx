@@ -4,7 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import OrganizationOpportunityDetailsPage from './OrganizationOpportunityDetailsPage'
 import { useAppAuth } from '../../contexts/AuthContext'
-import { closeOpportunity, getOpportunity } from '../../services/api/opportunityService'
+import {
+  closeOpportunity,
+  getOpportunity,
+  reopenOpportunity,
+} from '../../services/api/opportunityService'
 import {
   attachOpportunityImage,
   uploadOpportunityImage,
@@ -15,6 +19,7 @@ import {
 } from '../../services/api/registrationService'
 import { opp1, opp2, opp7 } from '../../tests/fixtures/opportunities'
 import type { Opportunity } from '../../types/Opportunity'
+import { REOPEN_OPPORTUNITY_CONFIRMATION_MESSAGE } from '../../constants/opportunityMessages'
 
 // opp1/opp2/opp7's dates (2026-06-28 through 2026-07-20) are fixed in the future relative
 // to this mocked "today", so they exercise future-opportunity behavior deterministically
@@ -28,6 +33,7 @@ vi.mock('../../contexts/AuthContext', () => ({
 vi.mock('../../services/api/opportunityService', () => ({
   getOpportunity: vi.fn(),
   closeOpportunity: vi.fn(),
+  reopenOpportunity: vi.fn(),
 }))
 
 vi.mock('../../services/api/registrationService', () => ({
@@ -42,6 +48,7 @@ vi.mock('../../services/api/imageService', () => ({
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetOpportunity = vi.mocked(getOpportunity)
 const mockedCloseOpportunity = vi.mocked(closeOpportunity)
+const mockedReopenOpportunity = vi.mocked(reopenOpportunity)
 const mockedGetOrganizationOpportunityRegistrations = vi.mocked(
   getOrganizationOpportunityRegistrations,
 )
@@ -139,6 +146,7 @@ describe('OrganizationOpportunityDetailsPage', () => {
     vi.setSystemTime(new Date(MOCKED_TODAY))
     mockedGetOpportunity.mockReset()
     mockedCloseOpportunity.mockReset()
+    mockedReopenOpportunity.mockReset()
     mockedUploadOpportunityImage.mockReset()
     mockedAttachOpportunityImage.mockReset()
     mockedGetOrganizationOpportunityRegistrations.mockReset()
@@ -488,6 +496,165 @@ describe('OrganizationOpportunityDetailsPage', () => {
         screen.getByRole('button', { name: 'Close Opportunity' }),
       ).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Close Opportunity' })).toBeEnabled()
+    })
+  })
+
+  describe('Reopen Opportunity control', () => {
+    const futureClosedOpportunity = { ...opp1, date: '2026-06-01', status: 'CLOSED' as const }
+    const todayClosedOpportunity = { ...opp1, date: '2026-01-01', status: 'CLOSED' as const }
+    const pastClosedOpportunity = { ...opp1, date: '2025-06-01', status: 'CLOSED' as const }
+    const futureOpenOpportunity = { ...opp1, date: '2026-06-01', status: 'OPEN' as const }
+
+    it('shows Reopen for a future CLOSED opportunity', async () => {
+      mockedGetOpportunity.mockResolvedValue(futureClosedOpportunity)
+
+      renderPage()
+
+      expect(await screen.findByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: 'Close Opportunity' }),
+      ).not.toBeInTheDocument()
+    })
+
+    it('shows Reopen for a CLOSED opportunity dated today', async () => {
+      mockedGetOpportunity.mockResolvedValue(todayClosedOpportunity)
+
+      renderPage()
+
+      expect(await screen.findByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+    })
+
+    it('does not show Reopen for a past CLOSED opportunity', async () => {
+      mockedGetOpportunity.mockResolvedValue(pastClosedOpportunity)
+
+      renderPage()
+
+      await screen.findByRole('heading', { name: opp1.title })
+
+      expect(screen.queryByRole('button', { name: 'Reopen' })).not.toBeInTheDocument()
+    })
+
+    it('does not show Reopen for an OPEN opportunity', async () => {
+      mockedGetOpportunity.mockResolvedValue(futureOpenOpportunity)
+
+      renderPage()
+
+      expect(
+        await screen.findByRole('button', { name: 'Close Opportunity' }),
+      ).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Reopen' })).not.toBeInTheDocument()
+    })
+
+    it('opens the confirmation prompt with the shared message when Reopen is clicked, without calling the API before confirmation', async () => {
+      const user = userEvent.setup({ delay: null })
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+      mockedGetOpportunity.mockResolvedValue(futureClosedOpportunity)
+
+      renderPage()
+
+      await user.click(await screen.findByRole('button', { name: 'Reopen' }))
+
+      expect(confirmSpy).toHaveBeenCalledWith(REOPEN_OPPORTUNITY_CONFIRMATION_MESSAGE)
+      expect(mockedReopenOpportunity).not.toHaveBeenCalled()
+    })
+
+    it('does not call reopenOpportunity when the confirmation is cancelled', async () => {
+      const user = userEvent.setup({ delay: null })
+      vi.spyOn(window, 'confirm').mockReturnValue(false)
+      mockedGetOpportunity.mockResolvedValue(futureClosedOpportunity)
+
+      renderPage()
+
+      await user.click(await screen.findByRole('button', { name: 'Reopen' }))
+
+      expect(mockedReopenOpportunity).not.toHaveBeenCalled()
+      expect(screen.getByText('Closed')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+    })
+
+    it('calls reopenOpportunity with the correct opportunity ID when confirmed', async () => {
+      const user = userEvent.setup({ delay: null })
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      mockedGetOpportunity.mockResolvedValue(futureClosedOpportunity)
+      mockedReopenOpportunity.mockResolvedValue({ ...futureClosedOpportunity, status: 'OPEN' })
+
+      renderPage()
+
+      await user.click(await screen.findByRole('button', { name: 'Reopen' }))
+
+      expect(mockedReopenOpportunity).toHaveBeenCalledWith(
+        'test-token',
+        futureClosedOpportunity.opportunityId,
+      )
+    })
+
+    it('shows a Reopening... loading state and prevents a duplicate submission while pending', async () => {
+      const user = userEvent.setup({ delay: null })
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      mockedGetOpportunity.mockResolvedValue(futureClosedOpportunity)
+      let resolveReopen!: (value: Opportunity) => void
+      mockedReopenOpportunity.mockReturnValue(
+        new Promise((resolve) => {
+          resolveReopen = resolve
+        }),
+      )
+
+      renderPage()
+
+      await user.click(await screen.findByRole('button', { name: 'Reopen' }))
+
+      const pendingButton = await screen.findByRole('button', { name: 'Reopening...' })
+      expect(pendingButton).toBeDisabled()
+
+      await user.click(pendingButton)
+      expect(mockedReopenOpportunity).toHaveBeenCalledTimes(1)
+
+      resolveReopen({ ...futureClosedOpportunity, status: 'OPEN' })
+      await waitFor(() => {
+        expect(screen.queryByRole('button', { name: 'Reopening...' })).not.toBeInTheDocument()
+      })
+    })
+
+    it('shows Open, removes Reopen, and restores Close Opportunity immediately after a successful reopen, without a page refresh', async () => {
+      const user = userEvent.setup({ delay: null })
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      mockedGetOpportunity.mockResolvedValue(futureClosedOpportunity)
+      mockedReopenOpportunity.mockResolvedValue({
+        ...futureClosedOpportunity,
+        status: 'OPEN',
+        registeredCount: 0,
+      })
+
+      renderPage()
+
+      await user.click(await screen.findByRole('button', { name: 'Reopen' }))
+
+      expect(await screen.findByText('Open')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Reopen' })).not.toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Close Opportunity' }),
+      ).toBeInTheDocument()
+      expect(mockedGetOpportunity).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows an error, keeps the opportunity Closed, and re-enables Reopen on failure', async () => {
+      const user = userEvent.setup({ delay: null })
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      mockedGetOpportunity.mockResolvedValue(futureClosedOpportunity)
+      mockedReopenOpportunity.mockRejectedValue(
+        new Error('Unable to reopen this opportunity: 409'),
+      )
+
+      renderPage()
+
+      await user.click(await screen.findByRole('button', { name: 'Reopen' }))
+
+      expect(
+        await screen.findByText('Unable to reopen this opportunity: 409'),
+      ).toBeInTheDocument()
+      expect(screen.getByText('Closed')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Reopen' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Reopen' })).toBeEnabled()
     })
   })
 

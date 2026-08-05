@@ -105,6 +105,27 @@ export async function closeOpportunity(
   return response.json() as Promise<Opportunity>
 }
 
+export async function reopenOpportunity(
+  accessToken: string,
+  opportunityId: string,
+): Promise<Opportunity> {
+  const response = await fetch(
+    `${env.apiUrl}/opportunities/${encodeURIComponent(opportunityId)}/reopen`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error(`Unable to reopen this opportunity: ${response.status}`)
+  }
+
+  return response.json() as Promise<Opportunity>
+}
+
 export async function deleteOpportunity(
   accessToken: string,
   opportunityId: string,

@@ -15,6 +15,8 @@ type OrganizationOpportunitiesTableProps = {
   closingOpportunityId?: string | null
   onDeleteOpportunity: (opportunityId: string) => void
   deletingOpportunityId?: string | null
+  onReopenOpportunity?: (opportunityId: string) => void
+  reopeningOpportunityId?: string | null
   emptyMessage?: string
 }
 
@@ -26,6 +28,8 @@ function OrganizationOpportunitiesTable({
   closingOpportunityId = null,
   onDeleteOpportunity,
   deletingOpportunityId = null,
+  onReopenOpportunity = () => {},
+  reopeningOpportunityId = null,
   emptyMessage = 'You have not created any opportunities yet.',
 }: OrganizationOpportunitiesTableProps) {
   if (isLoading) {
@@ -65,6 +69,7 @@ function OrganizationOpportunitiesTable({
           {opportunities.map((opportunity) => {
             const isClosing = closingOpportunityId === opportunity.opportunityId
             const isDeleting = deletingOpportunityId === opportunity.opportunityId
+            const isReopening = reopeningOpportunityId === opportunity.opportunityId
             const isPast = isPastOpportunityDate(opportunity.date)
             const displayTime = formatOpportunityTimeRange(
               opportunity.startTime,
@@ -130,6 +135,27 @@ function OrganizationOpportunitiesTable({
                     >
                       {isClosing ? 'Closing...' : 'Close'}
                     </button>
+                  ) : !isPast ? (
+                    <div className="organization-opportunities-actions">
+                      <button
+                        type="button"
+                        className="organization-opportunities-reopen-button"
+                        disabled={isReopening}
+                        onClick={() => onReopenOpportunity(opportunity.opportunityId)}
+                      >
+                        {isReopening ? 'Reopening...' : 'Reopen'}
+                      </button>
+                      {opportunity.registeredCount === 0 && (
+                        <button
+                          type="button"
+                          className="organization-opportunities-delete-button"
+                          disabled={isDeleting}
+                          onClick={() => onDeleteOpportunity(opportunity.opportunityId)}
+                        >
+                          {isDeleting ? 'Deleting...' : 'Delete'}
+                        </button>
+                      )}
+                    </div>
                   ) : opportunity.registeredCount === 0 ? (
                     <button
                       type="button"

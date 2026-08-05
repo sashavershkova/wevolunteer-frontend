@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useAppAuth } from '../../contexts/AuthContext'
-import { closeOpportunity, getOpportunity } from '../../services/api/opportunityService'
+import {
+  closeOpportunity,
+  getOpportunity,
+  reopenOpportunity,
+} from '../../services/api/opportunityService'
 import {
   getOrganizationOpportunityRegistrations,
   type Registration,
@@ -23,7 +27,10 @@ import { useImageUpload } from '../../hooks/useImageUpload'
 import type { Opportunity } from '../../types/Opportunity'
 import { formatOpportunityTimeRange } from '../../utils/formatOpportunityTimeRange'
 import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
-import { CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE } from '../../constants/opportunityMessages'
+import {
+  CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE,
+  REOPEN_OPPORTUNITY_CONFIRMATION_MESSAGE,
+} from '../../constants/opportunityMessages'
 import './OrganizationOpportunityDetailsPage.css'
 
 function formatDate(dateString: string): string {
@@ -81,6 +88,8 @@ function OrganizationOpportunityDetailsPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isClosing, setIsClosing] = useState(false)
   const [closeErrorMessage, setCloseErrorMessage] = useState<string | null>(null)
+  const [isReopening, setIsReopening] = useState(false)
+  const [reopenErrorMessage, setReopenErrorMessage] = useState<string | null>(null)
 
   const imageUpload = useImageUpload({
     onUpload: async (file) => {
@@ -127,6 +136,36 @@ function OrganizationOpportunityDetailsPage() {
       )
     } finally {
       setIsClosing(false)
+    }
+  }
+
+  async function handleReopenOpportunity() {
+    if (!auth.accessToken || !opportunity || isReopening) {
+      return
+    }
+
+    const confirmed = window.confirm(REOPEN_OPPORTUNITY_CONFIRMATION_MESSAGE)
+
+    if (!confirmed) {
+      return
+    }
+
+    setReopenErrorMessage(null)
+    setIsReopening(true)
+
+    try {
+      const updatedOpportunity = await reopenOpportunity(
+        auth.accessToken,
+        opportunity.opportunityId,
+      )
+
+      setOpportunity(updatedOpportunity)
+    } catch (error) {
+      setReopenErrorMessage(
+        error instanceof Error ? error.message : 'Unable to reopen this opportunity.',
+      )
+    } finally {
+      setIsReopening(false)
     }
   }
 
@@ -253,6 +292,7 @@ function OrganizationOpportunityDetailsPage() {
     opportunity !== null && opportunity.organizationId === organization.organizationId
   const isPast = opportunity !== null && isPastOpportunityDate(opportunity.date)
   const canClose = opportunity !== null && opportunity.status === 'OPEN' && !isPast
+  const canReopen = opportunity !== null && opportunity.status === 'CLOSED' && !isPast
   const displayTime = formatOpportunityTimeRange(
     opportunity?.startTime,
     opportunity?.endTime,
@@ -314,11 +354,27 @@ function OrganizationOpportunityDetailsPage() {
                   {isClosing ? 'Closing...' : 'Close Opportunity'}
                 </button>
               )}
+              {canReopen && (
+                <button
+                  type="button"
+                  className="organization-opportunity-details-reopen-button"
+                  disabled={isReopening}
+                  onClick={handleReopenOpportunity}
+                >
+                  {isReopening ? 'Reopening...' : 'Reopen'}
+                </button>
+              )}
             </div>
 
             {closeErrorMessage && (
               <p role="alert" className="organization-opportunity-details-error">
                 {closeErrorMessage}
+              </p>
+            )}
+
+            {reopenErrorMessage && (
+              <p role="alert" className="organization-opportunity-details-error">
+                {reopenErrorMessage}
               </p>
             )}
 

@@ -3,6 +3,7 @@ import {
   closeOpportunity,
   createOpportunity,
   getOpportunities,
+  reopenOpportunity,
   updateOpportunity,
 } from './opportunityService'
 import { mockOpportunities, opp1 } from '../../tests/fixtures/opportunities'
@@ -99,6 +100,55 @@ describe('closeOpportunity', () => {
 
     await expect(closeOpportunity('test-token', 'opp1')).rejects.toThrow(
       'Unable to close this opportunity: 403',
+    )
+  })
+})
+
+describe('reopenOpportunity', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('sends a PATCH request to the reopen endpoint with the bearer token', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ ...opp1, status: 'OPEN' }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await reopenOpportunity('test-token', 'opp1')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/opportunities/opp1/reopen'),
+      expect.objectContaining({
+        method: 'PATCH',
+        headers: { Authorization: 'Bearer test-token' },
+      }),
+    )
+  })
+
+  it('returns the parsed, reopened Opportunity on success', async () => {
+    const reopenedOpportunity = { ...opp1, status: 'OPEN' as const, registeredCount: 0 }
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(reopenedOpportunity),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await reopenOpportunity('test-token', 'opp1')
+
+    expect(result).toEqual(reopenedOpportunity)
+  })
+
+  it('throws an error containing the status when the response is not ok', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(reopenOpportunity('test-token', 'opp1')).rejects.toThrow(
+      'Unable to reopen this opportunity: 409',
     )
   })
 })
