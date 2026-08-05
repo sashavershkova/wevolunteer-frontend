@@ -246,6 +246,8 @@
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
+  position: relative;
+  z-index: 2;
 }
 
 .opportunity-list-item-cancel-button:hover:not(:disabled) {
@@ -318,6 +320,8 @@
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
+  position: relative;
+  z-index: 2;
 }
 
 .opportunity-list-item-leave-waitlist-button:hover:not(:disabled) {
