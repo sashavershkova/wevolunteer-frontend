@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAppAuth } from '../../contexts/AuthContext'
 import OpportunitiesListView from '../../components/opportunities/OpportunitiesListView/OpportunitiesListView'
 import OpportunityFilters from '../../components/opportunities/OpportunityFilters/OpportunityFilters'
-import { getOpportunities, registerForOpportunity } from '../../services/api/opportunityService'
+import {
+  getOpportunities,
+  getOpportunity,
+  registerForOpportunity,
+} from '../../services/api/opportunityService'
 import { cancelMyRegistration, getMyRegistrations } from '../../services/api/registrationService'
 import { getMyFavorites, removeFavorite } from '../../services/api/favoriteService'
 import { getMyWaitlist, joinWaitlist, leaveWaitlist } from '../../services/api/waitlistService'
@@ -142,6 +146,21 @@ function FavoritesPage() {
       next.delete(opportunityId)
       return next
     })
+
+    try {
+      const refreshed = await getOpportunity(auth.accessToken, opportunityId)
+
+      if (refreshed) {
+        setFavoritedOpportunities((previous) =>
+          previous.map((opportunity) =>
+            opportunity.opportunityId === opportunityId ? refreshed : opportunity,
+          ),
+        )
+      }
+    } catch {
+      // Leaving the waitlist already succeeded - a failed refresh just means this
+      // card's spot count may be stale until the next full page load.
+    }
   }
 
   return (

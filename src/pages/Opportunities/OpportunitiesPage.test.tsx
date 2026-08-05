@@ -4,7 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import OpportunitiesPage from './OpportunitiesPage'
 import { useAppAuth } from '../../contexts/AuthContext'
-import { getOpportunities, registerForOpportunity } from '../../services/api/opportunityService'
+import {
+  getOpportunities,
+  getOpportunity,
+  registerForOpportunity,
+} from '../../services/api/opportunityService'
 import { getMyRegistrations, type Registration } from '../../services/api/registrationService'
 import {
   getMyFavorites,
@@ -26,6 +30,7 @@ vi.mock('../../contexts/AuthContext', () => ({
 
 vi.mock('../../services/api/opportunityService', () => ({
   getOpportunities: vi.fn(),
+  getOpportunity: vi.fn(),
   registerForOpportunity: vi.fn(),
 }))
 
@@ -47,6 +52,7 @@ vi.mock('../../services/api/waitlistService', () => ({
 
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetOpportunities = vi.mocked(getOpportunities)
+const mockedGetOpportunity = vi.mocked(getOpportunity)
 const mockedRegisterForOpportunity = vi.mocked(registerForOpportunity)
 const mockedGetMyRegistrations = vi.mocked(getMyRegistrations)
 const mockedGetMyFavorites = vi.mocked(getMyFavorites)
@@ -130,6 +136,7 @@ describe('OpportunitiesPage', () => {
     mockedGetMyWaitlist.mockReset().mockResolvedValue([])
     mockedJoinWaitlist.mockReset()
     mockedLeaveWaitlist.mockReset()
+    mockedGetOpportunity.mockReset()
   })
 
   it('shows a loading message while the profile is loading', () => {
@@ -370,13 +377,14 @@ describe('OpportunitiesPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('leaves the waitlist when Leave Waitlist is clicked', async () => {
+  it('leaves the waitlist when Leave Waitlist is clicked, staying on Join Waitlist while still full', async () => {
     const user = userEvent.setup()
     mockAuth({})
     mockedGetOpportunities.mockResolvedValue([opp2])
     mockedGetMyRegistrations.mockResolvedValue([])
     mockedGetMyWaitlist.mockResolvedValue([buildWaitlistEntry({})])
     mockedLeaveWaitlist.mockResolvedValue(undefined)
+    mockedGetOpportunity.mockResolvedValue(opp2)
 
     renderPage()
 
@@ -388,5 +396,30 @@ describe('OpportunitiesPage', () => {
     expect(
       await screen.findByRole('button', { name: 'Join Waitlist' }),
     ).toBeInTheDocument()
+  })
+
+  it('shows a Register button after leaving the waitlist if a spot opened up in the meantime', async () => {
+    const user = userEvent.setup()
+    mockAuth({})
+    mockedGetOpportunities.mockResolvedValue([opp2])
+    mockedGetMyRegistrations.mockResolvedValue([])
+    mockedGetMyWaitlist.mockResolvedValue([buildWaitlistEntry({})])
+    mockedLeaveWaitlist.mockResolvedValue(undefined)
+    mockedGetOpportunity.mockResolvedValue({
+      ...opp2,
+      registeredCount: opp2.registeredCount - 1,
+      availableSpots: 1,
+    })
+
+    renderPage()
+
+    await screen.findByRole('button', { name: 'Leave Waitlist' })
+
+    await user.click(screen.getByRole('button', { name: 'Leave Waitlist' }))
+
+    expect(mockedGetOpportunity).toHaveBeenCalledWith('token', 'opp2')
+    expect(await screen.findByRole('button', { name: 'Register' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Join Waitlist' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Waitlisted')).not.toBeInTheDocument()
   })
 })

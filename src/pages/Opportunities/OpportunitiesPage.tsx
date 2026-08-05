@@ -4,7 +4,11 @@ import { useAppAuth } from '../../contexts/AuthContext'
 import OnboardingPage from '../Onboarding/OnboardingPage'
 import OpportunitiesListView from '../../components/opportunities/OpportunitiesListView/OpportunitiesListView'
 import OpportunityFilters from '../../components/opportunities/OpportunityFilters/OpportunityFilters'
-import { getOpportunities, registerForOpportunity } from '../../services/api/opportunityService'
+import {
+  getOpportunities,
+  getOpportunity,
+  registerForOpportunity,
+} from '../../services/api/opportunityService'
 import { getMyRegistrations } from '../../services/api/registrationService'
 import { getMyFavorites, removeFavorite, saveFavorite } from '../../services/api/favoriteService'
 import { getMyWaitlist, joinWaitlist, leaveWaitlist } from '../../services/api/waitlistService'
@@ -121,6 +125,21 @@ function OpportunitiesPage() {
       next.delete(opportunityId)
       return next
     })
+
+    try {
+      const refreshed = await getOpportunity(auth.accessToken, opportunityId)
+
+      if (refreshed) {
+        setOpportunities((previous) =>
+          previous.map((opportunity) =>
+            opportunity.opportunityId === opportunityId ? refreshed : opportunity,
+          ),
+        )
+      }
+    } catch {
+      // Leaving the waitlist already succeeded - a failed refresh just means this
+      // card's spot count may be stale until the next full page load.
+    }
   }
 
   if (auth.isProfileLoading) {
