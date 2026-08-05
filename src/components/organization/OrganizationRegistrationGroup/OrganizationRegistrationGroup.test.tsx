@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import OrganizationRegistrationGroup from './OrganizationRegistrationGroup'
 import { opp1, opp7 } from '../../../tests/fixtures/opportunities'
 import type { Registration } from '../../../services/api/registrationService'
+import type { Waitlist } from '../../../services/api/waitlistService'
 
 const MOCKED_TODAY = '2026-01-01T00:00:00'
 
@@ -21,6 +22,22 @@ function makeRegistration(overrides: Partial<Registration>): Registration {
     volunteerName: 'John Smith',
     email: 'john@example.com',
     registeredAt: '2026-06-01T10:00:00',
+    ...overrides,
+  }
+}
+
+function makeWaitlistEntry(overrides: Partial<Waitlist>): Waitlist {
+  return {
+    userId: 'user-1',
+    opportunityId: opp1.opportunityId,
+    title: opp1.title,
+    date: opp1.date,
+    location: opp1.location,
+    organizationId: opp1.organizationId,
+    organizationName: opp1.organizationName,
+    volunteerName: 'Jordan Miles',
+    email: 'jordan@example.com',
+    joinedAt: '2026-06-01T10:00:00',
     ...overrides,
   }
 }
@@ -173,10 +190,71 @@ describe('OrganizationRegistrationGroup', () => {
     expect(screen.getByText('No volunteers have registered yet.')).toBeInTheDocument()
   })
 
-  it('shows "Waiting list: Coming soon" instead of a fake count', () => {
-    renderGroup()
+  it('shows "No one is on the waiting list." when the waitlist is empty', () => {
+    renderGroup({ waitlist: [] })
 
-    expect(screen.getByText('Waiting list: Coming soon')).toBeInTheDocument()
+    expect(screen.getByText('Waiting List')).toBeInTheDocument()
+    expect(screen.getByText('No one is on the waiting list.')).toBeInTheDocument()
+  })
+
+  it('shows the waiting list count, name, and email for each entry', () => {
+    renderGroup({
+      waitlist: [
+        makeWaitlistEntry({ volunteerName: 'Jordan Miles', email: 'jordan@example.com' }),
+      ],
+    })
+
+    expect(screen.getByText('Waiting List (1)')).toBeInTheDocument()
+    expect(screen.getByText('Jordan Miles')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'jordan@example.com' })).toHaveAttribute(
+      'href',
+      'mailto:jordan@example.com',
+    )
+  })
+
+  it('numbers waitlist entries by their position, oldest first', () => {
+    renderGroup({
+      waitlist: [
+        makeWaitlistEntry({ userId: 'first', volunteerName: 'Jordan Miles' }),
+        makeWaitlistEntry({ userId: 'second', volunteerName: 'Amara Kim' }),
+      ],
+    })
+
+    const entries = screen.getAllByRole('listitem')
+    expect(entries[0]).toHaveTextContent('1')
+    expect(entries[0]).toHaveTextContent('Jordan Miles')
+    expect(entries[1]).toHaveTextContent('2')
+    expect(entries[1]).toHaveTextContent('Amara Kim')
+  })
+
+  it('shows the formatted joined date for a waitlist entry', () => {
+    renderGroup({
+      waitlist: [makeWaitlistEntry({ joinedAt: '2026-05-20T10:00:00' })],
+    })
+
+    expect(screen.getByText('Joined May 20, 2026')).toBeInTheDocument()
+  })
+
+  it('falls back to "Volunteer" when a waitlist entry has an empty volunteerName', () => {
+    renderGroup({
+      waitlist: [makeWaitlistEntry({ volunteerName: '' })],
+    })
+
+    expect(screen.getAllByText('Volunteer').length).toBeGreaterThan(0)
+  })
+
+  it('shows a loading message instead of the waitlist while it is loading', () => {
+    renderGroup({ isWaitlistLoading: true, waitlist: [] })
+
+    expect(screen.getByText('Loading waiting list...')).toBeInTheDocument()
+    expect(screen.queryByText('No one is on the waiting list.')).not.toBeInTheDocument()
+  })
+
+  it('shows a waitlist-specific error message without hiding the registered volunteer list', () => {
+    renderGroup({ waitlistError: 'Unable to load the waiting list: 500' })
+
+    expect(screen.getByText('Unable to load the waiting list: 500')).toBeInTheDocument()
+    expect(screen.getByText('No volunteers have registered yet.')).toBeInTheDocument()
   })
 
   it('renders a disabled Send reminder button with an explanatory note', () => {

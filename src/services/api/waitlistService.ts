@@ -66,3 +66,19 @@ export async function leaveWaitlist(
     throw new Error(`Unable to leave the waitlist: ${response.status}`)
   }
 }
+
+export async function getOrganizationOpportunityWaitlist(
+  accessToken: string,
+  opportunityId: string,
+): Promise<Waitlist[]> {
+  const response = await fetch(
+    `${env.apiUrl}/organizations/me/opportunities/${encodeURIComponent(opportunityId)}/waitlist`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  )
+
+  if (!response.ok) {
+    throw new Error(`Unable to load the waiting list: ${response.status}`)
+  }
+
+  return response.json() as Promise<Waitlist[]>
+}

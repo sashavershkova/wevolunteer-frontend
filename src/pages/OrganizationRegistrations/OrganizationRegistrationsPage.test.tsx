@@ -6,9 +6,11 @@ import OrganizationRegistrationsPage from './OrganizationRegistrationsPage'
 import { useAppAuth } from '../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
 import { getOrganizationOpportunityRegistrations } from '../../services/api/registrationService'
+import { getOrganizationOpportunityWaitlist } from '../../services/api/waitlistService'
 import { opp1, opp7 } from '../../tests/fixtures/opportunities'
 import type { Opportunity } from '../../types/Opportunity'
 import type { Registration } from '../../services/api/registrationService'
+import type { Waitlist } from '../../services/api/waitlistService'
 
 const MOCKED_TODAY = '2026-01-01T00:00:00'
 
@@ -24,11 +26,16 @@ vi.mock('../../services/api/registrationService', () => ({
   getOrganizationOpportunityRegistrations: vi.fn(),
 }))
 
+vi.mock('../../services/api/waitlistService', () => ({
+  getOrganizationOpportunityWaitlist: vi.fn(),
+}))
+
 const mockedUseAppAuth = vi.mocked(useAppAuth)
 const mockedGetMyOrganizationOpportunities = vi.mocked(getMyOrganizationOpportunities)
 const mockedGetOrganizationOpportunityRegistrations = vi.mocked(
   getOrganizationOpportunityRegistrations,
 )
+const mockedGetOrganizationOpportunityWaitlist = vi.mocked(getOrganizationOpportunityWaitlist)
 
 function mockAuth(overrides: Partial<ReturnType<typeof useAppAuth>> = {}) {
   mockedUseAppAuth.mockReturnValue({
@@ -76,6 +83,22 @@ function makeRegistration(overrides: Partial<Registration>): Registration {
   }
 }
 
+function makeWaitlistEntry(overrides: Partial<Waitlist>): Waitlist {
+  return {
+    userId: 'user-1',
+    opportunityId: opp1.opportunityId,
+    title: opp1.title,
+    date: opp1.date,
+    location: opp1.location,
+    organizationId: opp1.organizationId,
+    organizationName: opp1.organizationName,
+    volunteerName: 'Jordan Miles',
+    email: 'jordan@example.com',
+    joinedAt: '2026-06-01T10:00:00',
+    ...overrides,
+  }
+}
+
 function renderPage() {
   return render(
     <MemoryRouter initialEntries={['/organization/registrations']}>
@@ -91,6 +114,8 @@ describe('OrganizationRegistrationsPage', () => {
     mockedGetMyOrganizationOpportunities.mockReset()
     mockedGetOrganizationOpportunityRegistrations.mockReset()
     mockedGetOrganizationOpportunityRegistrations.mockResolvedValue([])
+    mockedGetOrganizationOpportunityWaitlist.mockReset()
+    mockedGetOrganizationOpportunityWaitlist.mockResolvedValue([])
     mockAuth()
   })
 
@@ -285,12 +310,68 @@ describe('OrganizationRegistrationsPage', () => {
     )
   })
 
-  it('shows "Waiting list: Coming soon" rather than a fake count', async () => {
+  it('loads the waitlist for each opportunity', async () => {
+    mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1, opp7])
+
+    renderPage()
+
+    await screen.findByText(opp1.title)
+
+    await waitFor(() => {
+      expect(mockedGetOrganizationOpportunityWaitlist).toHaveBeenCalledWith(
+        'token',
+        opp1.opportunityId,
+      )
+      expect(mockedGetOrganizationOpportunityWaitlist).toHaveBeenCalledWith(
+        'token',
+        opp7.opportunityId,
+      )
+    })
+  })
+
+  it('shows "No one is on the waiting list." when nobody has joined', async () => {
     mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
 
     renderPage()
 
-    expect(await screen.findByText('Waiting list: Coming soon')).toBeInTheDocument()
+    expect(await screen.findByText('No one is on the waiting list.')).toBeInTheDocument()
+  })
+
+  it('renders waitlist entries with real data, in the order the backend returns them', async () => {
+    mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+    mockedGetOrganizationOpportunityWaitlist.mockImplementation(async (_token, opportunityId) =>
+      opportunityId === opp1.opportunityId
+        ? [
+            makeWaitlistEntry({ userId: 'first', volunteerName: 'Jordan Miles' }),
+            makeWaitlistEntry({ userId: 'second', volunteerName: 'Amara Kim' }),
+          ]
+        : [],
+    )
+
+    renderPage()
+
+    expect(await screen.findByText('Waiting List (2)')).toBeInTheDocument()
+    const names = [screen.getByText('Jordan Miles'), screen.getByText('Amara Kim')]
+    expect(names[0].compareDocumentPosition(names[1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('keeps other cards visible when one opportunity fails to load its waitlist', async () => {
+    mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1, opp7])
+    mockedGetOrganizationOpportunityWaitlist.mockImplementation(
+      async (_token, opportunityId) => {
+        if (opportunityId === opp1.opportunityId) {
+          throw new Error('Unable to load the waiting list: 500')
+        }
+        return []
+      },
+    )
+
+    renderPage()
+
+    await screen.findByText(opp7.title)
+    expect(await screen.findByText('Unable to load the waiting list: 500')).toBeInTheDocument()
+    expect(screen.getByText(opp1.title)).toBeInTheDocument()
+    expect(screen.getByText(opp7.title)).toBeInTheDocument()
   })
 
   it('shows Send reminder as disabled', async () => {

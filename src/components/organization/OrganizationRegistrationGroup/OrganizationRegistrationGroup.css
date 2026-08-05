@@ -203,10 +203,88 @@
 }
 
 .organization-registration-group-waitlist {
-  margin: 1rem 0 0;
+  margin: 1.1rem 0 0;
+}
+
+.organization-registration-group-waitlist-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.6rem;
+  font-weight: 600;
+  color: var(--text-h);
+  font-size: 0.95rem;
+}
+
+.organization-registration-group-waitlist-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #b7791f;
+}
+
+:root[data-theme='dark'] .organization-registration-group-waitlist-dot {
+  background: #f0c674;
+}
+
+.organization-registration-group-waitlist-list-container {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.organization-registration-group-waitlist-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.organization-registration-group-waitlist-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.organization-registration-group-waitlist-entry:last-child {
+  border-bottom: none;
+}
+
+.organization-registration-group-waitlist-entry-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1 1 14rem;
+}
+
+.organization-registration-group-waitlist-position {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: #fdf3e0;
+  color: #b7791f;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+:root[data-theme='dark'] .organization-registration-group-waitlist-position {
+  background: rgba(240, 198, 116, 0.15);
+  color: #f0c674;
+}
+
+.organization-registration-group-waitlist-entry-meta {
+  flex-shrink: 0;
   color: var(--text);
-  font-size: 0.85rem;
-  font-style: italic;
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
 
 .organization-registration-group-actions {
@@ -271,6 +349,16 @@
   }
 
   .organization-registration-group-volunteer-meta {
+    padding-left: 3rem;
+  }
+
+  .organization-registration-group-waitlist-entry {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .organization-registration-group-waitlist-entry-meta {
     padding-left: 3rem;
   }
 

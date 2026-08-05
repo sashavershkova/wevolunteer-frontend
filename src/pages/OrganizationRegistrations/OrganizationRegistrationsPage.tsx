@@ -4,6 +4,8 @@ import { useAppAuth } from '../../contexts/AuthContext'
 import { getMyOrganizationOpportunities } from '../../services/api/organizationService'
 import { getOrganizationOpportunityRegistrations } from '../../services/api/registrationService'
 import type { Registration } from '../../services/api/registrationService'
+import { getOrganizationOpportunityWaitlist } from '../../services/api/waitlistService'
+import type { Waitlist } from '../../services/api/waitlistService'
 import OrganizationRegistrationGroup from '../../components/organization/OrganizationRegistrationGroup/OrganizationRegistrationGroup'
 import OrganizationRegistrationFilters from '../../components/organization/OrganizationRegistrationFilters/OrganizationRegistrationFilters'
 import MetricCard from '../../components/shared/MetricCard/MetricCard'
@@ -24,6 +26,12 @@ type RegistrationsState = {
   error: string | null
 }
 
+type WaitlistState = {
+  waitlist: Waitlist[]
+  isLoading: boolean
+  error: string | null
+}
+
 function OrganizationRegistrationsPage() {
   const auth = useAppAuth()
   const { accessToken } = auth
@@ -33,6 +41,9 @@ function OrganizationRegistrationsPage() {
   const [opportunitiesError, setOpportunitiesError] = useState<string | null>(null)
   const [registrationsByOpportunityId, setRegistrationsByOpportunityId] = useState<
     Record<string, RegistrationsState>
+  >({})
+  const [waitlistByOpportunityId, setWaitlistByOpportunityId] = useState<
+    Record<string, WaitlistState>
   >({})
   const [filters, setFilters] = useState<RegistrationOpportunityFiltersValue>(
     EMPTY_REGISTRATION_OPPORTUNITY_FILTERS,
@@ -133,6 +144,68 @@ function OrganizationRegistrationsPage() {
     }
 
     void loadAllRegistrations()
+
+    return () => {
+      ignore = true
+    }
+  }, [accessToken, opportunities])
+
+  // Mirrors the registrations effect above: no bulk "waitlist for all my opportunities"
+  // endpoint exists yet, so each opportunity's waitlist is fetched and settled independently.
+  useEffect(() => {
+    let ignore = false
+
+    if (!accessToken || opportunities.length === 0) {
+      return
+    }
+
+    const loadAllWaitlists = async () => {
+      setWaitlistByOpportunityId((current) => {
+        const next = { ...current }
+        opportunities.forEach((opportunity) => {
+          next[opportunity.opportunityId] = {
+            waitlist: [],
+            isLoading: true,
+            error: null,
+          }
+        })
+        return next
+      })
+
+      const results = await Promise.allSettled(
+        opportunities.map((opportunity) =>
+          getOrganizationOpportunityWaitlist(accessToken, opportunity.opportunityId),
+        ),
+      )
+
+      if (ignore) {
+        return
+      }
+
+      setWaitlistByOpportunityId((current) => {
+        const next = { ...current }
+
+        opportunities.forEach((opportunity, index) => {
+          const result = results[index]
+
+          next[opportunity.opportunityId] =
+            result.status === 'fulfilled'
+              ? { waitlist: result.value, isLoading: false, error: null }
+              : {
+                  waitlist: [],
+                  isLoading: false,
+                  error:
+                    result.reason instanceof Error
+                      ? result.reason.message
+                      : 'Unable to load the waiting list.',
+                }
+        })
+
+        return next
+      })
+    }
+
+    void loadAllWaitlists()
 
     return () => {
       ignore = true
@@ -283,15 +356,22 @@ function OrganizationRegistrationsPage() {
             </div>
           ) : (
             <div className="organization-registrations-groups">
-              {filteredItems.map((item) => (
-                <OrganizationRegistrationGroup
-                  key={item.opportunity.opportunityId}
-                  opportunity={item.opportunity}
-                  registrations={item.registrations}
-                  isLoading={item.isLoading}
-                  error={item.error}
-                />
-              ))}
+              {filteredItems.map((item) => {
+                const waitlistState = waitlistByOpportunityId[item.opportunity.opportunityId]
+
+                return (
+                  <OrganizationRegistrationGroup
+                    key={item.opportunity.opportunityId}
+                    opportunity={item.opportunity}
+                    registrations={item.registrations}
+                    isLoading={item.isLoading}
+                    error={item.error}
+                    waitlist={waitlistState?.waitlist ?? []}
+                    isWaitlistLoading={waitlistState?.isLoading ?? true}
+                    waitlistError={waitlistState?.error ?? null}
+                  />
+                )
+              })}
             </div>
           )}
         </>

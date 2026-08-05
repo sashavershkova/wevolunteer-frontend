@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import type { Opportunity } from '../../../types/Opportunity'
 import type { Registration } from '../../../services/api/registrationService'
+import type { Waitlist } from '../../../services/api/waitlistService'
 import { getOpportunityDisplayStatus } from '../../../utils/getOpportunityDisplayStatus'
 import { sortRegistrations } from '../../../utils/sortRegistrations'
 import { formatOpportunityDate } from '../../../utils/formatOpportunityDate'
@@ -13,6 +14,9 @@ type OrganizationRegistrationGroupProps = {
   registrations: Registration[]
   isLoading?: boolean
   error?: string | null
+  waitlist?: Waitlist[]
+  isWaitlistLoading?: boolean
+  waitlistError?: string | null
 }
 
 function formatRegisteredAt(registeredAt: string): string | null {
@@ -28,6 +32,20 @@ function formatRegisteredAt(registeredAt: string): string | null {
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+  })
+}
+
+function formatJoinedAt(joinedAt: string): string | null {
+  const date = new Date(joinedAt)
+
+  if (Number.isNaN(date.getTime())) {
+    return null
+  }
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
   })
 }
 
@@ -51,6 +69,9 @@ function OrganizationRegistrationGroup({
   registrations,
   isLoading = false,
   error = null,
+  waitlist = [],
+  isWaitlistLoading = false,
+  waitlistError = null,
 }: OrganizationRegistrationGroupProps) {
   const displayStatus = getOpportunityDisplayStatus(opportunity)
   const statusLabel =
@@ -189,7 +210,83 @@ function OrganizationRegistrationGroup({
           </div>
         ))}
 
-      <p className="organization-registration-group-waitlist">Waiting list: Coming soon</p>
+      <div className="organization-registration-group-waitlist">
+        <div className="organization-registration-group-waitlist-label">
+          <span className="organization-registration-group-waitlist-dot" aria-hidden="true" />
+          <span>Waiting List{waitlist.length > 0 ? ` (${waitlist.length})` : ''}</span>
+        </div>
+
+        {isWaitlistLoading && (
+          <p role="status" className="organization-registration-group-message">
+            Loading waiting list...
+          </p>
+        )}
+
+        {!isWaitlistLoading && waitlistError && (
+          <p role="alert" className="organization-registration-group-message">
+            {waitlistError}
+          </p>
+        )}
+
+        {!isWaitlistLoading &&
+          !waitlistError &&
+          (waitlist.length === 0 ? (
+            <p className="organization-registration-group-message">
+              No one is on the waiting list.
+            </p>
+          ) : (
+            <div className="organization-registration-group-waitlist-list-container">
+              <ul className="organization-registration-group-waitlist-list">
+                {waitlist.map((entry, index) => {
+                  const joinedAtLabel = formatJoinedAt(entry.joinedAt)
+                  const displayName = getVolunteerDisplayName(entry.volunteerName)
+                  const initial = getVolunteerInitial(displayName)
+
+                  return (
+                    <li
+                      key={entry.userId}
+                      className="organization-registration-group-waitlist-entry"
+                    >
+                      <div className="organization-registration-group-waitlist-entry-primary">
+                        <span
+                          className="organization-registration-group-waitlist-position"
+                          aria-hidden="true"
+                        >
+                          {index + 1}
+                        </span>
+                        <span
+                          className="organization-registration-group-volunteer-avatar"
+                          aria-hidden="true"
+                        >
+                          {initial}
+                        </span>
+                        <div className="organization-registration-group-volunteer-info">
+                          <p className="organization-registration-group-volunteer-name">
+                            {displayName}
+                          </p>
+                          {entry.email && (
+                            <a
+                              href={`mailto:${entry.email}`}
+                              className="organization-registration-group-volunteer-email"
+                            >
+                              {entry.email}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {joinedAtLabel && (
+                        <span className="organization-registration-group-waitlist-entry-meta">
+                          Joined {joinedAtLabel}
+                        </span>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          ))}
+      </div>
 
       <div className="organization-registration-group-actions">
         <div className="organization-registration-group-action">

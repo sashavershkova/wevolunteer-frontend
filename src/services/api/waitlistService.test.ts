@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getMyWaitlist, joinWaitlist, leaveWaitlist } from './waitlistService'
+import {
+  getMyWaitlist,
+  getOrganizationOpportunityWaitlist,
+  joinWaitlist,
+  leaveWaitlist,
+} from './waitlistService'
 
 const waitlistFixture = {
   userId: 'user1',
@@ -95,6 +100,65 @@ describe('joinWaitlist', () => {
     await expect(joinWaitlist('test-token', 'opp1')).rejects.toThrow(
       'Unable to join the waitlist: 409',
     )
+  })
+})
+
+describe('getOrganizationOpportunityWaitlist', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('calls the authenticated organization waitlist endpoint with a bearer header', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([waitlistFixture]),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await getOrganizationOpportunityWaitlist('test-token', 'opp 1')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/organizations/me/opportunities/opp%201/waitlist'),
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer test-token' },
+      }),
+    )
+  })
+
+  it('returns the parsed list of waitlist entries on success', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([waitlistFixture]),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await getOrganizationOpportunityWaitlist('test-token', 'opp1')
+
+    expect(result).toEqual([waitlistFixture])
+  })
+
+  it('returns an empty list when nobody is waiting', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([]),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await getOrganizationOpportunityWaitlist('test-token', 'opp1')
+
+    expect(result).toEqual([])
+  })
+
+  it('throws an error containing the status when the response is not ok', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      getOrganizationOpportunityWaitlist('test-token', 'opp1'),
+    ).rejects.toThrow('Unable to load the waiting list: 403')
   })
 })
 
