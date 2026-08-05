@@ -23,6 +23,7 @@ import { useImageUpload } from '../../hooks/useImageUpload'
 import type { Opportunity } from '../../types/Opportunity'
 import { formatOpportunityTimeRange } from '../../utils/formatOpportunityTimeRange'
 import { isPastOpportunityDate } from '../../utils/isPastOpportunityDate'
+import { CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE } from '../../constants/opportunityMessages'
 import './OrganizationOpportunityDetailsPage.css'
 
 function formatDate(dateString: string): string {
@@ -104,9 +105,7 @@ function OrganizationOpportunityDetailsPage() {
       return
     }
 
-    const confirmed = window.confirm(
-      'Closing this opportunity will cancel all active registrations and notify registered volunteers. This action cannot be undone.',
-    )
+    const confirmed = window.confirm(CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE)
 
     if (!confirmed) {
       return

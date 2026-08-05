@@ -12,6 +12,7 @@ import {
   type OrganizationOpportunityFiltersValue,
 } from '../../../utils/organizationOpportunityFilters'
 import { sortOrganizationOpportunities } from '../../../utils/sortOrganizationOpportunities'
+import { CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE } from '../../../constants/opportunityMessages'
 import './OrganizationOpportunitiesSection.css'
 
 type OrganizationOpportunitiesSectionProps = {
@@ -87,6 +88,16 @@ function OrganizationOpportunitiesSection({
   async function handleCloseOpportunity(opportunityId: string) {
     if (!accessToken) {
       setOpportunityActionErrorMessage('Your authentication session is unavailable.')
+      return
+    }
+
+    if (closingOpportunityId) {
+      return
+    }
+
+    const confirmed = window.confirm(CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE)
+
+    if (!confirmed) {
       return
     }
 

@@ -8,6 +8,7 @@ import { getMyOrganizationOpportunities } from '../../../services/api/organizati
 import { closeOpportunity, deleteOpportunity } from '../../../services/api/opportunityService'
 import { opp1 } from '../../../tests/fixtures/opportunities'
 import type { Opportunity } from '../../../types/Opportunity'
+import { CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE } from '../../../constants/opportunityMessages'
 
 const MOCKED_TODAY = '2026-01-01T00:00:00'
 
@@ -98,8 +99,36 @@ describe('OrganizationOpportunitiesSection', () => {
     expect(mockedGetMyOrganizationOpportunities).toHaveBeenCalledWith('token')
   })
 
+  it('opens a confirmation prompt with the shared message when Close is clicked, without calling the API before confirmation', async () => {
+    mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+    renderSection()
+
+    const closeButton = await screen.findByRole('button', { name: 'Close' })
+    fireEvent.click(closeButton)
+
+    expect(confirmSpy).toHaveBeenCalledWith(CLOSE_OPPORTUNITY_CONFIRMATION_MESSAGE)
+    expect(mockedCloseOpportunity).not.toHaveBeenCalled()
+  })
+
+  it('does not call closeOpportunity and leaves the row Open when the confirmation is cancelled', async () => {
+    mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+    renderSection()
+
+    const closeButton = await screen.findByRole('button', { name: 'Close' })
+    fireEvent.click(closeButton)
+
+    expect(mockedCloseOpportunity).not.toHaveBeenCalled()
+    expect(within(screen.getByRole('table')).getByText('Open')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+  })
+
   it('closes an opportunity and updates state locally without refetching', async () => {
     mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
     const closedOpportunity: Opportunity = { ...opp1, status: 'CLOSED' }
     mockedCloseOpportunity.mockResolvedValue(closedOpportunity)
 
@@ -122,6 +151,7 @@ describe('OrganizationOpportunitiesSection', () => {
 
   it('replaces the opportunity with the backend response after closing, showing registeredCount reset to 0', async () => {
     mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
     const closedOpportunity: Opportunity = {
       ...opp1,
       status: 'CLOSED',
@@ -148,8 +178,9 @@ describe('OrganizationOpportunitiesSection', () => {
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
   })
 
-  it('shows a pending state on the closing row while the request is in flight', async () => {
+  it('shows a pending state on the closing row while the request is in flight and prevents a duplicate submission', async () => {
     mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
     let resolveClose: (value: Opportunity) => void = () => {}
     mockedCloseOpportunity.mockReturnValue(
       new Promise((resolve) => {
@@ -165,6 +196,9 @@ describe('OrganizationOpportunitiesSection', () => {
     const pendingButton = await screen.findByRole('button', { name: 'Closing...' })
     expect(pendingButton).toBeDisabled()
 
+    fireEvent.click(pendingButton)
+    expect(mockedCloseOpportunity).toHaveBeenCalledTimes(1)
+
     resolveClose({ ...opp1, status: 'CLOSED' })
 
     await waitFor(() => {
@@ -174,6 +208,7 @@ describe('OrganizationOpportunitiesSection', () => {
 
   it('shows an action-specific error and keeps the opportunity OPEN when closing fails', async () => {
     mockedGetMyOrganizationOpportunities.mockResolvedValue([opp1])
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
     mockedCloseOpportunity.mockRejectedValue(
       new Error('Unable to close this opportunity: 403'),
     )
