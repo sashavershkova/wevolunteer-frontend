@@ -140,6 +140,7 @@ function buildTree(initialPath: string) {
           <Route path="/organization/profile" element={<FakeOrganizationOnlyPage />} />
           <Route path="/opportunities" element={<p>Browse opportunities</p>} />
           <Route path="/profile" element={<FakeVolunteerOnlyPage />} />
+          <Route path="/dashboard" element={<p>Volunteer dashboard</p>} />
         </Route>
       </Routes>
     </MemoryRouter>
@@ -279,8 +280,8 @@ describe('refresh navigation race', () => {
 
     rerender(buildTree('/organization/volunteers'))
 
-    expect(screen.getByText('Browse opportunities')).toBeInTheDocument()
-    expect(screen.getByTestId('location-display')).toHaveTextContent('/opportunities')
+    expect(screen.getByText('Volunteer dashboard')).toBeInTheDocument()
+    expect(screen.getByTestId('location-display')).toHaveTextContent('/dashboard')
   })
 
   it('sends a genuinely profile-less user through the existing onboarding/home flow', () => {
@@ -293,8 +294,8 @@ describe('refresh navigation race', () => {
 
     render(buildTree('/profile'))
 
-    expect(screen.getByText('Browse opportunities')).toBeInTheDocument()
-    expect(screen.getByTestId('location-display')).toHaveTextContent('/opportunities')
+    expect(screen.getByText('Volunteer dashboard')).toBeInTheDocument()
+    expect(screen.getByTestId('location-display')).toHaveTextContent('/dashboard')
   })
 
   it('still renders the existing profile-error state instead of redirecting', () => {
