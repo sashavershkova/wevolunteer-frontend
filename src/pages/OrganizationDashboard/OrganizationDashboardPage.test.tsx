@@ -66,6 +66,11 @@ function getMetricValue(label: string): string {
   return within(card as HTMLElement).getByText(/^(—|\d+)$/).textContent ?? ''
 }
 
+function getCurrentSpotsValue(): string {
+  const card = screen.getByText('Current Spots').closest('.metric-card')
+  return within(card as HTMLElement).getByText(/^(—|\d+ \/ \d+ filled)$/).textContent ?? ''
+}
+
 describe('OrganizationDashboardPage', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
@@ -100,7 +105,7 @@ describe('OrganizationDashboardPage', () => {
     expect(screen.getByText('Open Opportunities')).toBeInTheDocument()
     expect(screen.getByText('Upcoming (30 days)')).toBeInTheDocument()
     expect(screen.getByText('Total Registrations')).toBeInTheDocument()
-    expect(screen.getByText('Total Capacity')).toBeInTheDocument()
+    expect(screen.getByText('Current Spots')).toBeInTheDocument()
   })
 
   it('shows placeholders for all metrics while opportunities are loading', () => {
@@ -111,7 +116,7 @@ describe('OrganizationDashboardPage', () => {
     expect(getMetricValue('Open Opportunities')).toBe('—')
     expect(getMetricValue('Upcoming (30 days)')).toBe('—')
     expect(getMetricValue('Total Registrations')).toBe('—')
-    expect(getMetricValue('Total Capacity')).toBe('—')
+    expect(getCurrentSpotsValue()).toBe('—')
   })
 
   describe('Open Opportunities metric', () => {
@@ -151,7 +156,7 @@ describe('OrganizationDashboardPage', () => {
     })
   })
 
-  describe('Total Registrations and Total Capacity metrics', () => {
+  describe('Total Registrations and Current Spots metrics', () => {
     it('sums registeredCount across every opportunity regardless of status', async () => {
       const open: Opportunity = {
         ...opp1,
@@ -186,7 +191,7 @@ describe('OrganizationDashboardPage', () => {
       })
     })
 
-    it('sums capacity only for OPEN opportunities, excluding Completed and Closed', async () => {
+    it('sums filled/capacity only for OPEN opportunities, excluding Completed and Closed', async () => {
       const open: Opportunity = {
         ...opp1,
         opportunityId: 'open',
@@ -216,7 +221,33 @@ describe('OrganizationDashboardPage', () => {
       renderPage()
 
       await waitFor(() => {
-        expect(getMetricValue('Total Capacity')).toBe('10')
+        expect(getCurrentSpotsValue()).toBe('3 / 10 filled')
+      })
+    })
+
+    it('sums filled/capacity across multiple OPEN opportunities', async () => {
+      const openA: Opportunity = {
+        ...opp1,
+        opportunityId: 'open-a',
+        date: '2026-08-01',
+        status: 'OPEN',
+        registeredCount: 3,
+        capacity: 10,
+      }
+      const openB: Opportunity = {
+        ...opp1,
+        opportunityId: 'open-b',
+        date: '2026-08-05',
+        status: 'OPEN',
+        registeredCount: 4,
+        capacity: 6,
+      }
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([openA, openB])
+
+      renderPage()
+
+      await waitFor(() => {
+        expect(getCurrentSpotsValue()).toBe('7 / 16 filled')
       })
     })
   })

@@ -402,7 +402,7 @@ describe('OrganizationRegistrationsPage', () => {
   })
 
   describe('summary metrics', () => {
-    it('calculates Total Registrations, Opportunities With Registrations, and Total Volunteer Capacity correctly', async () => {
+    it('calculates Total Registrations, Opportunities With Registrations, and Current Spots correctly', async () => {
       const opportunityWithoutRegistrations: Opportunity = {
         ...opp1,
         opportunityId: 'no-regs',
@@ -425,9 +425,35 @@ describe('OrganizationRegistrationsPage', () => {
       expect(
         screen.getByText('Opportunities With Registrations').nextElementSibling,
       ).toHaveTextContent('1')
-      expect(screen.getByText('Total Volunteer Capacity').nextElementSibling).toHaveTextContent(
-        String(opp1.capacity + opportunityWithoutRegistrations.capacity),
+      expect(screen.getByText('Current Spots').nextElementSibling).toHaveTextContent(
+        `${opp1.registeredCount + opportunityWithoutRegistrations.registeredCount} / ${opp1.capacity + opportunityWithoutRegistrations.capacity} filled`,
       )
+    })
+
+    it('only includes OPEN opportunities in Current Spots, excluding Completed and Closed', async () => {
+      const completedOpportunity: Opportunity = {
+        ...opp1,
+        opportunityId: 'completed-opp',
+        title: 'Completed Shift',
+        date: '2025-01-01',
+        status: 'OPEN',
+        registeredCount: 4,
+        capacity: 9,
+      }
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([
+        opp1,
+        opp7,
+        completedOpportunity,
+      ])
+      mockedGetOrganizationOpportunityRegistrations.mockResolvedValue([])
+
+      renderPage()
+
+      await waitFor(() => {
+        expect(screen.getByText('Current Spots').nextElementSibling).toHaveTextContent(
+          `${opp1.registeredCount} / ${opp1.capacity} filled`,
+        )
+      })
     })
 
     it('does not show misleading zeros while registrations are still loading', async () => {
@@ -438,6 +464,7 @@ describe('OrganizationRegistrationsPage', () => {
 
       await screen.findByText('Total Registrations')
       expect(screen.getByText('Total Registrations').nextElementSibling).toHaveTextContent('—')
+      expect(screen.getByText('Current Spots').nextElementSibling).toHaveTextContent('—')
     })
   })
 
@@ -651,8 +678,8 @@ describe('OrganizationRegistrationsPage', () => {
       expect(
         screen.getByText('Opportunities With Registrations').nextElementSibling,
       ).toHaveTextContent('0')
-      expect(screen.getByText('Total Volunteer Capacity').nextElementSibling).toHaveTextContent(
-        String(opp1.capacity + opp7.capacity),
+      expect(screen.getByText('Current Spots').nextElementSibling).toHaveTextContent(
+        `${opp1.registeredCount} / ${opp1.capacity} filled`,
       )
     })
 

@@ -10,6 +10,7 @@ import OrganizationRegistrationGroup from '../../components/organization/Organiz
 import OrganizationRegistrationFilters from '../../components/organization/OrganizationRegistrationFilters/OrganizationRegistrationFilters'
 import MetricCard from '../../components/shared/MetricCard/MetricCard'
 import type { Opportunity } from '../../types/Opportunity'
+import { getOpportunityDisplayStatus } from '../../utils/getOpportunityDisplayStatus'
 import { sortOrganizationOpportunities } from '../../utils/sortOrganizationOpportunities'
 import {
   EMPTY_REGISTRATION_OPPORTUNITY_FILTERS,
@@ -263,13 +264,26 @@ function OrganizationRegistrationsPage() {
   const opportunitiesWithRegistrationsCount = registrationItems.filter(
     (item) => !item.error && item.registrations.length > 0,
   ).length
-  const totalCapacityCount = sortedOpportunities.reduce(
+  const openOpportunitiesForSpots = sortedOpportunities.filter(
+    (opportunity) => getOpportunityDisplayStatus(opportunity) === 'OPEN',
+  )
+
+  const filledSpotsCount = openOpportunitiesForSpots.reduce(
+    (total, opportunity) => total + opportunity.registeredCount,
+    0,
+  )
+
+  const openCapacityCount = openOpportunitiesForSpots.reduce(
     (total, opportunity) => total + opportunity.capacity,
     0,
   )
 
   function formatMetric(value: number): string {
     return showMetricsPlaceholder ? '—' : String(value)
+  }
+
+  function formatSpotsMetric(filled: number, capacity: number): string {
+    return showMetricsPlaceholder ? '—' : `${filled} / ${capacity} filled`
   }
 
   const filteredItems = filterRegistrationOpportunities(registrationItems, filters)
@@ -329,9 +343,9 @@ function OrganizationRegistrationsPage() {
             />
 
             <MetricCard
-              label="Total Volunteer Capacity"
-              value={formatMetric(totalCapacityCount)}
-              hint="Volunteer spots offered"
+              label="Current Spots"
+              value={formatSpotsMetric(filledSpotsCount, openCapacityCount)}
+              hint="Across open opportunities"
             />
           </section>
 

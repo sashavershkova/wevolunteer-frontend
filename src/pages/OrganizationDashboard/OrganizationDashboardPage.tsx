@@ -118,12 +118,26 @@ function OrganizationDashboardPage() {
     0,
   )
 
-  const totalCapacityCount = opportunities
-    .filter((opportunity) => getOpportunityDisplayStatus(opportunity) === 'OPEN')
-    .reduce((total, opportunity) => total + opportunity.capacity, 0)
+  const openOpportunitiesForSpots = opportunities.filter(
+    (opportunity) => getOpportunityDisplayStatus(opportunity) === 'OPEN',
+  )
+
+  const filledSpotsCount = openOpportunitiesForSpots.reduce(
+    (total, opportunity) => total + opportunity.registeredCount,
+    0,
+  )
+
+  const openCapacityCount = openOpportunitiesForSpots.reduce(
+    (total, opportunity) => total + opportunity.capacity,
+    0,
+  )
 
   function formatMetric(value: number): string {
     return showMetricsPlaceholder ? '—' : String(value)
+  }
+
+  function formatSpotsMetric(filled: number, capacity: number): string {
+    return showMetricsPlaceholder ? '—' : `${filled} / ${capacity} filled`
   }
 
   return (
@@ -159,9 +173,9 @@ function OrganizationDashboardPage() {
         />
 
         <MetricCard
-          label="Total Capacity"
-          value={formatMetric(totalCapacityCount)}
-          hint="Volunteer spots offered"
+          label="Current Spots"
+          value={formatSpotsMetric(filledSpotsCount, openCapacityCount)}
+          hint="Across open opportunities"
         />
       </section>
 
