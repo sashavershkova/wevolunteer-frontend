@@ -283,7 +283,7 @@ function OrganizationRegistrationsPage() {
   }
 
   function formatSpotsMetric(filled: number, capacity: number): string {
-    return showMetricsPlaceholder ? '—' : `${filled} / ${capacity} filled`
+    return showMetricsPlaceholder ? '—' : `${filled} / ${capacity}`
   }
 
   const filteredItems = filterRegistrationOpportunities(registrationItems, filters)
@@ -343,7 +343,7 @@ function OrganizationRegistrationsPage() {
             />
 
             <MetricCard
-              label="Current Spots"
+              label="Current filled spots"
               value={formatSpotsMetric(filledSpotsCount, openCapacityCount)}
               hint="Across open opportunities"
             />

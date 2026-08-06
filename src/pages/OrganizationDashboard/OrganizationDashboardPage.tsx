@@ -137,7 +137,7 @@ function OrganizationDashboardPage() {
   }
 
   function formatSpotsMetric(filled: number, capacity: number): string {
-    return showMetricsPlaceholder ? '—' : `${filled} / ${capacity} filled`
+    return showMetricsPlaceholder ? '—' : `${filled} / ${capacity}`
   }
 
   return (
@@ -173,7 +173,7 @@ function OrganizationDashboardPage() {
         />
 
         <MetricCard
-          label="Current Spots"
+          label="Current filled spots"
           value={formatSpotsMetric(filledSpotsCount, openCapacityCount)}
           hint="Across open opportunities"
         />

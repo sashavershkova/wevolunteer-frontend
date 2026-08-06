@@ -67,8 +67,8 @@ function getMetricValue(label: string): string {
 }
 
 function getCurrentSpotsValue(): string {
-  const card = screen.getByText('Current Spots').closest('.metric-card')
-  return within(card as HTMLElement).getByText(/^(—|\d+ \/ \d+ filled)$/).textContent ?? ''
+  const card = screen.getByText('Current filled spots').closest('.metric-card')
+  return within(card as HTMLElement).getByText(/^(—|\d+ \/ \d+)$/).textContent ?? ''
 }
 
 describe('OrganizationDashboardPage', () => {
@@ -105,7 +105,7 @@ describe('OrganizationDashboardPage', () => {
     expect(screen.getByText('Open Opportunities')).toBeInTheDocument()
     expect(screen.getByText('Upcoming (30 days)')).toBeInTheDocument()
     expect(screen.getByText('Total Registrations')).toBeInTheDocument()
-    expect(screen.getByText('Current Spots')).toBeInTheDocument()
+    expect(screen.getByText('Current filled spots')).toBeInTheDocument()
   })
 
   it('shows placeholders for all metrics while opportunities are loading', () => {
@@ -156,7 +156,7 @@ describe('OrganizationDashboardPage', () => {
     })
   })
 
-  describe('Total Registrations and Current Spots metrics', () => {
+  describe('Total Registrations and Current filled spots metrics', () => {
     it('sums registeredCount across every opportunity regardless of status', async () => {
       const open: Opportunity = {
         ...opp1,
@@ -221,7 +221,7 @@ describe('OrganizationDashboardPage', () => {
       renderPage()
 
       await waitFor(() => {
-        expect(getCurrentSpotsValue()).toBe('3 / 10 filled')
+        expect(getCurrentSpotsValue()).toBe('3 / 10')
       })
     })
 
@@ -247,7 +247,7 @@ describe('OrganizationDashboardPage', () => {
       renderPage()
 
       await waitFor(() => {
-        expect(getCurrentSpotsValue()).toBe('7 / 16 filled')
+        expect(getCurrentSpotsValue()).toBe('7 / 16')
       })
     })
   })
