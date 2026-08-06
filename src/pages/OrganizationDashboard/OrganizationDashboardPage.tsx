@@ -118,10 +118,9 @@ function OrganizationDashboardPage() {
     0,
   )
 
-  const totalCapacityCount = opportunities.reduce(
-    (total, opportunity) => total + opportunity.capacity,
-    0,
-  )
+  const totalCapacityCount = opportunities
+    .filter((opportunity) => getOpportunityDisplayStatus(opportunity) === 'OPEN')
+    .reduce((total, opportunity) => total + opportunity.capacity, 0)
 
   function formatMetric(value: number): string {
     return showMetricsPlaceholder ? '—' : String(value)

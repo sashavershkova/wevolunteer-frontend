@@ -152,7 +152,7 @@ describe('OrganizationDashboardPage', () => {
   })
 
   describe('Total Registrations and Total Capacity metrics', () => {
-    it('sums registeredCount and capacity across every opportunity regardless of status', async () => {
+    it('sums registeredCount across every opportunity regardless of status', async () => {
       const open: Opportunity = {
         ...opp1,
         opportunityId: 'open',
@@ -184,7 +184,40 @@ describe('OrganizationDashboardPage', () => {
       await waitFor(() => {
         expect(getMetricValue('Total Registrations')).toBe('15')
       })
-      expect(getMetricValue('Total Capacity')).toBe('38')
+    })
+
+    it('sums capacity only for OPEN opportunities, excluding Completed and Closed', async () => {
+      const open: Opportunity = {
+        ...opp1,
+        opportunityId: 'open',
+        date: '2026-08-01',
+        status: 'OPEN',
+        registeredCount: 3,
+        capacity: 10,
+      }
+      const closed: Opportunity = {
+        ...opp1,
+        opportunityId: 'closed',
+        date: '2026-08-01',
+        status: 'CLOSED',
+        registeredCount: 5,
+        capacity: 8,
+      }
+      const completed: Opportunity = {
+        ...opp1,
+        opportunityId: 'past-open',
+        date: '2025-06-01',
+        status: 'OPEN',
+        registeredCount: 7,
+        capacity: 20,
+      }
+      mockedGetMyOrganizationOpportunities.mockResolvedValue([open, closed, completed])
+
+      renderPage()
+
+      await waitFor(() => {
+        expect(getMetricValue('Total Capacity')).toBe('10')
+      })
     })
   })
 
