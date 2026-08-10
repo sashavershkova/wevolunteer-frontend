@@ -1,0 +1,115 @@
+.messaging-view {
+  max-width: 68rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.messaging-view-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.messaging-view-header h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: normal;
+  margin: 0;
+  max-width: 42rem;
+  overflow-wrap: break-word;
+}
+
+.messaging-view-subtitle {
+  color: var(--text);
+  margin: 0.35rem 0 0;
+}
+
+.messaging-view-compose-toggle {
+  flex-shrink: 0;
+}
+
+.messaging-view-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-sizing: border-box;
+}
+
+.messaging-view-compose label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 0.5rem;
+}
+
+.messaging-view-compose select,
+.messaging-view-compose textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.6rem 0.75rem;
+  box-sizing: border-box;
+}
+
+.messaging-view-compose textarea {
+  resize: vertical;
+}
+
+.messaging-view-compose-empty {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.messaging-view-compose-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.messaging-view-error {
+  color: #b3261e;
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+.messaging-view-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .messaging-view-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .messaging-view {
+    padding: 1.5rem 1rem 2rem;
+  }
+
+  .messaging-view-header h1 {
+    font-size: 1.6rem;
+  }
+}

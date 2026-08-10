@@ -138,6 +138,7 @@ function buildTree(initialPath: string) {
           <Route path="/organization" element={<p>Organization dashboard</p>} />
           <Route path="/organization/volunteers" element={<FakeOrganizationOnlyPage />} />
           <Route path="/organization/profile" element={<FakeOrganizationOnlyPage />} />
+          <Route path="/dashboard" element={<p>Volunteer dashboard</p>} />
           <Route path="/opportunities" element={<p>Browse opportunities</p>} />
           <Route path="/profile" element={<FakeVolunteerOnlyPage />} />
           <Route path="/dashboard" element={<p>Volunteer dashboard</p>} />

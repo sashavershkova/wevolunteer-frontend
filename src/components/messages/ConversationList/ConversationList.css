@@ -1,0 +1,131 @@
+.conversation-list {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  box-sizing: border-box;
+}
+
+.conversation-list-search {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.6rem 0.75rem;
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+}
+
+.conversation-list-status {
+  margin: 0.75rem 0.25rem;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.conversation-list-error {
+  color: #b3261e;
+}
+
+.conversation-list-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 30rem;
+  overflow-y: auto;
+}
+
+.conversation-list-card {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 0.5rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.conversation-list-card:hover {
+  background: var(--accent-bg);
+}
+
+.conversation-list-card.is-selected {
+  background: var(--accent-bg);
+}
+
+.conversation-list-avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.conversation-list-info {
+  min-width: 0;
+  flex: 1;
+  display: block;
+}
+
+.conversation-list-top-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.conversation-list-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-h);
+  overflow-wrap: anywhere;
+}
+
+.conversation-list-timestamp {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.conversation-list-preview {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-list-unread {
+  flex-shrink: 0;
+  align-self: center;
+  min-width: 1.35rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35rem;
+  text-align: center;
+}
