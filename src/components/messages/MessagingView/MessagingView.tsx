@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import ConversationList from '../ConversationList/ConversationList'
 import MessageThread from '../MessageThread/MessageThread'
 import { useMessaging } from '../../../hooks/useMessaging'
+import '../MessagingButtons.css'
 import './MessagingView.css'
 
 export type MessagingRecipient = {
@@ -88,7 +89,11 @@ function MessagingView({
 
         <button
           type="button"
-          className="messaging-view-compose-toggle"
+          className={
+            isComposing
+              ? 'messaging-button messaging-button-secondary messaging-view-compose-toggle'
+              : 'messaging-button messaging-button-primary messaging-view-compose-toggle'
+          }
           onClick={() => setIsComposing((previous) => !previous)}
           aria-expanded={isComposing}
         >
@@ -138,6 +143,7 @@ function MessagingView({
           <div className="messaging-view-compose-actions">
             <button
               type="submit"
+              className="messaging-button messaging-button-primary"
               disabled={
                 messaging.isSending || !recipientId || composeDraft.trim().length === 0
               }
