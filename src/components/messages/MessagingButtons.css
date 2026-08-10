@@ -1,0 +1,53 @@
+/*
+ * Button styling for the messaging feature.
+ *
+ * Values are taken from the buttons already used elsewhere in the app -- the create/save
+ * buttons in OrganizationOpportunitiesSection and OrganizationProfileSection for primary, the
+ * cancel buttons in OrganizationProfileSection and VolunteerProfileEditForm for secondary -- so
+ * messaging matches without inventing a new look.
+ *
+ * Shared across MessagingView and MessageThread rather than duplicated into both, following the
+ * precedent of the three filter components that import OpportunityFilters.css.
+ */
+
+.messaging-button {
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.65rem 1.1rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.messaging-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.messaging-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.messaging-button-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
+
+.messaging-button-primary:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.messaging-button-secondary {
+  background: none;
+  color: var(--text-h);
+  border: 1px solid var(--border);
+}
+
+.messaging-button-secondary:hover:not(:disabled) {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}

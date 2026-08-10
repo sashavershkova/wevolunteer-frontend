@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { Conversation, Message } from '../../../services/api/messageService'
 import { formatMessageTimestamp } from '../../../utils/formatConversationTimestamp'
+import '../MessagingButtons.css'
 import './MessageThread.css'
 
 type MessageThreadProps = {
@@ -170,7 +171,11 @@ function MessageComposer({
       )}
 
       <div className="message-thread-composer-actions">
-        <button type="submit" disabled={isSending || draft.trim().length === 0}>
+        <button
+          type="submit"
+          className="messaging-button messaging-button-primary"
+          disabled={isSending || draft.trim().length === 0}
+        >
           {isSending ? 'Sending...' : 'Send'}
         </button>
       </div>
