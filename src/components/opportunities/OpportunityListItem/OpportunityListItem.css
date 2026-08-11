@@ -205,7 +205,8 @@
 }
 
 .opportunity-list-item-register-button:hover:not(:disabled) {
-  opacity: 0.9;
+  background: var(--accent-bg);
+  color: var(--accent);
 }
 
 .opportunity-list-item-register-button:disabled {
