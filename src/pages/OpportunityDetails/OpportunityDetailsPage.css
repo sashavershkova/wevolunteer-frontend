@@ -208,6 +208,11 @@
   cursor: pointer;
 }
 
+.opportunity-details-register-button:hover:not(:disabled) {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
 .opportunity-details-register-button:disabled {
   opacity: 0.6;
   cursor: default;
