@@ -456,7 +456,7 @@ function OpportunityDetailsPage() {
                 ) : (
                   <button
                     type="button"
-                    className="opportunity-details-cancel-button"
+                    className="opportunity-details-join-waitlist-button"
                     disabled={isActionPending}
                     onClick={handleJoinWaitlist}
                   >

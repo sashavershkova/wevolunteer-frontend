@@ -230,6 +230,28 @@
   cursor: default;
 }
 
+.opportunity-details-join-waitlist-button {
+  flex: 1;
+  background: var(--border);
+  color: var(--text-h);
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.7rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.opportunity-details-join-waitlist-button:hover:not(:disabled) {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.opportunity-details-join-waitlist-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .opportunity-details-save-button {
   flex: 1;
   display: inline-flex;
