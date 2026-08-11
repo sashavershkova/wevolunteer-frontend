@@ -273,6 +273,13 @@
   margin: 0;
 }
 
+.opportunity-details-waitlisted-note {
+  color: #b7791f;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
 .opportunity-details-action-error {
   flex-basis: 100%;
   color: #c0392b;

@@ -14,6 +14,12 @@ import {
   saveFavorite,
   type Favorite,
 } from '../../services/api/favoriteService'
+import {
+  getMyWaitlist,
+  joinWaitlist,
+  leaveWaitlist,
+  type Waitlist,
+} from '../../services/api/waitlistService'
 import type { Opportunity } from '../../types/Opportunity'
 import {
   ChecklistIcon,
@@ -48,6 +54,7 @@ function OpportunityDetailsPage() {
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null)
   const [organization, setOrganization] = useState<OrganizationProfile | null>(null)
   const [isRegistered, setIsRegistered] = useState(false)
+  const [isWaitlisted, setIsWaitlisted] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -84,7 +91,7 @@ function OpportunityDetailsPage() {
 
         setOpportunity(foundOpportunity)
 
-        const [organizationResult, registrations, favorites] = await Promise.all([
+        const [organizationResult, registrations, favorites, waitlist] = await Promise.all([
           getOrganization(auth.accessToken, foundOpportunity.organizationId),
           auth.userProfile
             ? getMyRegistrations(auth.accessToken)
@@ -92,6 +99,9 @@ function OpportunityDetailsPage() {
           auth.userProfile
             ? getMyFavorites(auth.accessToken)
             : Promise.resolve([] as Favorite[]),
+          auth.userProfile
+            ? getMyWaitlist(auth.accessToken)
+            : Promise.resolve([] as Waitlist[]),
         ])
 
         if (ignore) {
@@ -108,6 +118,9 @@ function OpportunityDetailsPage() {
           favorites.some(
             (favorite) => favorite.opportunityId === foundOpportunity.opportunityId,
           ),
+        )
+        setIsWaitlisted(
+          waitlist.some((entry) => entry.opportunityId === foundOpportunity.opportunityId),
         )
       } catch (error) {
         if (!ignore) {
@@ -183,6 +196,62 @@ function OpportunityDetailsPage() {
     } catch (error) {
       setActionErrorMessage(
         error instanceof Error ? error.message : 'Unable to cancel this registration.',
+      )
+    } finally {
+      setIsActionPending(false)
+    }
+  }
+
+  async function handleJoinWaitlist() {
+    if (!opportunity) {
+      return
+    }
+
+    setActionErrorMessage(null)
+    setIsActionPending(true)
+
+    try {
+      await joinWaitlist(auth.accessToken, opportunity.opportunityId)
+
+      setIsWaitlisted(true)
+    } catch (error) {
+      setActionErrorMessage(
+        error instanceof Error ? error.message : 'Unable to join the waitlist.',
+      )
+    } finally {
+      setIsActionPending(false)
+    }
+  }
+
+  async function handleLeaveWaitlist() {
+    if (!opportunity) {
+      return
+    }
+
+    setActionErrorMessage(null)
+    setIsActionPending(true)
+
+    try {
+      await leaveWaitlist(auth.accessToken, opportunity.opportunityId)
+
+      setIsWaitlisted(false)
+
+      // Leaving the waitlist doesn't itself change capacity, but a spot may have opened up
+      // elsewhere since this page loaded - refresh so the button reflects reality instead of
+      // this page's stale snapshot (same fix applied to the opportunity list/favorites pages).
+      try {
+        const refreshed = await getOpportunity(auth.accessToken, opportunity.opportunityId)
+
+        if (refreshed) {
+          setOpportunity(refreshed)
+        }
+      } catch {
+        // Leaving the waitlist already succeeded - a failed refresh just means this
+        // page's spot count may be stale until the next full page load.
+      }
+    } catch (error) {
+      setActionErrorMessage(
+        error instanceof Error ? error.message : 'Unable to leave the waitlist.',
       )
     } finally {
       setIsActionPending(false)
@@ -367,10 +436,33 @@ function OpportunityDetailsPage() {
                 <button type="button" className="opportunity-details-cancel-button" disabled>
                   Completed
                 </button>
-              ) : isClosed || isFull ? (
+              ) : isClosed ? (
                 <button type="button" className="opportunity-details-cancel-button" disabled>
-                  {isClosed ? 'Registration closed' : 'This opportunity is full'}
+                  Registration closed
                 </button>
+              ) : isFull ? (
+                isWaitlisted ? (
+                  <>
+                    <p className="opportunity-details-waitlisted-note">You&apos;re on the waitlist</p>
+                    <button
+                      type="button"
+                      className="opportunity-details-cancel-button"
+                      disabled={isActionPending}
+                      onClick={handleLeaveWaitlist}
+                    >
+                      {isActionPending ? 'Leaving...' : 'Leave Waitlist'}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="opportunity-details-cancel-button"
+                    disabled={isActionPending}
+                    onClick={handleJoinWaitlist}
+                  >
+                    {isActionPending ? 'Joining...' : 'Join Waitlist'}
+                  </button>
+                )
               ) : (
                 <button
                   type="button"
